@@ -1,11 +1,10 @@
 Summary: mtools, read/write/list/format DOS disks under Unix
 Name: mtools
-Version: 3.9.9
-Release: 199
+Version: 3.9.10
+Release: 1
 Group: Utilities/System
 URL: http://mtools.linux.lu
-Source0: mtools-3.9.9.tar.gz
-Patch1: mtools-3.9.9-20050213b.diff.gz
+Source0: mtools-%{version}.tar.gz
 Buildroot: %{_tmppath}/%{name}-%{version}-buildroot
 License: GPL
 %description
@@ -17,7 +16,6 @@ disks (store up to 1992k on a high density 3 1/2 disk).
 
 %prep
 %setup -q
-%patch1 -p 1
 ./configure --prefix=%{buildroot}%{_prefix} --sysconfdir=/etc --infodir=%{buildroot}%{_infodir} --mandir=%{buildroot}%{_mandir}
 
 %build
