@@ -180,8 +180,17 @@ extern struct OldDos_t {
 	int media;
 } old_dos[];
 
+/* max FAT12/FAT16 sizes, according to
+   
+ http://www.microsoft.com/hwdev/download/hardware/fatgen103.pdf
+
+ interestingly enough, another Microsoft document 
+ [http://support.microsoft.com/default.aspx?scid=kb%3ben-us%3b67321]
+ gives different values, but the first seems to be more sure about
+ itself, so we believe that one ;-)
+*/
 #define FAT12 4085 /* max. number of clusters described by a 12 bit FAT */
-#define FAT16 65525
+#define FAT16 65525 /* max number of clusters for a 16 bit FAT */
 
 #define ATTR_ARCHIVE 0x20
 #define ATTR_DIR 0x10
@@ -200,7 +209,7 @@ extern struct OldDos_t {
 #define IS_READONLY(entry) (HAS_BIT((entry),ATTR_READONLY))
 
 
-#define MAX_SECT_PER_CLUSTER 64
+#define MAX_BYTES_PER_CLUSTER (32*1024)
 /* Experimentally, it turns out that DOS only accepts cluster sizes
  * which are powers of two, and less than 128 sectors (else it gets a
  * divide overflow) */

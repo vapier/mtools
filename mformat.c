@@ -14,6 +14,9 @@
 #include "floppyd_io.h"
 #include "nameclash.h"
 #include "buffer.h"
+#ifdef HAVE_ASSERT_H
+#include <assert.h>
+#endif
 #ifdef USE_XDF
 #include "xdf_io.h"
 #endif
@@ -38,7 +41,7 @@ extern int errno;
 
 static int init_geometry_boot(struct bootsector *boot, struct device *dev,
 			       int sectors0, int rate_0, int rate_any,
-			       int *tot_sectors, int keepBoot)
+			       unsigned long *tot_sectors, int keepBoot)
 {
 	int i;
 	int nb_renum;
@@ -124,7 +127,7 @@ static int init_geometry_boot(struct bootsector *boot, struct device *dev,
 			boot->jump[0] = 0xeb;
 			boot->jump[1] = 0;
 			boot->jump[2] = 0x90;
-			strncpy(boot->banner, "MTOOL398", 8);
+			strncpy(boot->banner, "MTOOL399", 8);
 			/* It looks like some versions of DOS are
 			 * rather picky about this, and assume default
 			 * parameters without this, ignoring any
@@ -136,7 +139,7 @@ static int init_geometry_boot(struct bootsector *boot, struct device *dev,
 
 
 static int comp_fat_bits(Fs_t *Fs, int estimate, 
-			 unsigned int tot_sectors, int fat32)
+			 unsigned long tot_sectors, int fat32)
 {
 	int needed_fat_bits;
 
@@ -144,11 +147,11 @@ static int comp_fat_bits(Fs_t *Fs, int estimate,
 
 #define MAX_DISK_SIZE(bits,clusters) \
 	TOTAL_DISK_SIZE((bits), Fs->sector_size, (clusters), \
-			Fs->num_fat, MAX_SECT_PER_CLUSTER)
+			Fs->num_fat, MAX_BYTES_PER_CLUSTER/Fs->sector_size)
 
-	if(tot_sectors > MAX_DISK_SIZE(12, FAT12))
+	if(tot_sectors > MAX_DISK_SIZE(12, FAT12-1))
 		needed_fat_bits = 16;
-	if(fat32 || tot_sectors > MAX_DISK_SIZE(16, FAT16))
+	if(fat32 || tot_sectors > MAX_DISK_SIZE(16, FAT16-1))
 		needed_fat_bits = 32;
 
 #undef MAX_DISK_SIZE
@@ -170,7 +173,7 @@ static int comp_fat_bits(Fs_t *Fs, int estimate,
 
 		if(needed_fat_bits > 12)
 			return needed_fat_bits;
-		min_fat16_size = DISK_SIZE(16, Fs->sector_size, FAT12+1,
+		min_fat16_size = DISK_SIZE(16, Fs->sector_size, FAT12,
 					   Fs->num_fat, 1);
 		if(tot_sectors < min_fat16_size)
 			return 12;
@@ -181,9 +184,32 @@ static int comp_fat_bits(Fs_t *Fs, int estimate,
 	return estimate;
 }
 
-static void calc_fat_bits2(Fs_t *Fs, unsigned int tot_sectors, int fat_bits)
+
+/*
+ * According to Microsoft "Hardware White Paper", "Microsoft
+ * Extensible Formware Initiative", "FAT32 File System Specification",
+ * Version 1.03, December 6, 2000:
+ * If (CountofClusters < 4085) { 
+ *  // Volume is FAT12  
+ * } else if (CountofClusters < 65525) { 
+ *  // Volume is FAT16
+ * } else { 
+ *  //Volume is FAT32
+ * }
+ *
+ * This document can be found at the following URL
+ * http://www.microsoft.com/hwdev/download/hardware/fatgen103.pdf
+ * The relevant passus is on page 15.
+ *
+ * Actually, experimentations with Windows NT 4 show that the
+ * cutoff is 4087 rather than 4085... This is Microsoft after all.
+ * Not sure what the other Microsoft OS'es do though...
+ */
+static void calc_fat_bits2(Fs_t *Fs, unsigned long tot_sectors, int fat_bits,
+			   int may_change_cluster_size, 
+			   int may_change_root_size)
 {
-	unsigned int rem_sect;
+	unsigned long rem_sect;
 
 	/*
 	 * the "remaining sectors" after directory and boot
@@ -197,18 +223,29 @@ static void calc_fat_bits2(Fs_t *Fs, unsigned int tot_sectors, int fat_bits)
 			DISK_SIZE( (bits), Fs->sector_size, (clusters), \
 				   Fs->num_fat, Fs->cluster_size)
 
-			if(rem_sect >= MY_DISK_SIZE(16, FAT12 + 1))
-				/* big enough for FAT16 */
+			if(rem_sect >= MY_DISK_SIZE(16, FAT12+2))
+				/* big enough for FAT16 
+				 * We take a margin of 2, because NT4 
+				 * misbehaves, and starts considering a disk
+				 * as FAT16 only if it is larger than 4086
+				 * sectors, rather than 4084 as it should
+				 */
 				set_fat16(Fs);
-			else if(rem_sect <= MY_DISK_SIZE(12, FAT12))
+			else if(rem_sect <= MY_DISK_SIZE(12, FAT12-1))
 				 /* small enough for FAT12 */
 				 set_fat12(Fs);
 			else {
 				/* "between two chairs",
 				 * augment cluster size, and
 				 * settle it */
-				if(Fs->cluster_size < MAX_SECT_PER_CLUSTER)
+				if(may_change_cluster_size && 
+				   Fs->cluster_size * Fs->sector_size * 2 
+				   <= MAX_BYTES_PER_CLUSTER)
 					Fs->cluster_size <<= 1;
+				else if(may_change_root_size) {
+					Fs->dir_len += 
+						rem_sect - MY_DISK_SIZE(12, FAT12-1);
+				}
 				set_fat12(Fs);
 			}
 			break;
@@ -271,7 +308,8 @@ static __inline__ void format_root(Fs_t *Fs, char *label, struct bootsector *boo
 }
 
 
-static void xdf_calc_fat_size(Fs_t *Fs, unsigned int tot_sectors, int fat_bits)
+static void xdf_calc_fat_size(Fs_t *Fs, unsigned long tot_sectors, 
+			      int fat_bits)
 {
 	unsigned int rem_sect;
 
@@ -285,7 +323,7 @@ static void xdf_calc_fat_size(Fs_t *Fs, unsigned int tot_sectors, int fat_bits)
 		 * minimal size of 1 */
 		for(Fs->cluster_size = 1; 1 ; Fs->cluster_size <<= 1) {
 			Fs->num_clus = rem_sect / Fs->cluster_size;
-			if(abs(fat_bits) == 16 || Fs->num_clus > FAT12)
+			if(abs(fat_bits) == 16 || Fs->num_clus >= FAT12)
 				set_fat16(Fs);
 			else
 				set_fat12(Fs);
@@ -298,88 +336,136 @@ static void xdf_calc_fat_size(Fs_t *Fs, unsigned int tot_sectors, int fat_bits)
 }
 
 
-static void calc_fat_size(Fs_t *Fs, unsigned int tot_sectors)
+static void calc_fat_size(Fs_t *Fs, unsigned long tot_sectors)
 {
-	unsigned int rem_sect;
-	int tries;
-	int occupied;
+	unsigned long rem_sect;
+	unsigned long real_rem_sect;
+	unsigned long numerator;
+	unsigned long denominator;
+	int fat_nybbles;
+	int slack;
+	int printGrowMsg=1; /* Should we print "growing FAT" messages ?*/
 	
-	tries=0;
-	/* rough estimate of fat size */
-	Fs->fat_len = 1;
-	rem_sect = tot_sectors - Fs->dir_len - Fs->fat_start;
-	while(1){
-		Fs->num_clus = (rem_sect - 2 * Fs->fat_len ) /Fs->cluster_size;
-		Fs->fat_len = NEEDED_FAT_SIZE(Fs);
-		occupied = 2 * Fs->fat_len + Fs->cluster_size * Fs->num_clus;
-		
-		/* if we have used up more than we have,
-		 * we'll have to reloop */
-		
-		if ( occupied > rem_sect )
-			continue;
+#if DEBUG
+	fprintf(stderr, "Fat start=%d\n", Fs->fat_start);
+	fprintf(stderr, "tot_sectors=%lu\n", tot_sectors);
+	fprintf(stderr, "dir_len=%d\n", Fs->dir_len);
+#endif
+	real_rem_sect = rem_sect = tot_sectors - Fs->dir_len - Fs->fat_start;
+
+	/* Cheat a little bit to address the _really_ common case of
+	   odd number of remaining sectors while both nfat and cluster size
+	   are even... */
+	if(rem_sect         %2 == 1 &&
+	   Fs->num_fat      %2 == 0 &&
+	   Fs->cluster_size %2 == 0)
+		rem_sect--;
+
+#if DEBUG
+	fprintf(stderr, "Rem sect=%lu\n", rem_sect);
+#endif
+
+	if(Fs->fat_bits == 0) {
+		fprintf(stderr, "Weird, fat bits = 0\n");
+		exit(1);		
+	}
 
 
-		/* if we have exactly used up all
-		 * sectors, fine */
-		if ( rem_sect - occupied < Fs->cluster_size )
-			break;
+	/* See fat_size_calculation.tex or
+	   (http://www.mtools.linux.lu/fat_size_calculation.pdf) for an
+	   explantation about why the stuff below works...
+	*/
 
-		/* if we have not used up all our
-		 * sectors, try again.  After the second
-		 * try, decrease the amount of available
-		 * space. This is to deal with the case of
-		 * 344 or 345, ..., 1705, ... available
-		 * sectors.  */
-		
-		switch(tries++){
-			default:
-				/* this should never happen */
-				fprintf(stderr,
-					"Internal error in cluster/fat repartition"
-					" calculation.\n");
-				exit(1);
-			case 2:
-				/* FALLTHROUGH */
-			case 1:
-				rem_sect-= Fs->cluster_size;
-				Fs->dir_len += Fs->cluster_size;
-			case 0:
-				continue;
+	fat_nybbles = Fs->fat_bits / 4;
+	numerator   = rem_sect+2*Fs->cluster_size;
+	denominator = 
+	  Fs->cluster_size * Fs->sector_size * 2 +
+	  Fs->num_fat * fat_nybbles;
+
+	if(fat_nybbles == 3)
+		numerator *= fat_nybbles;
+	else
+		/* Avoid numerical overflows, divide the denominator
+		 * rather than multiplying the numerator */
+		denominator = denominator / fat_nybbles;
+
+#if DEBUG
+	fprintf(stderr, "Numerator=%lu denominator=%lu\n",
+		numerator, denominator);
+#endif
+
+	Fs->fat_len = (numerator-1)/denominator+1;
+	Fs->num_clus = (rem_sect-(Fs->fat_len*Fs->num_fat))/Fs->cluster_size;
+
+	/* Apply upper bounds for FAT bits */
+	if(Fs->fat_bits == 16 && Fs->num_clus >= FAT16)
+		Fs->num_clus = FAT16-1;
+	if(Fs->fat_bits == 12 && Fs->num_clus >= FAT12)
+		Fs->num_clus = FAT12-1;
+	
+	/* A safety, if above math is correct, this should not be happen...*/
+	if(Fs->num_clus > (Fs->fat_len * Fs->sector_size * 2 / 
+			   fat_nybbles - 2)) {
+		fprintf(stderr, 
+			"Fat size miscalculation, shrinking num_clus from %d ",
+			Fs->num_clus);
+		Fs->num_clus = (Fs->fat_len * Fs->sector_size * 2 / 
+				fat_nybbles - 2);
+		fprintf(stderr, " to %d\n", Fs->num_clus);
+	}
+#if DEBUG
+	fprintf(stderr, "Num_clus=%d fat_len=%d nybbles=%d\n",
+		Fs->num_clus, Fs->fat_len, fat_nybbles);
+#endif
+
+	if ( Fs->num_clus < FAT16 && Fs->fat_bits > 16 ){
+		fprintf(stderr,"Too few clusters for this fat size."
+			" Please choose a 16-bit fat in your /etc/mtools.conf"
+			" or .mtoolsrc file\n");
+		exit(1);
+	}
+
+	/* As the number of clusters is specified nowhere in the boot sector,
+	 * it will be calculated by removing everything else from total number
+	 * of sectors. This means that if we reduced the number of clusters
+	 * above, we will have to grow the FAT in order to take up any excess
+	 * sectors... */
+	slack = rem_sect - 
+		Fs->num_clus * Fs->cluster_size - 
+		Fs->fat_len * Fs->num_fat;
+	if(slack >= Fs->cluster_size) {
+		/* This can happen under two circumstances:
+		   1. We had to reduce num_clus because we reached maximum
+		   number of cluster for FAT12 or FAT16
+		*/
+		if(printGrowMsg) {
+			fprintf(stderr, "Slack=%d\n", slack);
+			fprintf(stderr, "Growing fat size from %d", 
+				Fs->fat_len);
 		}
+		Fs->fat_len += 
+			(slack - Fs->cluster_size) / Fs->num_fat + 1;
+		if(printGrowMsg) {
+			fprintf(stderr,
+				" to %d in order to take up excess cluster area\n",
+				Fs->fat_len);
+		}
+		Fs->num_clus = (rem_sect-(Fs->fat_len*Fs->num_fat))/
+			Fs->cluster_size;
+
 	}
 
-	if ( Fs->num_clus > FAT12 && Fs->fat_bits == 12 ){
-		fprintf(stderr,"Too many clusters for this fat size."
-			" Please choose a 16-bit fat in your /etc/mtools.conf"
-			" or .mtoolsrc file\n");
-		exit(1);
-	}
-	if ( Fs->num_clus <= FAT12 && Fs->fat_bits > 12 ){
-		fprintf(stderr,"Too few clusters for this fat size."
-			" Please choose a 12-bit fat in your /etc/mtools.conf"
-			" or .mtoolsrc file\n");
-		exit(1);
-	}
+#ifdef HAVE_ASSERT_H
+	/* Fat must be big enough for all clusters */
+	assert( ((Fs->num_clus+2) * fat_nybbles) <= 
+		(Fs->fat_len*Fs->sector_size*2));
 
-	/*
-	 * According to Microsoft "Hardware White Paper", "Microsoft
-	 * Extensible Formware Initiative", "FAT32 File System Specification",
-	 * Version 1.03, December 6, 2000:
-	 * If (CountofClusters < 4085) { 
-	 *  // Volume is FAT12  
-	 * } else if (CountofClusters < 65525) { 
-	 *  // Volume is FAT16
-	 * } else { 
-	 *  //Volume is FAT32
-	 * }
-	 */
-	if ( Fs->num_clus <= FAT16 && Fs->fat_bits > 16 ){
-		fprintf(stderr,"Too few clusters for this fat size."
-			" Please choose a 16-bit fat in your /etc/mtools.conf"
-			" or .mtoolsrc file\n");
-		exit(1);
-	}
+	/* num_clus must be big enough to cover rest of disk, or else further
+	 * users of the filesystem will assume a bigger num_clus, which might
+	 * be too big for fat_len */
+	assert(Fs->num_clus ==
+	       (real_rem_sect - Fs->num_fat * Fs->fat_len) / Fs->cluster_size);
+#endif
 }
 
 
@@ -408,7 +494,7 @@ static __inline__ void inst_boot_prg(struct bootsector *boot, int offset)
 	set_word(boot->jump + offset + 20, offset + 24);
 }
 
-static void calc_cluster_size(struct Fs_t *Fs, unsigned int tot_sectors,
+static void calc_cluster_size(struct Fs_t *Fs, unsigned long tot_sectors,
 			      int fat_bits)
 			      
 {
@@ -421,13 +507,13 @@ static void calc_cluster_size(struct Fs_t *Fs, unsigned int tot_sectors,
 
 	switch(abs(fat_bits)) {
 		case 12:			
-			max_clusters = FAT12;
+			max_clusters = FAT12-1;
 			max_fat_size = Fs->num_fat * 
 				FAT_SIZE(12, Fs->sector_size, max_clusters);
 			break;
 		case 16:
 		case 0: /* still hesititating between 12 and 16 */
-			max_clusters = FAT16;
+			max_clusters = FAT16-1;
 			max_fat_size = Fs->num_fat * 
 				FAT_SIZE(16, Fs->sector_size, max_clusters);
 			break;
@@ -489,7 +575,7 @@ static int old_dos_size_to_geom(int size, int *cyls, int *heads, int *sects)
 }
 
 
-static void calc_fs_parameters(struct device *dev, unsigned int tot_sectors,
+static void calc_fs_parameters(struct device *dev, unsigned long tot_sectors,
 			       struct Fs_t *Fs, struct bootsector *boot)
 {
 	int i;
@@ -511,6 +597,9 @@ static void calc_fs_parameters(struct device *dev, unsigned int tot_sectors,
 		}
 	}
 	if (i == sizeof(old_dos) / sizeof(old_dos[0]) ){
+		int may_change_cluster_size = (Fs->cluster_size == 0);
+		int may_change_root_size = (Fs->dir_len == 0);
+
 		/* a non-standard format */
 		if(DWORD(nhs))
 			boot->descr = 0xf8;
@@ -532,14 +621,16 @@ static void calc_fs_parameters(struct device *dev, unsigned int tot_sectors,
 			if (dev->heads == 1)
 				Fs->dir_len = 4;
 			else
-				Fs->dir_len = (tot_sectors > 2000) ? 11 : 7;
+				Fs->dir_len = (tot_sectors > 2000) ? 32 : 7;
 		}			
 
 		calc_cluster_size(Fs, tot_sectors, dev->fat_bits);
 		if(Fs->fat_len)
 			xdf_calc_fat_size(Fs, tot_sectors, dev->fat_bits);
 		else {
-			calc_fat_bits2(Fs, tot_sectors, dev->fat_bits);
+			calc_fat_bits2(Fs, tot_sectors, dev->fat_bits,
+				       may_change_cluster_size,
+				       may_change_root_size);
 			calc_fat_size(Fs, tot_sectors);
 		}
 	}
@@ -549,7 +640,7 @@ static void calc_fs_parameters(struct device *dev, unsigned int tot_sectors,
 
 
 
-static void calc_fs_parameters_32(unsigned int tot_sectors,
+static void calc_fs_parameters_32(unsigned long tot_sectors,
 				  struct Fs_t *Fs, struct bootsector *boot)
 {
 	if(DWORD(nhs))
@@ -621,7 +712,7 @@ void mformat(int argc, char **argv, int dummy)
 	int keepBoot = 0;
 	struct device used_dev;
 	int argtracks, argheads, argsectors;
-	int tot_sectors;
+	unsigned long tot_sectors;
 	int blocksize;
 
 	char drive, name[EXPAND_BUF];
@@ -749,8 +840,13 @@ void mformat(int argc, char **argv, int dummy)
 
 			case 'M':
 				msize = atoi(optarg);
-				if (msize % 256 || msize > 8192 )
-					usage();
+				if(msize != 512 &&
+				   msize != 1024 &&
+				   msize != 2048 &&
+				   msize != 4096) {
+				  fprintf(stderr, "Only sector sizes of 512, 1024, 2048 or 4096 bytes are allowed\n");
+				  usage();
+				}
 				break;
 
 			case 'N':

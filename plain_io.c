@@ -761,7 +761,9 @@ APIRET rc;
 			dev->tracks = cyl(partTable[dev->partition].end) -
 				cyl(partTable[dev->partition].start)+1;
 		}
-		dev->hidden=dev->sectors*head(partTable[dev->partition].start);
+		dev->hidden=
+			dev->sectors*head(partTable[dev->partition].start) +
+			sector(partTable[dev->partition].start)-1;
 		if(!mtools_skip_check &&
 		   consistencyCheck((struct partition *)(buf+0x1ae), 0, 0,
 				    &has_activated, &last_end, &j, dev, 0)) {

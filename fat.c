@@ -347,16 +347,19 @@ static void fast_fat16_encode(Fs_t *Stream, unsigned int num, unsigned int code)
 /*
  * Fat 32 encoding
  */
+#define FAT32_HIGH 0xf0000000
+#define FAT32_ADDR 0x0fffffff
+
 static unsigned int fat32_decode(Fs_t *Stream, unsigned int num)
 {
 	unsigned char *address = getAddress(Stream, num << 2, FAT_ACCESS_READ);
-	return _DWORD(address);
+	return _DWORD(address) & FAT32_ADDR;
 }
 
 static void fat32_encode(Fs_t *Stream, unsigned int num, unsigned int code)
 {       
 	unsigned char *address = getAddress(Stream, num << 2, FAT_ACCESS_WRITE);
-	set_dword(address, code);
+	set_dword(address,(code&FAT32_ADDR) | (_DWORD(address)&FAT32_HIGH));
 }
 
 
@@ -365,7 +368,7 @@ static unsigned int fast_fat32_decode(Fs_t *Stream, unsigned int num)
 	unsigned int *address = 
 		(unsigned int *) getAddress(Stream, num << 2, 
 					    FAT_ACCESS_READ);
-	return *address;
+	return (*address) & FAT32_ADDR;
 }
 
 static void fast_fat32_encode(Fs_t *Stream, unsigned int num, unsigned int code)
@@ -373,7 +376,7 @@ static void fast_fat32_encode(Fs_t *Stream, unsigned int num, unsigned int code)
 	unsigned int *address = 
 		(unsigned int *) getAddress(Stream, num << 2, 
 					    FAT_ACCESS_WRITE);
-	*address = code;
+	*address = (*address & FAT32_HIGH) | (code & FAT32_ADDR);
 }
 
 
@@ -691,7 +694,7 @@ static int old_fat_read(Fs_t *This, struct bootsector *boot,
 	if(check_media_type(This,boot, tot_sectors))
 		return -1;
 
-	if(This->num_clus > FAT12) {
+	if(This->num_clus >= FAT12) {
 		set_fat16(This);
 		/* third FAT byte must be 0xff */
 		if(!mtools_skip_check && readByte(This, 3) != 0xff)

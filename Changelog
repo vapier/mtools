@@ -1,3 +1,8 @@
+030213	Released Pre-1
+	Fixed max numbers of sectors for FAT12 and FAT16 (was off by one...)
+	Improved fat_len calculation
+	Fixed plain_io.c bug (Swap byte applied after partition stuff,
+	instead of before)
 030118	Fixed mcat end-of-file bugs (mcat went on writing, and writing,
 	and writing, even after end of file)
 030105	If "standard" CHS specified, but non-standard root dir size do not
