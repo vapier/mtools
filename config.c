@@ -43,7 +43,7 @@ unsigned int mtools_no_vfat=0;
 unsigned int mtools_numeric_tail=1;
 unsigned int mtools_dotted_dir=0;
 unsigned int mtools_twenty_four_hour_clock=1;
-char *mtools_date_string="mm-dd-yyyy";
+char *mtools_date_string="yyyy-mm-dd";
 char *country_string=0;
 
 typedef struct switches_l {
