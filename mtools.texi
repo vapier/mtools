@@ -19,7 +19,7 @@ mtools - utilities to access DOS disks in Unix.
 
 @set EDITION 3.9.9
 @set VERSION 3.9.9
-@set UPDATED May 2003
+@set UPDATED June 2003
 
 @iftex
 @finalout
@@ -1922,6 +1922,7 @@ low-level formatted diskette. Its syntax is:
   [@code{-C}] [@code{-H} @var{hidden_sectors}] [@code{-I} @var{fsVersion}]
   [@code{-r} @var{root_sectors}] [@code{-L} @var{fat_len}] 
   [@code{-B} @var{boot_sector}] [@code{-k}]
+  [@code{-m} @var{media_descriptor}]
   @var{drive:}
 @end display
 
@@ -2060,6 +2061,14 @@ parameters.
 Keep the existing boot sector as much as possible.  Only the geometry
 fields and other similar filesystem data are updated to match the target
 disks parameters.
+
+@item m
+Use a non-standard media descriptor byte for this disk. The media
+descriptor is stored at position 21 of the boot sector, and as first
+byte in each FAT copy. Using this option may confuse DOS or older mtools
+version, and may make the disk unreadable. Only use if you know what you
+are doing.
+
 @end table
 
 To format a diskette at a density other than the default, you must supply

@@ -728,6 +728,7 @@ void mformat(int argc, char **argv, int dummy)
 	unsigned long serial;
  	int serial_set;
 	int fsVersion;
+	int mediaDesc=-1;
 
 	mt_off_t maxSize;
 
@@ -766,7 +767,7 @@ void mformat(int argc, char **argv, int dummy)
 	/* get command line options */
 	while ((c = getopt(argc,argv,
 			   "i:148f:t:n:v:qub"
-			   "kB:r:L:IFCc:Xh:s:l:N:H:M:S:2:30:Aad:"))!= EOF) {
+			   "kB:r:L:IFCc:Xh:s:l:N:H:M:S:2:30:Aad:m:"))!= EOF) {
 		switch (c) {
 			case 'i':
 				set_cmd_line_image(optarg, 0);
@@ -908,6 +909,9 @@ void mformat(int argc, char **argv, int dummy)
 				break;
 			case 'd':
 				Fs.num_fat = atoi(optarg);
+				break;
+			case 'm':
+				mediaDesc = strtoul(optarg,0,0);
 				break;
 			default:
 				usage();
@@ -1218,6 +1222,8 @@ void mformat(int argc, char **argv, int dummy)
 	}
 	if(used_dev.use_2m & 0x7f)
 		Fs.num_fat = 1;
+	if(mediaDesc != -1)
+		boot->descr=mediaDesc;
 	Fs.lastFatSectorNr = 0;
 	Fs.lastFatSectorData = 0;
 	zero_fat(&Fs, boot->descr);

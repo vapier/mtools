@@ -1,3 +1,4 @@
+030605	Added -m option to mformat to specify a non-standard mediabyte
 030524	Added -d options to mformat to specify number of FAT copies. Can
 	also be set using the MTOOLS_NFATS environmental variable.
 	Also added similar env variable for root directory length
