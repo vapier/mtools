@@ -18,8 +18,9 @@ static FILE *fp; /* file pointer for configuration file */
 static int linenumber; /* current line number. Only used for printing
 						* error messages */
 static int lastTokenLinenumber; /* line numnber for last token */
-static const char *filename; /* current file name. Only used for printing
-			      * error messages */
+static const char *filename=NULL; /* current file name. Used for printing
+				   * error messages, and for storing in
+				   * the device definition (mtoolstest) */
 static int file_nr=0;
 
 
@@ -629,11 +630,21 @@ static int parse_one(int privilege)
 
 static int parse(const char *name, int privilege)
 {
+    if(fp) {
+	fprintf(stderr, "File descriptor already set (%p)!\n", fp);
+	exit(1);
+    }
     fp = fopen(name, "r");
     if(!fp)
 	return 0;
     file_nr++;
-    filename = strdup(name);
+    filename = name; /* no strdup needed: although lifetime of variable
+			exceeds this function (due to dev->cfg_filename),
+			we know that the name is always either
+			1. a constant
+			2. a statically allocate buffer
+			3. an environment variable that stays unchanged
+		     */
     linenumber = 0;
     lastTokenLinenumber = 0;
     pos = 0;
@@ -643,6 +654,8 @@ static int parse(const char *name, int privilege)
     while(parse_one(privilege));
     finish_drive_clause();
     fclose(fp);
+    filename = NULL;
+    fp = NULL;
     return 1;
 }
 
@@ -650,7 +663,7 @@ void read_config(void)
 {
     char *homedir;
     char *envConfFile;
-    char conf_file[MAXPATHLEN+sizeof(CFG_FILE1)];
+    static char conf_file[MAXPATHLEN+sizeof(CFG_FILE1)];
 
 	
     /* copy compiled-in devices */
