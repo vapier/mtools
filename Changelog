@@ -1,3 +1,9 @@
+030524	Added -d options to mformat to specify number of FAT copies. Can
+	also be set using the MTOOLS_NFATS environmental variable.
+	Also added similar env variable for root directory length
+	Signed/unsigned fixes, to satisfy increased pickyness of gcc ;-)
+	CYGWIN fixes for mcat
+	floppyd bugfixes
 030213	Released 3.9.9 : Identical to pre-3.9.9 except for the version number
 030213	Released 3.9.9 Pre-1
 	Fixed max numbers of sectors for FAT12 and FAT16 (was off by one...)

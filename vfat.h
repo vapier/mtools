@@ -60,11 +60,11 @@ struct scan_state {
 	int match_free;
 	int shortmatch;
 	int longmatch;
-	int free_start;
-	int free_end;
+	unsigned int free_start;
+	unsigned int free_end;
 	int slot;
 	int got_slots;
-	int size_needed;
+	unsigned int size_needed;
 	int max_entry;
 };
 

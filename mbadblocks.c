@@ -12,7 +12,7 @@
 
 void mbadblocks(int argc, char **argv, int type)
 {
-	int i;
+	unsigned int i;
 	char *in_buf;
 	int in_len;
 	off_t start;
@@ -45,13 +45,13 @@ void mbadblocks(int argc, char **argv, int type)
 		exit(1);
 	}
 	for(i=0; i < Fs->clus_start; i++ ){
-		ret = READS(Fs->Next, 
-					in_buf, sectorsToBytes((Stream_t*)Fs, i), Fs->sector_size);
+		ret = READS(Fs->Next, in_buf, 
+			    sectorsToBytes((Stream_t*)Fs, i), Fs->sector_size);
 		if( ret < 0 ){
 			perror("early error");
 			exit(1);
 		}
-		if(ret < Fs->sector_size){
+		if(ret < (signed int) Fs->sector_size){
 			fprintf(stderr,"end of file in file_read\n");
 			exit(1);
 		}

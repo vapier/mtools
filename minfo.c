@@ -24,7 +24,7 @@ static void displayInfosector(Stream_t *Stream, struct bootsector *boot)
 {
 	InfoSector_t *infosec;
 
-	if(WORD(ext.fat32.infoSector) == MAX32)
+	if(WORD(ext.fat32.infoSector) == MAX16)
 		return;
 
 	infosec = (InfoSector_t *) safe_malloc(WORD(secsiz));
@@ -139,10 +139,10 @@ void minfo(int argc, char **argv, int type)
 			       WORD(ext.fat32.fsVersion));
 			printf("rootCluster=%u\n",
 			       DWORD(ext.fat32.rootCluster));
-			if(WORD(ext.fat32.infoSector) != MAX32)
+			if(WORD(ext.fat32.infoSector) != MAX16)
 				printf("infoSector location=%d\n",
 				       WORD(ext.fat32.infoSector));
-			if(WORD(ext.fat32.backupBoot) != MAX32)
+			if(WORD(ext.fat32.backupBoot) != MAX16)
 				printf("backup boot sector=%d\n",
 				       WORD(ext.fat32.backupBoot));
 			displayInfosector(Stream,boot);

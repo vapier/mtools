@@ -490,9 +490,9 @@ static int xdf_write(Stream_t *Stream, char *buf, mt_off_t where, size_t len)
 	len2 = load_bounds(This, begin, end);
 	if(len2 < 0)
 		return len2;
-	maximize(end, len2);
+	maximize(end, (off_t)len2);
 	len2 -= begin;
-	maximize(len, len2);
+	maximize((off_t)len, (off_t)len2);
 	memcpy(This->buffer + begin, buf, len);
 	mark_dirty(This, begin, end);
 	return end - begin;
@@ -584,7 +584,7 @@ Stream_t *XdfOpen(struct device *dev, char *name,
 	Xdf_t *This;
 	off_t begin, end;
 	struct bootsector *boot;
-	int type;
+	unsigned int type;
 
 	if(dev && (!SHOULD_USE_XDF(dev) || check_geom(dev, 0, 0)))
 		return NULL;

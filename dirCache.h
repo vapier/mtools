@@ -11,8 +11,8 @@ typedef enum {
 
 typedef struct dirCacheEntry_t {
 	dirCacheEntryType_t type;
-	int beginSlot;
-	int endSlot;
+	unsigned int beginSlot;
+	unsigned int endSlot;
 	char *shortName;
 	char *longName;
 	struct directory dir;
@@ -34,7 +34,8 @@ dirCacheEntry_t *addUsedEntry(dirCache_t *Stream, int begin, int end,
 			      char *longName, char *shortName,
 			      struct directory *dir);
 void freeDirCache(Stream_t *Stream);
-dirCacheEntry_t *addFreeEntry(dirCache_t *Stream, int begin, int end);
+dirCacheEntry_t *addFreeEntry(dirCache_t *Stream, 
+			      unsigned int begin, unsigned int end);
 dirCacheEntry_t *addEndEntry(dirCache_t *Stream, int pos);
 dirCacheEntry_t *lookupInDircache(dirCache_t *Stream, int pos);
 #endif

@@ -16,13 +16,13 @@ typedef struct Buffer_t {
 	size_t size;     	/* size of read/write buffer */
 	int dirty;	       	/* is the buffer dirty? */
 
-	int sectorSize;		/* sector size: all operations happen
+	size_t sectorSize;	/* sector size: all operations happen
 				 * in multiples of this */
-	int cylinderSize;	/* cylinder size: preferred alignemnt,
+	size_t cylinderSize;	/* cylinder size: preferred alignemnt,
 				 * but for efficiency, less data may be read */
 	int ever_dirty;	       	/* was the buffer ever dirty? */
-	int dirty_pos;
-	int dirty_end;
+	size_t dirty_pos;
+	size_t dirty_end;
 	mt_off_t current;		/* first sector in buffer */
 	size_t cur_size;		/* the current size */
 	char *buf;		/* disk read/write buffer */
@@ -55,7 +55,7 @@ static int _buf_flush(Buffer_t *Buffer)
 			  Buffer->buf + Buffer->dirty_pos,
 			  Buffer->current + Buffer->dirty_pos,
 			  Buffer->dirty_end - Buffer->dirty_pos);
-	if(ret != Buffer->dirty_end - Buffer->dirty_pos) {
+	if(ret != (signed int) (Buffer->dirty_end - Buffer->dirty_pos)) {
 		if(ret < 0)
 			perror("buffer_flush: write");
 		else
@@ -175,7 +175,7 @@ static int buf_write(Stream_t *Stream, char *buf, mt_off_t start, size_t len)
 {
 	char *disk_ptr;
 	DeclareThis(Buffer_t);	
-	int offset;
+	size_t offset;
 
 	if(!len)
 		return 0;

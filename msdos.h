@@ -15,8 +15,8 @@
 #define NEW		1
 #define OLD		0
 
-#define _WORD(x) ((unsigned char)(x)[0] + (((unsigned char)(x)[1]) << 8))
-#define _DWORD(x) (_WORD(x) + (_WORD((x)+2) << 16))
+#define _WORD(x) ((unsigned short)((unsigned char)(x)[0] + (((unsigned char)(x)[1]) << 8)))
+#define _DWORD(x) ((unsigned int)(_WORD(x) + (_WORD((x)+2) << 16)))
 
 #define DELMARK ((char) 0xe5)
 
@@ -39,6 +39,7 @@ struct directory {
 #define EXTCASE 0x10
 #define BASECASE 0x8
 
+#define MAX16 0xffff
 #define MAX32 0xffffffff
 #define MAX_SIZE 0x7fffffff
 
@@ -169,13 +170,13 @@ struct bootsector {
 
 
 extern struct OldDos_t {
-	int tracks;
-	int sectors;
-	int heads;
+	unsigned int tracks;
+	unsigned int sectors;
+	unsigned int heads;
 	
-	int dir_len;
-	int cluster_size;
-	int fat_len;
+	unsigned int dir_len;
+	unsigned int cluster_size;
+	unsigned int fat_len;
 
 	int media;
 } old_dos[];

@@ -56,7 +56,7 @@ static void set_offset(hsc *h, int offset, int heads, int sectors)
 }
 
 void setBeginEnd(struct partition *partTable, int begin, int end,
-				 int heads, int sectors, int activate, int type)
+		 int heads, int sectors, int activate, int type)
 {
 	set_offset(&partTable->start, begin, heads, sectors);
 	set_offset(&partTable->end, end-1, heads, sectors);
@@ -78,7 +78,7 @@ void setBeginEnd(struct partition *partTable, int begin, int end,
 }
 
 int consistencyCheck(struct partition *partTable, int doprint, int verbose,
-		     int *has_activated, int *last_end, int *j, 
+		     int *has_activated, unsigned int *last_end, int *j, 
 		     struct device *used_dev, int target_partition)
 {
 	int i;
@@ -105,7 +105,8 @@ int consistencyCheck(struct partition *partTable, int doprint, int verbose,
 			inconsistency=1;
 		}
 		
-		if(*j && *last_end > BEGIN(partTable[i])) {
+		if(*j && 
+		   *last_end > BEGIN(partTable[i])) {
 			fprintf(stderr,
 				"Partitions %d and %d badly ordered or overlapping\n",
 				*j,i);
@@ -261,7 +262,7 @@ void mpartition(int argc, char **argv, int dummy)
 	Stream_t *Stream;
 	unsigned int dummy2;
 
-	int i,j;
+	unsigned int i,j;
 
 	int sec_per_cyl;
 	int doprint = 0;
@@ -271,12 +272,12 @@ void mpartition(int argc, char **argv, int dummy)
 	int length = 0;
 	int remove = 0;
 	int initialize = 0;
-	int tot_sectors=0;
+	unsigned int tot_sectors=0;
 	int type = 0;
 	int begin_set = 0;
 	int size_set = 0;
 	int end_set = 0;
-	int last_end = 0;
+	unsigned int last_end = 0;
 	int activate = 0;
 	int has_activated = 0;
 	int inconsistency=0;

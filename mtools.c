@@ -42,7 +42,7 @@ static const struct dispatch {
 int main(int argc,char **argv)
 {
 	const char *name;
-	int i;
+	unsigned int i;
 
 	init_privs();
 #ifdef __EMX__

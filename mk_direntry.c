@@ -244,7 +244,7 @@ static int contains_illegals(const char *string, const char *illegals)
 
 static int is_reserved(char *ans, int islong)
 {
-	int i;
+	unsigned int i;
 	static const char *dev3[] = {"CON", "AUX", "PRN", "NUL", "   "};
 	static const char *dev4[] = {"COM", "LPT" };
 

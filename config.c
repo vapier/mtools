@@ -13,7 +13,7 @@
 static char buffer[MAX_LINE_LEN+1]; /* buffer for the whole line */
 static char *pos; /* position in line */
 static char *token; /* last scanned token */
-static int token_length; /* length of the token */
+static size_t token_length; /* length of the token */
 static FILE *fp; /* file pointer for configuration file */
 static int linenumber; /* current line number. Only used for printing
 						* error messages */
@@ -168,7 +168,7 @@ static void syntax(const char *msg, int thisLine)
 static void get_env_conf(void)
 {
     char *s;
-    int i;
+    unsigned int i;
 
     for(i=0; i< sizeof(switches) / sizeof(*switches); i++) {
 	s = getenv(switches[i].name);
@@ -407,7 +407,7 @@ static int set_var(struct switches_l *switches, int nr,
 
 static int set_openflags(struct device *dev)
 {
-    int i;
+    unsigned int i;
 
     for(i=0; i < sizeof(openflags) / sizeof(*openflags); i++) {
 	if(match_token(openflags[i].name)) {
@@ -420,7 +420,7 @@ static int set_openflags(struct device *dev)
 
 static int set_misc_flags(struct device *dev)
 {
-    int i;
+    unsigned int i;
 
     for(i=0; i < sizeof(misc_flags) / sizeof(*misc_flags); i++) {
 	if(match_token(misc_flags[i].name)) {
@@ -446,7 +446,7 @@ static int set_misc_flags(struct device *dev)
 
 static int set_def_format(struct device *dev)
 {
-    int i;
+    unsigned int i;
 
     for(i=0; i < sizeof(default_formats)/sizeof(*default_formats); i++) {
 	if(match_token(default_formats[i].name)) {

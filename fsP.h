@@ -18,7 +18,7 @@ typedef struct Fs_t {
 	
 	int serialized;
 	unsigned long serial_number;
-	int cluster_size;
+	unsigned int cluster_size;
 	unsigned int sector_size;
 	int fat_error;
 
@@ -31,24 +31,25 @@ typedef struct Fs_t {
 	unsigned int fat_start;
 	unsigned int fat_len;
 
-	int num_fat;
+	unsigned int num_fat;
 	unsigned int end_fat;
 	unsigned int last_fat;
-	int fat_bits;
+	int fat_bits; /* must be signed, because we use negative values
+		       * for special purposes */
 	struct FatMap_t *FatMap;
 
-	int dir_start;
-	int dir_len;
-	int clus_start;
+	unsigned int dir_start;
+	unsigned int dir_len;
+	unsigned int clus_start;
 
-	int num_clus;
+	unsigned int num_clus;
 	char drive; /* for error messages */
 
 	/* fat 32 */
 	unsigned int primaryFat;
 	unsigned int writeAllFats;
 	unsigned int rootCluster;
-	int infoSectorLoc;
+	unsigned int infoSectorLoc;
 	unsigned int last; /* last sector allocated, or MAX32 if unknown */
 	unsigned int freeSpace; /* free space, or MAX32 if unknown */
 	int preallocatedClusters;

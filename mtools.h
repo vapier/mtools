@@ -55,7 +55,7 @@ typedef struct device {
 
 	/* internal variables */
 	int file_nr;		/* used during parsing */
-	int blocksize;	        /* size of disk block in bytes */
+	unsigned int blocksize;	  /* size of disk block in bytes */
 
 	const char *cfg_filename; /* used for debugging purposes */
 } device_t;

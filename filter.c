@@ -64,7 +64,8 @@ static int write_filter(Stream_t *Stream, char *buf, mt_off_t iwhere,
 						size_t len)
 {
 	DeclareThis(Filter_t);
-	int i,j,ret;
+	unsigned int i,j;
+	int ret;
 	char buffer[1025];
 	unsigned char newchar;
 	
@@ -101,7 +102,7 @@ static int write_filter(Stream_t *Stream, char *buf, mt_off_t iwhere,
 	ret = force_write(This->Next, buffer, (mt_off_t) This->dospos, i);
 	if(ret >0 )
 		This->dospos += ret;
-	if ( ret != i ){
+	if ( ret != (signed int) i ){
 		/* no space on target file ? */
 		This->unixpos = -1;
 		return -1;

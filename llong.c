@@ -70,9 +70,9 @@ int mt_lseek(int fd, mt_off_t where, int whence)
 #endif
 }
 
-int log_2(int size)
+unsigned int log_2(int size)
 {
-	int i;
+	unsigned int i;
 
 	for(i=0; i<24; i++) {
 		if(1 << i == size)

@@ -5,9 +5,9 @@ typedef struct hsc {
 	unsigned char cyl;		/* starting cylinder */
 } hsc;
 
-#define head(x) ((x).head)
-#define sector(x) ((x).sector & 0x3f)
-#define cyl(x) ((x).cyl | (((x).sector & 0xc0)<<2))
+#define head(x) ((unsigned int)((x).head))
+#define sector(x) ((unsigned int)((x).sector & 0x3f))
+#define cyl(x) ((unsigned int)((x).cyl | (((x).sector & 0xc0)<<2)))
 
 #define BEGIN(p) _DWORD((p).start_sect)
 #define END(p) (_DWORD((p).start_sect)+(_DWORD((p).nr_sects)))
@@ -24,7 +24,7 @@ struct partition {
 #define sys_ind end.byte0
 
 int consistencyCheck(struct partition *partTable, int doprint, int verbose,
-		     int *has_activated, int *last_end, int *j, 
+		     int *has_activated, unsigned int *last_end, int *j, 
 		     struct device *used_dev, int target_partition);
 
 void setBeginEnd(struct partition *partTable, int begin, int end,

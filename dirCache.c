@@ -156,12 +156,14 @@ dirCache_t *allocDirCache(Stream_t *Stream, int slot)
 	return *dcp;
 }
 
-static void freeDirCacheRange(dirCache_t *cache, int beginSlot, int endSlot)
+static void freeDirCacheRange(dirCache_t *cache, 
+			      unsigned int beginSlot,
+			      unsigned int endSlot)
 {
 	dirCacheEntry_t *entry;
-	int clearBegin;
-	int clearEnd;
-	int i;
+	unsigned int clearBegin;
+	unsigned int clearEnd;
+	unsigned int i;
 
 	if(endSlot < beginSlot) {
 		fprintf(stderr, "Bad slots %d %d in free range\n", 
@@ -266,7 +268,7 @@ dirCacheEntry_t *addUsedEntry(dirCache_t *cache, int beginSlot, int endSlot,
 static void mergeFreeSlots(dirCache_t *cache, int slot)
 {
 	dirCacheEntry_t *previous, *next;
-	int i;
+	unsigned int i;
 
 	if(slot == 0)
 		return;
@@ -281,7 +283,9 @@ static void mergeFreeSlots(dirCache_t *cache, int slot)
 	}
 }
 
-dirCacheEntry_t *addFreeEntry(dirCache_t *cache, int beginSlot, int endSlot)
+dirCacheEntry_t *addFreeEntry(dirCache_t *cache, 
+			      unsigned int beginSlot, 
+			      unsigned int endSlot)
 {
 	dirCacheEntry_t *entry;
 

@@ -199,7 +199,7 @@ static int normal_map(File_t *This, off_t where, size_t *len, int mode,
 						   mt_off_t *res)
 {
 	int offset;
-	off_t end;
+	size_t end;
 	int NrClu; /* number of clusters to read */
 	unsigned int RelCluNr;
 	unsigned int CurCluNr;
@@ -288,7 +288,9 @@ static int normal_map(File_t *This, off_t where, size_t *len, int mode,
 	maximize(*len, (1 + CurCluNr - RelCluNr) * clus_size - offset);
 	
 	end = where + *len;
-	if(batchmode && mode == MT_WRITE && end >= This->FileSize) {
+	if(batchmode && 
+	   mode == MT_WRITE && 
+	   end >= This->FileSize) {
 		*len += ROUND_UP(end, clus_size) - end;
 	}
 
@@ -310,7 +312,7 @@ static int root_map(File_t *This, off_t where, size_t *len, int mode,
 {
 	Fs_t *Fs = This->Fs;
 
-	if(Fs->dir_len * Fs->sector_size < where) {
+	if(Fs->dir_len * Fs->sector_size < (size_t) where) {
 		*len = 0;
 		errno = ENOSPC;
 		return -2;
@@ -359,9 +361,10 @@ static int write_file(Stream_t *Stream, char *buf, mt_off_t iwhere, size_t len)
 		ret = force_write(Disk, buf, pos, len);
 	else
 		ret = WRITES(Disk, buf, pos, len);
-	if(ret > requestedLen)
+	if(ret > (signed int) requestedLen)
 		ret = requestedLen;
-	if (ret > 0 && where + ret > This->FileSize )
+	if (ret > 0 && 
+	    where + ret > (off_t) This->FileSize )
 		This->FileSize = where + ret;
 	recalcPreallocSize(This);
 	return ret;

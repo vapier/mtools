@@ -100,7 +100,7 @@ typedef int (*iofn) (int, char *, int);
 
 static void swap_buffer(char *buf, size_t len)
 {
-	int i;
+	unsigned int i;
 	for (i=0; i<len; i+=2) {
 		char temp = buf[i];
 		buf[i] = buf[i+1];
@@ -358,7 +358,8 @@ static void scsi_init(SimpleFile_t *This)
 int scsi_io(Stream_t *Stream, char *buf,  mt_off_t where, size_t len, int rwcmd)
 {
 	unsigned int firstblock, nsect;
-	int clen,r,max;
+	int clen,r;
+	size_t max;
 	off_t offset;
 	unsigned char cdb[10];
 	DeclareThis(SimpleFile_t);
