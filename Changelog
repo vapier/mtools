@@ -1,3 +1,4 @@
+030705	Fix inverted IS_MFORMAT_ONLY conditon in plain_io.c
 030609	Moved putc after variable description (anybody knows about a -W
 	flag so that gcc warns about these?)
 030606	Fixed mattrib -p (missing slash)

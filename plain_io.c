@@ -665,7 +665,7 @@ APIRET rc;
 #endif
 	/* set default parameters, if needed */
 	if (dev){		
-		if ((IS_MFORMAT_ONLY(dev) || !dev->tracks) &&
+		if ((!IS_MFORMAT_ONLY(dev) && dev->tracks) &&
 			init_geom(This->fd, dev, orig_dev, &This->statbuf)){
 			close(This->fd);
 			Free(This);
