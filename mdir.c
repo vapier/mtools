@@ -238,6 +238,10 @@ static void leaveDrive(int haveError)
 		if(RootDir && !fast) {
 			char *s1 = NULL;
 			mt_off_t bytes = getfree(RootDir);
+			if(bytes == -1) {
+				fprintf(stderr, "Fat error\n");
+				goto exit_1;
+			}
 			printf("                  %s bytes free\n\n",
 			       dotted_num(bytes,17, &s1));
 #ifdef TEST_SIZE
@@ -250,6 +254,7 @@ static void leaveDrive(int haveError)
 				free(s1);
 		}
 	}
+ exit_1:
 	FREE(&RootDir);
 	currentDrive = '\0';
 }
