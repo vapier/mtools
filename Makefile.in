@@ -31,7 +31,6 @@ exec_prefix = @exec_prefix@
 bindir      = @bindir@
 infodir     = @infodir@
 mandir      = @mandir@
-infodir     = @infodir@
 sysconfdir  = @sysconfdir@
 
 CC         = @CC@
