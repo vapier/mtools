@@ -644,6 +644,7 @@ APIRET rc;
 		return NULL;
 	}
 #ifndef __EMX__
+#ifndef __CYGWIN__
 	/* lock the device on writes */
 	if (locked && lock_dev(This->fd, mode == O_RDWR, dev)) {
 		if(errmsg)
@@ -662,6 +663,7 @@ APIRET rc;
 		Free(This);
 		return NULL;
 	}
+#endif
 #endif
 	/* set default parameters, if needed */
 	if (dev){		

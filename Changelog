@@ -1,3 +1,4 @@
+040420	Cygwin patch for plain_io.c (no locking)
 040228	Fix a couple of memory leaks in config file parsing. Fix llong.h
 	(redefined same symbol twice)
 	Fix a variable initialization problem in plain_io.c
