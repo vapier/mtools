@@ -1,7 +1,6 @@
 #include "sysincludes.h"
 #include "msdos.h"
 #include "mtools.h"
-#include "patchlevel.h"
 
 /*#define PRIV_DEBUG*/
 
@@ -25,7 +24,11 @@ static inline void print_privs(const char *message)
 #endif
 }
 
-static int rgid, egid, ruid, euid;
+int noPrivileges=0;
+
+
+static gid_t rgid, egid;
+static uid_t ruid, euid;
 
 /* privilege management routines for SunOS and Solaris.  These are
  * needed in order to issue raw SCSI read/write ioctls.  Mtools drops
@@ -44,7 +47,7 @@ static int rgid, egid, ruid, euid;
  */
 
 
-static inline void Setuid(int uid)
+static inline void Setuid(uid_t uid)
 {
 #if defined HAVE_SETEUID || defined HAVE_SETRESUID
 	if(euid == 0) {
@@ -63,6 +66,8 @@ static inline void Setuid(int uid)
 
 void reclaim_privs(void)
 {
+	if(noPrivileges)
+		return;
 	setgid(egid);
 	Setuid(euid);
 	print_privs("after reclaim privs, both uids should be 0 ");

@@ -1,4 +1,4 @@
-.TH mlabel 1 "13aug97" mtools-3.8
+.TH mlabel 1 "27May01" mtools-pre6-3.9.8
 .SH Name
 mlabel - make an MSDOS volume label
 '\" t
@@ -12,15 +12,58 @@ mlabel - make an MSDOS volume label
 .tr \(if`
 .tr \(pd"
 
-.SH Note
+.SH Note\ of\ warning
 This manpage has been automatically generated from mtools's texinfo
-documentation.  However, this process is only approximative, and some
+documentation, and may not be entirely accurate or complete.  See the
+end of this man page for details.
+.PP
+.SH Description
+.iX "p mlabel"
+.iX "c Labeling a disk"
+.iX "c Disk label"
+.PP
+The \fR\&\f(CWmlabel\fR command adds a volume label to a disk. Its syntax is:
+.(l I
+\&\fR\&\f(CWmlabel\fR [\fR\&\f(CW-vcsn\fR] [\fR\&\f(CW-N\fR \fIserial\fR] \fIdrive\fR:[\fInew_label\fR]
+.)l
+ 
+.PP
+\&\fR\&\f(CWMlabel\fR displays the current volume label, if present. If
+\&\fInew_label\fR is not given, and if neither the \fR\&\f(CWc\fR nor the
+\&\fR\&\f(CWs\fR options are set, it prompts the user for a new volume label.
+To delete an existing volume label, press return at the prompt.
+.PP
+Reasonable care is taken to create a valid MS-DOS volume label.  If an
+invalid label is specified, \fR\&\f(CWmlabel\fR changes the label (and
+displays the new label if the verbose mode is set). \fR\&\f(CWMlabel\fR
+returns 0 on success or 1 on failure.
+.PP
+Mlabel supports the following options:
+.TP
+\&\fR\&\f(CWc\fR\ 
+Clears an existing label, without prompting the user
+.TP
+\&\fR\&\f(CWs\fR\ 
+Shows the existing label, without prompting the user.
+.TP
+\&\fR\&\f(CWn\ \fR\ 
+Assigns a new (random) serial number to the disk
+.TP
+\&\fR\&\f(CWN\ \fIserial\fR\&\f(CW\fR\ 
+Sets the supplied serial number. The serial number should be supplied as
+an 8 digit hexadecimal number, without spaces
+.PP
+.SH See\ Also
+Mtools' texinfo doc
+.SH Viewing\ the\ texi\ doc
+This manpage has been automatically generated from mtools's texinfo
+documentation. However, this process is only approximative, and some
 items, such as crossreferences, footnotes and indices are lost in this
-translation process.  Indeed, this items have no appropriate
-representation in the manpage format.  Moreover, only the items specific
-to each command have been translated, and the general information about
-mtools has been dropped in the manpage version.  Thus I strongly advise
-you to use the original texinfo doc.
+translation process.  Indeed, these items have no appropriate
+representation in the manpage format.  Moreover, not all information has
+been translated into the manpage version.  Thus I strongly advise you to
+use the original texinfo doc.  See the end of this manpage for
+instructions how to view the texinfo doc.
 .TP
 * \ \ 
 To generate a printable copy from the texinfo doc, run the following
@@ -50,6 +93,8 @@ To generate a html copy,  run:
 .lp
  
 \&\fRA premade html can be found at:
+\&\fR\&\f(CW\(ifhttp://mtools.linux.lu\(is\fR
+and also at:
 \&\fR\&\f(CW\(ifhttp://www.tux.org/pub/knaff/mtools\(is\fR
 .TP
 * \ \ 
@@ -70,33 +115,3 @@ The texinfo doc looks most pretty when printed or as html.  Indeed, in
 the info version certain examples are difficult to read due to the
 quoting conventions used in info.
 .PP
-.SH Description
-.iX "p mlabel"
-.iX "c Labeling a disk"
-.iX "c Disk label"
-.PP
-The \fR\&\f(CWmlabel\fR command adds a volume label to a disk. Its syntax is:
-.(l I
-\&\fR\&\f(CWmlabel\fR [\fR\&\f(CW-vcs\fR] \fIdrive\fR:[\fInew_label\fR]
-.)l
- 
-.PP
-\&\fR\&\f(CWMlabel\fR displays the current volume label, if present. If
-\&\fInew_label\fR is not given, and if neither the \fR\&\f(CWc\fR nor the
-\&\fR\&\f(CWs\fR options are set, it prompts the user for a new volume label.
-To delete an existing volume label, press return at the prompt.
-.PP
-Reasonable care is taken to create a valid MS-DOS volume label.  If an
-invalid label is specified, \fR\&\f(CWmlabel\fR changes the label (and
-displays the new label if the verbose mode is set). \fR\&\f(CWMlabel\fR
-returns 0 on success or 1 on failure.
-.PP
-Mlabel supports the following options:
-.TP
-\&\fR\&\f(CWc\fR\ 
-Clears an existing label, without prompting the user
-.TP
-\&\fR\&\f(CWs\fR\ 
-Shows the existing label, without prompting the user.
-.SH See Also
-Mtools' texinfo doc

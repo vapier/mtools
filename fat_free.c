@@ -17,7 +17,6 @@ int fat_free(Stream_t *Dir, unsigned int fat)
 					/* a zero length file? */
 	if (fat == 0)
 		return(0);
-
 	/* CONSTCOND */
 	while (!This->fat_error) {
 		/* get next cluster number */

@@ -80,20 +80,20 @@ static void load_toupper(int country, int *codepage, char *filename)
 	unsigned short ucase=0, records;
 	int i;
 	int country_found = 0;
-	struct stat buf;
+	struct MT_STAT buf;
 
 	if(!filename) {
 		set_toupper_from_builtin(country, codepage);
 		return;
 	}
 
-	fd = open(filename, O_RDONLY);
+	fd = open(filename, O_RDONLY | O_LARGEFILE);
 	if(fd < 0) {
 		perror("open country.sys");
 		exit(1);
 	}
 
-	fstat(fd, &buf);
+	MT_FSTAT(fd, &buf);
 	file = (unsigned char *) malloc(buf.st_size);
 	if(!file) {
 		printOom();
@@ -211,11 +211,22 @@ unsigned char to_dos(unsigned char c)
 
 void to_unix(char *a, int n)
 {
-	for( ; *a && n >= 0; n--, a++) {
+	for( ; *a && n > 0; n--, a++) {
 		/* special case, 0xE5 */
 		if(*a == 0x05)
 			*a = DELMARK;
 		if(*a & 0x80)
 			*a = (char) Codepage->tounix[(*a) & 0x7f];
 	}
+}
+
+/**
+ * Same thing as to_unix, except that it is meant for file contents
+ * rather than filename and thus doesn't do anything for delete marks
+ */
+char contents_to_unix(char a) {
+    if(a & 0x80)
+	return (char) Codepage->tounix[a & 0x7f];
+    else
+	return a;
 }

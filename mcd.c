@@ -17,7 +17,7 @@ static int mcd_callback(direntry_t *entry, MainParam_t *mp)
 		return ERROR_ONE;
 	}
 	
-	fprintPwd(fp, entry);
+	fprintPwd(fp, entry,0);
 	fprintf(fp, "\n");
 	fclose(fp);
 	return GOT_ONE | STOP_NOW;

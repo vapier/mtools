@@ -51,13 +51,13 @@ static void TranslateToDos(const char *s, char *t, int count,
 		if ((*s & 0x7f) < ' ' ) {
 			*mangled |= 3;
 			*t = '_';
-		} else if (islower(*s)) {
+		} else if (islower((unsigned char)*s)) {
 			*t = toupper(*s);
 			if(*Case == UPPER && !mtools_no_vfat)
 				*mangled |= 1;
 			else
 				*Case = LOWER;
-		} else if (isupper(*s)) {
+		} else if (isupper((unsigned char)*s)) {
 			*t = *s;
 			if(*Case == LOWER && !mtools_no_vfat)
 				*mangled |= 1;

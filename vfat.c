@@ -25,7 +25,7 @@ static void autorename(char *name,
 	char tmp;
 	char *p;
 	
-#ifdef DEBUG
+#if DEBUG
 	printf("In autorename for name=%s.\n", name);
 #endif
 	tildapos = -1;
@@ -134,7 +134,7 @@ void clear_vfat(struct vfat_state *v)
  * Thanks to Jeffrey Richter of Microsoft Systems Journal for
  * pointing me to the correct algorithm.
  *
- * David C. Niemi (niemidc@erols.com) 95.01.19
+ * David C. Niemi (niemi@tux.org) 95.01.19
  */
 static inline unsigned char sum_shortname(char *name)
 {
@@ -158,7 +158,7 @@ static inline void check_vfat(struct vfat_state *v, struct directory *dir)
 	char name[12];
 
 	if (! v->subentries) {
-#ifdef DEBUG
+#if DEBUG
 		fprintf(stderr, "check_vfat: no VSEs.\n");
 #endif
 		return;
@@ -180,10 +180,11 @@ static inline void check_vfat(struct vfat_state *v, struct directory *dir)
 }
 
 
-void clear_vses(Stream_t *Dir, int entrySlot, size_t last)
+int clear_vses(Stream_t *Dir, int entrySlot, size_t last)
 {
 	direntry_t entry;
 	dirCache_t *cache;
+	int error;
 
 	entry.Dir = Dir;
 	entry.entry = entrySlot;
@@ -196,10 +197,12 @@ void clear_vses(Stream_t *Dir, int entrySlot, size_t last)
 	}
 	addFreeEntry(cache, entry.entry, last);
 	for (; entry.entry < last; ++entry.entry) {
-#ifdef DEBUG
-		fprintf(stderr,"Clearing entry %d.\n", entry);
+#if DEBUG
+		fprintf(stderr,"Clearing entry %d.\n", entry.entry);
 #endif
-		dir_read(&entry);
+		dir_read(&entry, &error);
+		if(error)
+		    return error;
 		if(!entry.dir.name[0] || entry.dir.name[0] == DELMARK)
 			break;
 		entry.dir.name[0] = DELMARK;
@@ -207,6 +210,7 @@ void clear_vses(Stream_t *Dir, int entrySlot, size_t last)
 			entry.dir.attr = '\0';
 		low_level_dir_write(&entry);
 	}
+	return 0;
 }
 
 int write_vfat(Stream_t *Dir, char *shortname, char *longname, int start,
@@ -220,7 +224,7 @@ int write_vfat(Stream_t *Dir, char *shortname, char *longname, int start,
 	char unixyName[13];
 	
 	if(longname) {
-#ifdef DEBUG
+#if DEBUG
 		printf("Entering write_vfat with longname=\"%s\", start=%d.\n",
 		       longname,start);
 #endif
@@ -230,9 +234,9 @@ int write_vfat(Stream_t *Dir, char *shortname, char *longname, int start,
 		vse->attribute = 0x0f;
 		vse->hash1 = vse->sector_l = vse->sector_u = 0;
 		vse->sum = sum_shortname(shortname);
-#ifdef DEBUG
+#if DEBUG
 		printf("Wrote checksum=%d for shortname %s.\n", 
-		       vse.sum,shortname);
+		       vse->sum,shortname);
 #endif
 		num_vses = strlen(longname)/VSE_NAMELEN + 1;
 		for (vse_id = num_vses; vse_id; --vse_id) {
@@ -245,7 +249,7 @@ int write_vfat(Stream_t *Dir, char *shortname, char *longname, int start,
 			c += unicode_write(c, vse->text3, VSE3SIZE, &end);
 
 			vse->id = (vse_id == num_vses) ? (vse_id | VSE_LAST) : vse_id;
-#ifdef DEBUG
+#if DEBUG
 			printf("Writing longname=(%s), VSE %d (%13s) at %d, end = %d.\n",
 			       longname, vse_id, longname + (vse_id-1) * VSE_NAMELEN,
 			       start + num_vses - vse_id, start + num_vses);
@@ -272,6 +276,11 @@ void dir_write(direntry_t *entry)
 {
 	dirCacheEntry_t *dce;
 	dirCache_t *cache;
+
+	if(entry->entry == -3) {
+		fprintf(stderr, "Attempt to write root directory pointer\n");
+		exit(1);
+	}
 
 	cache = allocDirCache(entry->Dir, entry->entry + 1);
 	if(!cache) {
@@ -331,7 +340,7 @@ static inline void parse_vses(direntry_t *entry,
 		v->sum = vse->sum;
 	}
 	
-#ifdef DEBUG
+#if DEBUG
 	if(v->status & (1 << (id-1)))
 		fprintf(stderr,
 			"parse_vses: duplicate VSE %d\n", vse->id);
@@ -341,7 +350,7 @@ static inline void parse_vses(direntry_t *entry,
 	if(last_flag)
 		v->subentries = id;
 	
-#ifdef DEBUG
+#if DEBUG
 	if (id > v->subentries)
 		/* simple test to detect entries preceding
 		 * the "last" entry (really the first) */
@@ -354,7 +363,7 @@ static inline void parse_vses(direntry_t *entry,
 	c += unicode_read(vse->text1, c, VSE1SIZE);
 	c += unicode_read(vse->text2, c, VSE2SIZE);
 	c += unicode_read(vse->text3, c, VSE3SIZE);
-#ifdef DEBUG
+#if DEBUG
 	printf("Read VSE %d at %d, subentries=%d, = (%13s).\n",
 	       id,entry->entry,v->subentries,&(v->name[VSE_NAMELEN * (id-1)]));
 #endif		
@@ -365,18 +374,25 @@ static inline void parse_vses(direntry_t *entry,
 
 static dirCacheEntry_t *vfat_lookup_loop_common(direntry_t *direntry,
 						dirCache_t *cache,
-						int lookForFreeSpace)
+						int lookForFreeSpace,
+						int *io_error)
 {
 	char newfile[13];
 	int initpos = direntry->entry + 1;
 	struct vfat_state vfat;
 	char *longname;
+	int error;
 
 	/* not yet cached */
+	*io_error = 0;
 	clear_vfat(&vfat);
 	while(1) {
 		++direntry->entry;
-		if(!dir_read(direntry)){
+		if(!dir_read(direntry, &error)){
+			if(error) {
+			    *io_error = error;
+			    return NULL;
+			}
 			addFreeEntry(cache, initpos, direntry->entry);
 			return addEndEntry(cache, direntry->entry);
 		}
@@ -435,17 +451,19 @@ static dirCacheEntry_t *vfat_lookup_loop_common(direntry_t *direntry,
 }
 
 static inline dirCacheEntry_t *vfat_lookup_loop_for_read(direntry_t *direntry,
-							 dirCache_t *cache)
+							 dirCache_t *cache,
+							 int *io_error)
 {
 	int initpos = direntry->entry + 1;
 	dirCacheEntry_t *dce;
 
+	*io_error = 0;
 	dce = cache->entries[initpos];
 	if(dce) {
 		direntry->entry = dce->endSlot - 1;
 		return dce;
 	} else {
-		return vfat_lookup_loop_common(direntry, cache, 0);
+		return vfat_lookup_loop_common(direntry, cache, 0, io_error);
 	}
 }
 
@@ -492,11 +510,6 @@ static result_t checkNameForMatch(struct direntry_t *direntry,
 
 
 	/*---------- multiple files ----------*/
-#ifdef DEBUG
-	printf(
-		"!single, vfat_present=%d, vfat.name=%s, newfile=%s, filename=%s.\n",
-		vfat->present, vfat->name, newfile, filename);
-#endif						
 	if(!((flags & MATCH_ANY) ||
 	     (dce->longName && 
 	      match(dce->longName, filename, direntry->name, 0, length)) ||
@@ -507,7 +520,7 @@ static result_t checkNameForMatch(struct direntry_t *direntry,
 
 	/* entry of non-requested type, has to come after name
 	 * checking because of clash handling */
-	if((direntry->dir.attr & 0x10) && !(flags & ACCEPT_DIR)) {
+	if(IS_DIR(direntry) && !(flags & ACCEPT_DIR)) {
 		if(!(flags & (ACCEPT_LABEL|MATCH_ANY|NO_MSG)))
 			fprintf(stderr,
 				"Skipping \"%s\", is a directory\n",
@@ -515,7 +528,8 @@ static result_t checkNameForMatch(struct direntry_t *direntry,
 		return RES_NOMATCH;
 	}
 
-	if((!(direntry->dir.attr & 0x18)) && !(flags & ACCEPT_PLAIN)) {
+	if(!(direntry->dir.attr & (ATTR_LABEL | ATTR_DIR)) && 
+	   !(flags & ACCEPT_PLAIN)) {
 		if(!(flags & (ACCEPT_LABEL|MATCH_ANY|NO_MSG)))
 			fprintf(stderr,
 				"Skipping \"%s\", is not a directory\n",
@@ -536,10 +550,10 @@ static result_t checkNameForMatch(struct direntry_t *direntry,
 int vfat_lookup(direntry_t *direntry, const char *filename, int length,
 		int flags, char *shortname, char *longname)
 {
-	/*size_t len;*/
 	dirCacheEntry_t *dce;
 	result_t result;
 	dirCache_t *cache;
+	int io_error;
 
 	if(length == -1 && filename)
 		length = strlen(filename);
@@ -547,7 +561,6 @@ int vfat_lookup(direntry_t *direntry, const char *filename, int length,
 	if (direntry->entry == -2)
 		return -1;
 
-	/*GET_DATA(direntry->Dir, 0, &len, 0, 0);*/	
 	cache = allocDirCache(direntry->Dir, direntry->entry+1);
 	if(!cache) {
 		fprintf(stderr, "Out of memory error in vfat_lookup [0]\n");
@@ -555,8 +568,10 @@ int vfat_lookup(direntry_t *direntry, const char *filename, int length,
 	}
 
 	do {
-		dce = vfat_lookup_loop_for_read(direntry, cache);
+		dce = vfat_lookup_loop_for_read(direntry, cache, &io_error);
 		if(!dce) {
+			if (io_error)
+				return -2;
 			fprintf(stderr, "Out of memory error in vfat_lookup\n");
 			exit(1);
 		}
@@ -575,7 +590,8 @@ int vfat_lookup(direntry_t *direntry, const char *filename, int length,
 		}
 		if(shortname)
 			strcpy(shortname, dce->shortName);
-			
+		direntry->beginSlot = dce->beginSlot;
+		direntry->endSlot = dce->endSlot-1;
 		return 0; /* file found */
 	} else {
 		direntry->entry = -2;
@@ -588,14 +604,18 @@ static inline dirCacheEntry_t *vfat_lookup_loop_for_insert(direntry_t *direntry,
 							   dirCache_t *cache)
 {
 	dirCacheEntry_t *dce;
+	int io_error;
 
 	dce = cache->entries[initpos];
 	if(dce && dce->type != DCET_END) {
 		return dce;
 	} else {
 		direntry->entry = initpos - 1;
-		dce = vfat_lookup_loop_common(direntry, cache, 1);
+		dce = vfat_lookup_loop_common(direntry, cache, 1, &io_error);
 		if(!dce) {
+			if (io_error) {
+				return NULL;
+			}
 			fprintf(stderr, 
 				"Out of memory error in vfat_lookup_loop\n");
 			exit(1);
@@ -604,16 +624,33 @@ static inline dirCacheEntry_t *vfat_lookup_loop_for_insert(direntry_t *direntry,
 	}
 }
 
+static void accountFreeSlots(struct scan_state *ssp, dirCacheEntry_t *dce)
+{
+	if(ssp->got_slots)
+		return;
+
+	if(ssp->free_end != dce->beginSlot) {
+		ssp->free_start = dce->beginSlot;
+	}
+	ssp->free_end = dce->endSlot;
+
+	if(ssp->free_end - ssp->free_start >= ssp->size_needed) {
+		ssp->got_slots = 1;
+		ssp->slot = ssp->free_start + ssp->size_needed - 1;
+	}
+}
+
 /* lookup_for_insert replaces the old scandir function.  It directly
  * calls into vfat_lookup_loop, thus eliminating the overhead of the
  * normal vfat_lookup
  */
 int lookupForInsert(Stream_t *Dir,
-		    char *dosname,
-		    char *longname,
-		    struct scan_state *ssp, 
-		    int ignore_entry,
-		    int pessimisticShortRename)
+					char *dosname,
+					char *longname,
+					struct scan_state *ssp, 
+					int ignore_entry,
+					int source_entry,
+					int pessimisticShortRename)
 {
 	direntry_t entry;
 	int ignore_match;
@@ -640,7 +677,8 @@ int lookupForInsert(Stream_t *Dir,
 		unix_name(dosname, dosname + 8, 0, shortName);
 
 	pos = cache->nrHashed;
-	if(pos && isHashed(cache, longname)) {
+	if(source_entry >= 0 ||
+	   (pos && isHashed(cache, longname))) {
 		pos = 0;
 	} else if(pos && !ignore_match && isHashed(cache, shortName)) {
 		if(pessimisticShortRename) {
@@ -656,17 +694,13 @@ int lookupForInsert(Stream_t *Dir,
 		dce = vfat_lookup_loop_for_insert(&entry, pos, cache);
 		switch(dce->type) {
 			case DCET_FREE:
-				if(!ssp->got_slots && 
-				   dce->endSlot - dce->beginSlot > 
-				   ssp->size_needed) {
-					ssp->got_slots = 1;
-					ssp->free_start = dce->beginSlot;
-					ssp->slot = ssp->free_start + 
-						ssp->size_needed - 1;
-					ssp->free_end = dce->endSlot;
-				}
+				accountFreeSlots(ssp, dce);
 				break;
 			case DCET_USED:
+				if(!(dce->dir.attr & 0x8) &&
+				   dce->endSlot - 1 == source_entry)
+				   accountFreeSlots(ssp, dce);
+
 				/* labels never match, neither does the 
 				 * ignored entry */
 				if( (dce->dir.attr & 0x8) ||

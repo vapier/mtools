@@ -30,7 +30,7 @@ static int dos_showfat(direntry_t *entry, MainParam_t *mp)
 {
 	Stream_t *File=mp->File;
 
-	fprintPwd(stdout, entry);
+	fprintPwd(stdout, entry,0);
 	putchar(' ');
 	printFat(File);
 	printf("\n");

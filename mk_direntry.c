@@ -79,11 +79,9 @@ static inline clash_action ask_namematch(char *name, int isprimary,
 
 	a = ch->action[isprimary];
 
-	if(!opentty(1)) {
+	if(a == NAMEMATCH_NONE && !opentty(1)) {
 		/* no default, and no tty either . Skip the troublesome file */
-		if(a == NAMEMATCH_NONE)
-			a = NAMEMATCH_SKIP;
-		return a;
+		return NAMEMATCH_SKIP;
 	}
 
 	perm = 0;
@@ -112,8 +110,8 @@ static inline clash_action ask_namematch(char *name, int isprimary,
 		} else {
 			fgets(ans, 9, opentty(0));
 		}
-		perm = isupper(ans[0]);
-		switch(tolower(ans[0])) {
+		perm = isupper((unsigned char)ans[0]);
+		switch(tolower((unsigned char)ans[0])) {
 			case 'a':
 				a = NAMEMATCH_AUTORENAME;
 				break;
@@ -270,6 +268,7 @@ static inline clash_action get_slots(Stream_t *Dir,
 				     struct scan_state *ssp,
 				     ClashHandling_t *ch)
 {
+	int error;
 	clash_action ret;
 	int match=0;
 	direntry_t entry;
@@ -301,9 +300,10 @@ static inline clash_action get_slots(Stream_t *Dir,
 		reason = EXISTS;
 		clear_scan(longname, ch->use_longname, ssp);
 		switch (lookupForInsert(Dir, dosname, longname, ssp,
-					ch->ignore_entry, 
-					pessimisticShortRename && 
-					ch->use_longname)) {
+								ch->ignore_entry, 
+								ch->source_entry,
+								pessimisticShortRename && 
+								ch->use_longname)) {
 			case -1:
 				return NAMEMATCH_ERROR;
 				
@@ -352,10 +352,11 @@ static inline clash_action get_slots(Stream_t *Dir,
 
 		if(match > -1) {
 			entry.entry = match;
-			dir_read(&entry);
+			dir_read(&entry, &error);
+			if (error)
+			    return NAMEMATCH_ERROR;
 			/* if we can't overwrite, don't propose it */
-			no_overwrite = (match == ch->source || 
-					(entry.dir.attr & 0x10));
+			no_overwrite = (match == ch->source || IS_DIR(&entry));
 		}
 	}
 	ret = process_namematch(isprimary ? longname : dosname, longname,
@@ -365,7 +366,6 @@ static inline clash_action get_slots(Stream_t *Dir,
 		if((entry.dir.attr & 0x5) &&
 		   (ask_confirmation("file is read only, overwrite anyway (y/n) ? ",0,0)))
 			return NAMEMATCH_RENAME;
-		
 		/* Free up the file to be overwritten */
 		if(fatFreeWithDirentry(&entry))
 			return NAMEMATCH_ERROR;
@@ -410,7 +410,8 @@ static inline int write_slots(Stream_t *Dir,
 
 	entry.Dir = Dir;
 	entry.entry = ssp->slot;
-	strcpy(entry.name, longname);
+	strncpy(entry.name, longname, sizeof(entry.name)-1);
+	entry.name[sizeof(entry.name)-1]='\0';
 	entry.dir.Case = Case & (EXTCASE | BASECASE);
 	if (cb(dosname, longname, arg, &entry) >= 0) {
 		if ((ssp->size_needed > 1) &&
@@ -579,6 +580,7 @@ int mwrite_one(Stream_t *Dir,
 void init_clash_handling(ClashHandling_t *ch)
 {
 	ch->ignore_entry = -1;
+	ch->source_entry = -2;
 	ch->nowarn = 0;	/*Don't ask, just do default action if name collision */
 	ch->namematch_default[0] = NAMEMATCH_AUTORENAME;
 	ch->namematch_default[1] = NAMEMATCH_NONE;

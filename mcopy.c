@@ -22,7 +22,7 @@
  * Preserve the file modification times after the fclose()
  */
 
-static void set_mtime(const char *target, long mtime)
+static void set_mtime(const char *target, time_t mtime)
 {
 	if (target && strcmp(target, "-") && mtime != 0L) {
 #ifdef HAVE_UTIMES
@@ -56,6 +56,7 @@ typedef struct Arg_t {
 	int nowarn;
 	int verbose;
 	int type;
+	int convertCharset;
 	MainParam_t mp;
 	ClashHandling_t ch;
 } Arg_t;
@@ -64,10 +65,10 @@ typedef struct Arg_t {
 static int unix_write(direntry_t *entry, MainParam_t *mp, int needfilter)
 {
 	Arg_t *arg=(Arg_t *) mp->arg;
-	long mtime;
+	time_t mtime;
 	Stream_t *File=mp->File;
 	Stream_t *Target, *Source;
-	struct stat stbuf;
+	struct MT_STAT stbuf;
 	int ret;
 	char errmsg[80];
 	char *unixFile;
@@ -96,7 +97,8 @@ static int unix_write(direntry_t *entry, MainParam_t *mp, int needfilter)
 			}
 			
 			/* sanity checking */
-			if (!stat(unixFile, &stbuf) && !S_ISREG(stbuf.st_mode)) {
+			if (!MT_STAT(unixFile, &stbuf) && 
+			    !S_ISREG(stbuf.st_mode)) {
 				fprintf(stderr,"\"%s\" is not a regular file\n",
 					unixFile);
 				
@@ -119,10 +121,10 @@ static int unix_write(direntry_t *entry, MainParam_t *mp, int needfilter)
 
 	if ((Target = SimpleFileOpen(0, 0, unixFile,
 				     O_WRONLY | O_CREAT | O_TRUNC,
-				     errmsg, 0, 0))) {
+				     errmsg, 0, 0, 0))) {
 		ret = 0;
 		if(needfilter && arg->textmode){
-			Source = open_filter(COPY(File));
+			Source = open_filter(COPY(File),arg->convertCharset);
 			if (!Source)
 				ret = -1;
 		} else
@@ -132,7 +134,7 @@ static int unix_write(direntry_t *entry, MainParam_t *mp, int needfilter)
 			ret = copyfile(Source, Target);
 		FREE(&Source);
 		FREE(&Target);
-		if(ret < -1){
+		if(ret <= -1){
 			if(!arg->type) {
 				unlink(unixFile);
 				free(unixFile);
@@ -157,8 +159,8 @@ static int makeUnixDir(char *filename)
 	if(!mkdir(filename, 0777))
 		return 0;
 	if(errno == EEXIST) {
-		struct stat buf;
-		if(stat(filename, &buf) < 0)
+		struct MT_STAT buf;
+		if(MT_STAT(filename, &buf) < 0)
 			return -1;
 		if(S_ISDIR(buf.st_mode))
 			return 0;
@@ -171,7 +173,7 @@ static int makeUnixDir(char *filename)
 static int unix_copydir(direntry_t *entry, MainParam_t *mp)
 {
 	Arg_t *arg=(Arg_t *) mp->arg;
-	long mtime;
+	time_t mtime;
 	Stream_t *File=mp->File;
 	int ret;
 	char *unixFile;
@@ -184,7 +186,7 @@ static int unix_copydir(direntry_t *entry, MainParam_t *mp)
 		mtime = 0L;
 	if(!arg->type && arg->verbose) {
 		fprintf(stderr,"Copying ");
-		fprintPwd(stderr, entry);
+		fprintPwd(stderr, entry,0);
 		fprintf(stderr, "\n");
 	}
 	if(got_signal)
@@ -246,14 +248,14 @@ static int writeit(char *dosname,
 	Stream_t *Target;
 	time_t now;
 	int type, fat, ret;
-	long date;
-	size_t filesize, newsize;
+	time_t date;
+	mt_size_t filesize, newsize;
 	Arg_t *arg = (Arg_t *) arg0;
 
 
 
 	if (arg->mp.File->Class->get_data(arg->mp.File,
-					  & date, &filesize, &type, 0) < 0 ){
+									  & date, &filesize, &type, 0) < 0 ){
 		fprintf(stderr, "Can't stat source file\n");
 		return -1;
 	}
@@ -271,7 +273,7 @@ static int writeit(char *dosname,
 		return -1;
 
 	/* will it fit? */
-	if (!getfreeMin(arg->mp.targetDir, filesize))
+	if (!getfreeMinBytes(arg->mp.targetDir, filesize))
 		return -1;
 	
 	/* preserve mod time? */
@@ -288,18 +290,22 @@ static int writeit(char *dosname,
 		exit(1);
 	}
 	if (arg->needfilter & arg->textmode)
-		Target = open_filter(Target);
+		Target = open_filter(Target,arg->convertCharset);
 
 
 
 	ret = copyfile(arg->mp.File, Target);
 	GET_DATA(Target, 0, &newsize, 0, &fat);
 	FREE(&Target);
+	if (arg->needfilter & arg->textmode)
+	    newsize++; /* ugly hack: we gathered the size before the Ctrl-Z
+			* was written.  Increment it manually */
 	if(ret < 0 ){
 		fat_free(arg->mp.targetDir, fat);
 		return -1;
 	} else {
-		mk_entry(dosname, arg->attr, fat, newsize, now, &entry->dir);
+		mk_entry(dosname, arg->attr, fat, truncBytes32(newsize),
+				 now, &entry->dir);
 		return 0;
 	}
 }
@@ -316,7 +322,7 @@ static int dos_write(direntry_t *entry, MainParam_t *mp, int needfilter)
 	if(entry && arg->preserveAttributes)
 		arg->attr = entry->dir.attr;
 	else
-		arg->attr = 0x20;
+		arg->attr = ATTR_ARCHIVE;
 
 	arg->needfilter = needfilter;
 	if (entry && mp->targetDir == entry->Dir){
@@ -339,10 +345,14 @@ static Stream_t *subDir(Stream_t *parent, const char *filename)
 	direntry_t entry;		
 	initializeDirentry(&entry, parent);
 
-	if(vfat_lookup(&entry, filename, -1, ACCEPT_DIR, 0, 0) == 0 ){
+	switch(vfat_lookup(&entry, filename, -1, ACCEPT_DIR, 0, 0)) {
+	    case 0:
 		return OpenFileByDirentry(&entry);
-	} else
+	    case -1:
 		return NULL;
+	    default: /* IO Error */
+		return NULL;
+	}
 }
 
 static int dos_copydir(direntry_t *entry, MainParam_t *mp)
@@ -351,7 +361,7 @@ static int dos_copydir(direntry_t *entry, MainParam_t *mp)
 	Arg_t * arg = (Arg_t *) (mp->arg);
 	Arg_t newArg;
 	time_t now;
-	long date;
+	time_t date;
 	int ret;
 	const char *targetName = mpPickTargetName(mp);
 
@@ -360,9 +370,9 @@ static int dos_copydir(direntry_t *entry, MainParam_t *mp)
 
 	if(entry && isSubdirOf(mp->targetDir, mp->File)) {
 		fprintf(stderr, "Cannot recursively copy directory ");
-		fprintPwd(stderr, entry);
+		fprintPwd(stderr, entry,0);
 		fprintf(stderr, " into one of its own subdirectories ");
-		fprintPwd(stderr, getDirentry(mp->targetDir));
+		fprintPwd(stderr, getDirentry(mp->targetDir),0);
 		fprintf(stderr, "\n");
 		return ERROR_ONE;
 	}
@@ -436,9 +446,9 @@ static void usage(void)
 	fprintf(stderr,
 		"Mtools version %s, dated %s\n", mversion, mdate);
 	fprintf(stderr,
-		"Usage: %s [-tnmvV] sourcefile targetfile\n", progname);
+		"Usage: %s [-spatnmQVBT] [-D clash_option] sourcefile targetfile\n", progname);
 	fprintf(stderr,
-		"       %s [-tnmvV] sourcefile [sourcefiles...] targetdirectory\n", 
+		"       %s [-spatnmQVBT] [-D clash_option] sourcefile [sourcefiles...] targetdirectory\n", 
 		progname);
 	exit(1);
 }
@@ -462,16 +472,21 @@ void mcopy(int argc, char **argv, int mtype)
 	arg.nowarn = 0;
 	arg.textmode = 0;
 	arg.verbose = 0;
+	arg.convertCharset = 0;
 	arg.type = mtype;
 	fastquit = 0;
-	while ((c = getopt(argc, argv, "b/ptnmvorsamQORSAM")) != EOF) {
+	while ((c = getopt(argc, argv, "abB/sptTnmvQD:o")) != EOF) {
 		switch (c) {
+			case 's':
 			case '/':
 				arg.recursive = 1;
 				break;
 			case 'p':
 				arg.preserveAttributes = 1;
 				break;
+			case 'T':
+				arg.convertCharset = 1;
+			case 'a':
 			case 't':
 				arg.textmode = 1;
 				break;
@@ -481,20 +496,26 @@ void mcopy(int argc, char **argv, int mtype)
 			case 'm':
 				arg.preserveTime = 1;
 				break;
-			case 'v':	/* dummy option for mcopy */
+			case 'v':
 				arg.verbose = 1;
 				break;
 			case 'Q':
 				fastquit = 1;
 				break;
+			case 'B':
 			case 'b':
 				batchmode = 1;
+				break;
+			case 'o':
+				handle_clash_options(&arg.ch, c);
+				break;
+			case 'D':
+				if(handle_clash_options(&arg.ch, *optarg))
+					usage();
 				break;
 			case '?':
 				usage();
 			default:
-				if(handle_clash_options(&arg.ch, c))
-					usage();
 				break;
 		}
 	}

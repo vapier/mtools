@@ -10,12 +10,18 @@
 /*
  * Read a directory entry into caller supplied buffer
  */
-struct directory *dir_read(direntry_t *entry)
+struct directory *dir_read(direntry_t *entry, int *error)
 {
-	if(force_read(entry->Dir, (char *) (&entry->dir), 
-		      entry->entry * MDIR_SIZE, MDIR_SIZE) != MDIR_SIZE)
+	int n;
+	*error = 0;
+	if((n=force_read(entry->Dir, (char *) (&entry->dir), 
+			 (mt_off_t) entry->entry * MDIR_SIZE, 
+			 MDIR_SIZE)) != MDIR_SIZE) {
+		if (n < 0) {
+			*error = -1;
+		}
 		return NULL;
-
+	}
 	return &entry->dir;
 }
 
@@ -33,7 +39,7 @@ int dir_grow(Stream_t *Dir, int size)
 	int buflen;
 	char *buffer;
 	
-	if (!getfreeMin(Dir, 1))
+	if (!getfreeMinClusters(Dir, 1))
 		return -1;
 
 	buflen = This->cluster_size * This->sector_size;
@@ -44,7 +50,7 @@ int dir_grow(Stream_t *Dir, int size)
 	}
 		
 	memset((char *) buffer, '\0', buflen);
-	ret = force_write(Dir, buffer, size * MDIR_SIZE, buflen);
+	ret = force_write(Dir, buffer, (mt_off_t) size * MDIR_SIZE, buflen);
 	free(buffer);
 	if(ret < buflen)
 		return -1;
@@ -56,7 +62,7 @@ void low_level_dir_write(direntry_t *entry)
 {
 	force_write(entry->Dir, 
 		    (char *) (&entry->dir), 
-		    entry->entry * MDIR_SIZE, MDIR_SIZE);
+		    (mt_off_t) entry->entry * MDIR_SIZE, MDIR_SIZE);
 }
 
 
@@ -67,7 +73,7 @@ void low_level_dir_write(direntry_t *entry)
  */
 
 struct directory *mk_entry(const char *filename, char attr,
-			   unsigned int fat, size_t size, long date,
+			   unsigned int fat, size_t size, time_t date,
 			   struct directory *ndir)
 {
 	struct tm *now;

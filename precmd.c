@@ -10,7 +10,7 @@
 void precmd(struct device *dev)
 {
 	int status;
-	int pid;
+	pid_t pid;
 
 	if(!dev || !dev->precmd)
 		return;

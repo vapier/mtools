@@ -16,7 +16,8 @@ info viewer.
  Man pages are still present, but contain less information, and are
 less uptodate than the texinfo documentation.
  If you do not have the necessary tools to view the texinfo doc, you
-may also find it on the Workd Wide Web at the following location:
+may also find it on the Workd Wide Web at the following locations:
+  http://mtools.linux.lu/mtools_toc.html
   http://www.tux.org/pub/knaff/mtools/mtools_toc.html
 
 Compiler
@@ -34,10 +35,10 @@ Princeton, USA) had major input into v2.0.
 Since 2.0.7: maintained primarily and until now informally by Alain
 Knaff (Luxembourg) and David Niemi (Reston, Virginia, USA).
 
-Please report bugs to the mtools mailing list at
-mtools@www.tux.org.  Before reporting any problems, check whether
-they have already been fixed in the Alpha patches at
-www.poboxes.com/Alain.Knaff/mtools and www.tux.org
+Please report bugs to the mtools mailing list at mtools@www.tux.org.
+Before reporting any problems, check whether they have already been
+fixed in the Alpha patches at http://mtools.linux.lu and
+http://www.tux.org/pub/knaff
 
 You may subscribe to the mtools mailing list by sending a message
 containing 'subscribe mtools' in its body to majordomo@www.tux.org

@@ -16,7 +16,7 @@
  * in one country could be illegal in another one. Bad News for
  * frequent travellers.
 
- * long file names: Micro$oft has finally come to their senses and
+ * 2. long file names: Micro$oft has finally come to their senses and
  * uses a more standard mapping for the long file names.  They use
  * Unicode, which is basically a 32 bit version of ASCII. Its first
  * 256 characters are identical to Unix ASCII. Thus, the code page
@@ -37,7 +37,18 @@ Codepage_t codepages[]= {
 	  "________________"
 	  "________________"
 	  "abgpSsµtftodøØ_N"
-	  "=±<>||÷~°··Vn²__",
+	  "=±<>||÷~°··Vn²__"
+	},
+
+	{ 819,
+	  "________________"
+	  "________________"
+	  " ¡¢£¤¥¦§¨©ª«¬­®¯"
+	  "°±²³´µ¶·¸¹º»¼½¾¿"
+	  "ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏ"
+	  "ĞÑÒÓÔÕÖ×ØÙÚÛÜİŞß"
+	  "àáâãäåæçèéêëìíîï"
+	  "ğñòóôõö÷øùúûüışÿ"
 	},
 
 	{ 850,
@@ -94,6 +105,20 @@ Codepage_t codepages[]= {
 	  "abgpSsµtftodøØ_N"
 	  "=±<>||÷~°··Vn²__",
 	},
+
+	/* Taiwanese (Chinese Complex Character) support */
+	{ 950,
+	 "€‚ƒ„…†‡ˆ‰Š‹Œ"
+	 "‘’“”•–—˜™š›œŸ"
+	 " ¡¢£¤¥¦§¨©ª«¬­®¯"
+	 "°±²³´µ¶·¸¹º»¼½¾¿"
+	 "ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏ"
+	 "ĞÑÒÓÔÕÖ×ØÙÚÛÜİŞß"
+	 "àáâãäåæçèéêëìíîï"
+	 "ğñòóôõö÷øùúûüışÿ",
+	},
+
+
 	{ 0 }
 };
 

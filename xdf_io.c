@@ -3,8 +3,8 @@
  *
  * written by:
  *
- * Alain L. Knaff			
- * Alain.Knaff@poboxes.com
+ * Alain L. Knaff
+ * alain@linux.lu
  *
  */
 
@@ -15,7 +15,6 @@
 #include "mtools.h"
 #include "devices.h"
 #include "xdf_io.h"
-#include "patchlevel.h"
 
 extern int errno;
 
@@ -385,8 +384,8 @@ static int fill_phantoms(Xdf_t *This, int ptr, int size)
 	return ptr;
 }
 
-static void decompose(Xdf_t *This, int where, int len, off_t *begin, off_t *end,
-		     int boot)
+static void decompose(Xdf_t *This, int where, int len, off_t *begin, 
+					  off_t *end, int boot)
 {
 	int ptr, track;
 	sector_map_t *map;
@@ -465,13 +464,13 @@ static void decompose(Xdf_t *This, int where, int len, off_t *begin, off_t *end,
 }
 
 
-static int xdf_read(Stream_t *Stream, char *buf, off_t where, size_t len)
+static int xdf_read(Stream_t *Stream, char *buf, mt_off_t where, size_t len)
 {	
 	off_t begin, end;
 	size_t len2;
 	DeclareThis(Xdf_t);
 
-	decompose(This, where, len, &begin, &end, 0);
+	decompose(This, truncBytes32(where), len, &begin, &end, 0);
 	len2 = load_data(This, begin, end, 4);
 	if(len2 < 0)
 		return len2;
@@ -481,13 +480,13 @@ static int xdf_read(Stream_t *Stream, char *buf, off_t where, size_t len)
 	return end - begin;
 }
 
-static int xdf_write(Stream_t *Stream, char *buf, off_t where, size_t len)
+static int xdf_write(Stream_t *Stream, char *buf, mt_off_t where, size_t len)
 {	
 	off_t begin, end;
 	size_t len2;
 	DeclareThis(Xdf_t);
 
-	decompose(This, where, len, &begin, &end, 0);
+	decompose(This, truncBytes32(where), len, &begin, &end, 0);
 	len2 = load_bounds(This, begin, end);
 	if(len2 < 0)
 		return len2;
@@ -522,25 +521,27 @@ static int check_geom(struct device *dev, int media, struct bootsector *boot)
 	if(media >= 0xfc && media <= 0xff)
 		return 1; /* old DOS */
 
-	if(compare(dev->sectors, 19) &&
-	   compare(dev->sectors, 23) &&
-	   compare(dev->sectors, 24) &&
-	   compare(dev->sectors, 46) &&
-	   compare(dev->sectors, 48))
+	if (!IS_MFORMAT_ONLY(dev)) {
+	    if(compare(dev->sectors, 19) &&
+	       compare(dev->sectors, 23) &&
+	       compare(dev->sectors, 24) &&
+	       compare(dev->sectors, 46) &&
+	       compare(dev->sectors, 48))
 		return 1;
-
-	/* check against contradictory info from configuration file */
-	if(compare(dev->heads, 2))
+	    
+	    /* check against contradictory info from configuration file */
+	    if(compare(dev->heads, 2))
 		return 1;
+	}
 
 	/* check against info from boot */
 	if(boot) {
 		sect = WORD(nsect);
 		if((sect != 19 && sect != 23 && sect != 24 &&
 		    sect != 46 && sect != 48) ||
-		   compare(dev->sectors, sect) || 
+		   (!IS_MFORMAT_ONLY(dev) && compare(dev->sectors, sect)) || 
 		   WORD(nheads) !=2)
-			return 1;
+		    return 1;
 	}
 	return 0;
 }
@@ -599,7 +600,11 @@ Stream_t *XdfOpen(struct device *dev, char *name,
 	precmd(dev);
 	This->fd = open(name, mode | dev->mode | O_EXCL | O_NDELAY);
 	if(This->fd < 0) {
+#ifdef HAVE_SNPRINTF
+		snprintf(errmsg,199,"xdf floppy: open: \"%s\"", strerror(errno));
+#else
 		sprintf(errmsg,"xdf floppy: open: \"%s\"", strerror(errno));
+#endif
 		goto exit_0;
 	}
 	closeExec(This->fd);
@@ -621,8 +626,13 @@ Stream_t *XdfOpen(struct device *dev, char *name,
 
 	/* lock the device on writes */
 	if (lock_dev(This->fd, mode == O_RDWR, dev)) {
+#ifdef HAVE_SNPRINTF
+		snprintf(errmsg,199,"xdf floppy: device \"%s\" busy:", 
+			dev->name);
+#else
 		sprintf(errmsg,"xdf floppy: device \"%s\" busy:", 
 			dev->name);
+#endif
 		goto exit_3;
 	}
 

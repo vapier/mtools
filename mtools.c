@@ -1,12 +1,9 @@
 #include "sysincludes.h"
 #include "msdos.h"
 #include "mtools.h"
-#include "patchlevel.h"
 #include "partition.h"
 #include "vfat.h"
 
-const char *mversion = VERSION;
-const char *mdate = DATE;
 const char *progname;
 
 static const struct dispatch {
@@ -16,11 +13,13 @@ static const struct dispatch {
 } dispatch[] = {
 	{"mattrib",mattrib, 0},
 	{"mbadblocks",mbadblocks, 0},
+	{"mcat",mcat, 0},
 	{"mcd",mcd, 0},
 	{"mcopy",mcopy, 0},
 	{"mdel",mdel, 0},
 	{"mdeltree",mdel, 2},
 	{"mdir",mdir, 0},
+	{"mdoctorfat",mdoctorfat, 0},
 	{"mdu",mdu, 0},
 	{"mformat",mformat, 0},
 	{"minfo", minfo, 0},
@@ -46,6 +45,9 @@ int main(int argc,char **argv)
 	int i;
 
 	init_privs();
+#ifdef __EMX__
+	_wildcard(&argc,&argv);
+#endif
 
 /*#define PRIV_TEST*/
 
@@ -74,9 +76,49 @@ int main(int argc,char **argv)
 	}
 #endif
 
+
+#ifdef __EMX__
+       _wildcard(&argc,&argv);
+#endif 
+
+
+	/* check whether the compiler lays out structures in a sane way */
+	if(sizeof(struct partition) != 16 ||
+	   sizeof(struct directory) != 32 ||
+	   sizeof(struct vfat_subentry) !=32) {
+		fprintf(stderr,"Mtools has not been correctly compiled\n");
+		fprintf(stderr,"Recompile it using a more recent compiler\n");
+		return 137;
+	}
+
+#ifdef __EMX__
+       argv[0] = _getname(argv[0]); _remext(argv[0]); name = argv[0];
+#else  
+	name = _basename(argv[0]);
+#endif
+	progname = argv[0];
+
+	/* this allows the different tools to be called as "mtools -c <command>"
+	** where <command> is mdir, mdel, mcopy etcetera
+	** Mainly done for the BeOS, which doesn't support links yet.
+	*/
+
+	if(argc >= 3 && 
+	   !strcmp(argv[1], "-c") &&
+	   !strcmp(name, "mtools")) {
+		argc-=2;
+		argv+=2;
+		name = argv[0];
+	}
+
+
+
 	/* print the version */
-	if(argc >= 2 && strcmp(argv[1], "-V") == 0) {
-		printf("Mtools version %s, dated %s\n", mversion, mdate);
+	if(argc >= 2 && 
+	   (strcmp(argv[1], "-V") == 0 || strcmp(argv[1], "--version") ==0)) {
+		printf("%c%s version %s, dated %s\n", 
+		       toupper(name[0]), name+1,
+		       mversion, mdate);
 		printf("configured with the following options: ");
 #ifdef USE_XDF
 		printf("enable-xdf ");
@@ -93,7 +135,7 @@ int main(int argc,char **argv)
 #else
 		printf("disable-new-vold ");
 #endif
-#ifdef DEBUG
+#if DEBUG
 		printf("enable-debug ");
 #else
 		printf("disable-debug ");
@@ -105,31 +147,6 @@ int main(int argc,char **argv)
 #endif
 		printf("\n");
 		return 0;
-	}
-
-	/* check whether the compiler lays out structures in a sane way */
-	if(sizeof(struct partition) != 16 ||
-	   sizeof(struct directory) != 32 ||
-	   sizeof(struct vfat_subentry) !=32) {
-		fprintf(stderr,"Mtools has not been correctly compiled\n");
-		fprintf(stderr,"Recompile it using a more recent compiler\n");
-		return 137;
-	}
-
-	name = _basename(argv[0]);
-	progname = argv[0];
-
-	/* this allows the different tools to be called as "mtools -c <command>"
-	** where <command> is mdir, mdel, mcopy etcetera
-	** Mainly done for the BeOS, which doesn't support links yet.
-	*/
-
-	if(argc >= 3 && 
-	   !strcmp(argv[1], "-c") &&
-	   !strcmp(name, "mtools")) {
-		argc-=2;
-		argv+=2;
-		name = argv[0];
 	}
 
 	read_config();

@@ -28,14 +28,23 @@ int unix_loop(Stream_t *Stream, MainParam_t *mp, char *arg, int follow_dir_link)
 {
 	int ret;
 	int isdir;
+	int unixNameLength;
 
 	mp->File = NULL;
 	mp->direntry = NULL;
-	mp->unixSourceName = arg;
-	/*	mp->dir.attr = 0x20;*/
+	unixNameLength = strlen(arg);
+	if(unixNameLength > 1 && arg[unixNameLength-1] == '/') {
+	    // names ending in slash, and having at least two characters
+	    char *name = strdup(arg);
+	    name[unixNameLength-1]='\0';
+	    mp->unixSourceName = name;
+	} else {
+	    mp->unixSourceName = arg;
+	}
+	/*	mp->dir.attr = ATTR_ARCHIVE;*/
 	mp->loop = _unix_loop;
 	if((mp->lookupflags & DO_OPEN)){
-		mp->File = SimpleFileOpen(0, 0, arg, O_RDONLY, 0, 0, 0);
+		mp->File = SimpleFileOpen(0, 0, arg, O_RDONLY, 0, 0, 0, 0);
 		if(!mp->File){
 			perror(arg);
 #if 0
@@ -47,11 +56,12 @@ int unix_loop(Stream_t *Stream, MainParam_t *mp, char *arg, int follow_dir_link)
 		}
 		GET_DATA(mp->File, 0, 0, &isdir, 0);
 		if(isdir) {
-			struct stat buf;
+			struct MT_STAT buf;
 
 			FREE(&mp->File);
+#ifndef __EMX__
 			if(!follow_dir_link &&
-			   lstat(arg, &buf) == 0 &&
+			   MT_LSTAT(arg, &buf) == 0 &&
 			   S_ISLNK(buf.st_mode)) {
 				/* skip links to directories in order to avoid
 				 * infinite loops */
@@ -60,7 +70,7 @@ int unix_loop(Stream_t *Stream, MainParam_t *mp, char *arg, int follow_dir_link)
 					arg);
 				return 0;				
 			}
-
+#endif
 			if(! (mp->lookupflags & ACCEPT_DIR))
 				return 0;
 			mp->File = OpenDir(Stream, arg);
@@ -135,7 +145,7 @@ static int handle_leaf(direntry_t *direntry, MainParam_t *mp,
 	}
 
 	mp->direntry = direntry;
-	if(direntry->dir.attr & 0x10) {
+	if(IS_DIR(direntry)) {
 		if(mp->lookupflags & (DO_OPEN | DO_OPEN_DIRS))
 			MyFile = mp->File = OpenFileByDirentry(direntry);
 		ret = mp->dirCallback(direntry, mp);
@@ -155,23 +165,27 @@ static int _dos_loop(Stream_t *Dir, MainParam_t *mp, const char *filename)
 	Stream_t *MyFile=0;
 	direntry_t entry;
 	int ret;
+	int r;
+	
 	ret = 0;
+	r=0;
 	initializeDirentry(&entry, Dir);
 	while(!got_signal &&
-	      vfat_lookup(&entry, filename, -1,
-			  mp->lookupflags, mp->shortname, mp->longname) == 0 ){
+	      (r=vfat_lookup(&entry, filename, -1,
+			     mp->lookupflags, mp->shortname, 
+			     mp->longname)) == 0 ){
 		mp->File = NULL;
 		if(!checkForDot(mp->lookupflags,entry.name)) {
 			MyFile = 0;
 			if((mp->lookupflags & DO_OPEN) ||
-			   ((entry.dir.attr | 0x10) && 
+			   (IS_DIR(&entry) && 
 			    (mp->lookupflags & DO_OPEN_DIRS))) {
 				MyFile = mp->File = OpenFileByDirentry(&entry);
 			}
 			if(got_signal)
 				break;
 			mp->direntry = &entry;
-			if(entry.dir.attr & 0x10)
+			if(IS_DIR(&entry))
 				ret |= mp->dirCallback(&entry,mp);
 			else
 				ret |= mp->callback(&entry, mp);
@@ -182,6 +196,8 @@ static int _dos_loop(Stream_t *Dir, MainParam_t *mp, const char *filename)
 		if(mp->fast_quit && (ret & ERROR_ONE))
 			break;
 	}
+	if (r == -2)
+	    return ERROR_ONE;
 	if(got_signal)
 		ret |= ERROR_ONE;
 	return ret;
@@ -199,6 +215,7 @@ static int recurs_dos_loop(MainParam_t *mp, const char *filename0,
 	int ret;
 	int have_one;
 	int doing_mcwd;
+	int r;
 
 	while(1) {
 		/* strip dots and // */
@@ -280,13 +297,14 @@ static int recurs_dos_loop(MainParam_t *mp, const char *filename0,
 		lookupflags = ACCEPT_DIR | DO_OPEN | NO_DOTS;
 
 	ret = 0;
-
+	r = 0;
 	have_one = 0;
 	initializeDirentry(&entry, mp->File);
 	while(!(ret & STOP_NOW) &&
 	      !got_signal &&
-	      vfat_lookup(&entry, filename0, length,
-			  lookupflags, mp->shortname, mp->longname) == 0 ){
+	      (r=vfat_lookup(&entry, filename0, length,
+			     lookupflags | NO_MSG, 
+			     mp->shortname, mp->longname)) == 0 ){
 		if(checkForDot(lookupflags, entry.name))
 			/* while following the path, ignore the
 			 * special entries if they were not
@@ -306,6 +324,8 @@ static int recurs_dos_loop(MainParam_t *mp, const char *filename0,
 		if(doing_mcwd)
 			break;
 	}
+	if (r == -2)
+		return ERROR_ONE;
 	if(got_signal)
 		return ret | ERROR_ONE;
 	if(doing_mcwd & !have_one)
@@ -485,7 +505,7 @@ static int dispatchToFile(direntry_t *entry, MainParam_t *mp)
 void init_mp(MainParam_t *mp)
 {
 	fix_mcwd(mp->mcwd);
-	mp->openflags = 0;
+	mp->openflags = O_RDONLY;
 	mp->targetName = 0;
 	mp->targetDir = 0;
 	mp->unixTarget = 0;
@@ -507,7 +527,7 @@ const char *mpGetBasename(MainParam_t *mp)
 void mpPrintFilename(FILE *fp, MainParam_t *mp)
 {
 	if(mp->direntry)
-		fprintPwd(fp, mp->direntry);
+		fprintPwd(fp, mp->direntry, 0);
 	else
 		fprintf(fp,"%s",mp->originalArg);
 }
@@ -533,6 +553,13 @@ char *mpBuildUnixFilename(MainParam_t *mp)
 		return 0;
 	strcpy(ret, mp->unixTarget);
 	if(*target) {
+#if 1 /* fix for 'mcopy -n x:file existingfile' -- H. Lermen 980816 */
+		if(!mp->targetName && !mp->targetDir) {
+			struct MT_STAT buf;
+			if (!MT_STAT(ret, &buf) && !S_ISDIR(buf.st_mode))
+				return ret;
+		}
+#endif
 		strcat(ret, "/");
 		strcat(ret, target);
 	}

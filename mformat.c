@@ -2,6 +2,8 @@
  * mformat.c
  */
 
+#define DONT_NEED_WAIT
+
 #include "sysincludes.h"
 #include "msdos.h"
 #include "mtools.h"
@@ -9,19 +11,32 @@
 #include "fsP.h"
 #include "file.h"
 #include "plain_io.h"
+#include "floppyd_io.h"
 #include "nameclash.h"
 #include "buffer.h"
 #ifdef USE_XDF
 #include "xdf_io.h"
 #endif
+#include "partition.h"
 
 #ifndef abs
 #define abs(x) ((x)>0?(x):-(x))
 #endif
 
+#ifdef OS_linux
+#include "linux/hdreg.h"
+
+#define _LINUX_STRING_H_
+#define kdev_t int
+#include "linux/fs.h"
+#undef _LINUX_STRING_H_
+
+#endif
+
+
 extern int errno;
 
-static void init_geometry_boot(struct bootsector *boot, struct device *dev,
+static int init_geometry_boot(struct bootsector *boot, struct device *dev,
 			       int sectors0, int rate_0, int rate_any,
 			       int *tot_sectors, int keepBoot)
 {
@@ -46,6 +61,7 @@ static void init_geometry_boot(struct bootsector *boot, struct device *dev,
 	}
 
 	if (dev->use_2m & 0x7f){
+		int bootOffset;
 		strncpy(boot->banner, "2M-STV04", 8);
 		boot->ext.old.res_2m = 0;
 		boot->ext.old.fmt_2mf = 6;
@@ -96,25 +112,26 @@ static void init_geometry_boot(struct bootsector *boot, struct device *dev,
 		}
 		
 		set_word(boot->ext.old.BootP,i);
+		bootOffset = i;
 
 		/* checksum */		
 		for (sum=0, j=64; j<i; j++) 
 			sum += boot->jump[j];/* checksum */
 		boot->ext.old.CheckSum=-sum;
+		return bootOffset;
 	} else {
 		if(!keepBoot) {
 			boot->jump[0] = 0xeb;
 			boot->jump[1] = 0;
 			boot->jump[2] = 0x90;
-			strncpy(boot->banner, "MTOOLS39", 8);
+			strncpy(boot->banner, "MTOOL398", 8);
 			/* It looks like some versions of DOS are
 			 * rather picky about this, and assume default
 			 * parameters without this, ignoring any
 			 * indication about cluster size et al. */
-			set_word(boot->ext.old.BootP, OFFSET(ext.old.BootP)+2);
 		}
+		return 0;
 	}
-	return;
 }
 
 
@@ -149,7 +166,7 @@ static int comp_fat_bits(Fs_t *Fs, int estimate,
 	}
 
 	if(needed_fat_bits == 32 && !fat32 && abs(estimate) !=32){
-		fprintf(stderr,"Warning: Using 32 bit FAT.  Drive will only be accessibly by Win95 OEM\n");
+		fprintf(stderr,"Warning: Using 32 bit FAT.  Drive will only be accessibly by Win95 OEM / Win98\n");
 	}
 
 	if(!estimate) {
@@ -242,7 +259,8 @@ static inline void format_root(Fs_t *Fs, char *label, struct bootsector *boot)
 	} else
 		dirlen = Fs->dir_len; 
 	for (i = 0; i < dirlen; i++)
-		WRITES(RootDir, buf, i * Fs->sector_size,  Fs->sector_size);
+		WRITES(RootDir, buf, sectorsToBytes((Stream_t*)Fs, i),  
+			   Fs->sector_size);
 
 	ch.ignore_entry = 1;
 	if(label[0])
@@ -337,13 +355,13 @@ static void calc_fat_size(Fs_t *Fs, unsigned int tot_sectors)
 
 	if ( Fs->num_clus > FAT12 && Fs->fat_bits == 12 ){
 		fprintf(stderr,"Too many clusters for this fat size."
-			" Please choose a 16-bit fat in your /etc/mtools"
+			" Please choose a 16-bit fat in your /etc/mtools.conf"
 			" or .mtoolsrc file\n");
 		exit(1);
 	}
 	if ( Fs->num_clus <= FAT12 && Fs->fat_bits > 12 ){
 		fprintf(stderr,"Too few clusters for this fat size."
-			" Please choose a 12-bit fat in your /etc/mtools"
+			" Please choose a 12-bit fat in your /etc/mtools.conf"
 			" or .mtoolsrc file\n");
 		exit(1);
 	}
@@ -357,9 +375,8 @@ static unsigned char bootprog[]=
  0xb9, 0x01, 0x00, 0xcd, 0x13, 0x72, 0x05, 0xea, 0x00, 0x7c, 0x00,
  0x00, 0xcd, 0x19};
 
-static inline void inst_boot_prg(struct bootsector *boot)
+static inline void inst_boot_prg(struct bootsector *boot, int offset)
 {
-	int offset = WORD(ext.old.BootP);
 	memcpy((char *) boot->jump + offset, 
 	       (char *) bootprog, sizeof(bootprog) /sizeof(bootprog[0]));
 	boot->jump[0] = 0xeb;
@@ -430,6 +447,24 @@ struct OldDos_t old_dos[]={
 {   80, 36,  2,15, 2, 9, 0xf0 },
 {    1,  8,  1, 1, 1, 1, 0xf0 },
 };
+
+static int old_dos_size_to_geom(int size, int *cyls, int *heads, int *sects)
+{
+	int i;
+	size = size * 2;
+	for(i=0; i < sizeof(old_dos) / sizeof(old_dos[0]); i++){
+		if (old_dos[i].sectors * 
+		    old_dos[i].tracks * 
+		    old_dos[i].heads == size) {
+			*cyls = old_dos[i].tracks;
+			*heads = old_dos[i].heads;
+			*sects = old_dos[i].sectors;
+			return 0;
+		}
+	}
+	return 1;
+}
+
 
 static void calc_fs_parameters(struct device *dev, unsigned int tot_sectors,
 			       struct Fs_t *Fs, struct bootsector *boot)
@@ -518,9 +553,16 @@ static void usage(void)
 	fprintf(stderr, 
 		"Mtools version %s, dated %s\n", mversion, mdate);
 	fprintf(stderr, 
-		"Usage: %s [-V] [-t tracks] [-h heads] [-s sectors] "
-		"[-l label] [-n serialnumber] "
-		"[-S hardsectorsize] [-M softsectorsize] [-1]"
+		"Usage: %s [-V] [-t tracks] [-h heads] [-n sectors] "
+		"[-v label] [-1] [-4] [-8] [-f size] "
+		"[-N serialnumber] "
+		"[-k] [-B bootsector] [-r root_dir_len] [-L fat_len] "
+		"[-F] [-I fsVersion] [-C] [-c cluster_size] "
+		"[-H hidden_sectors] "
+#ifdef USE_XDF
+		"[-X] "
+#endif
+		"[-S hardsectorsize] [-M softsectorsize] [-3] "
 		"[-2 track0sectors] [-0 rate0] [-A rateany] [-a]"
 		"device\n", progname);
 	exit(1);
@@ -528,6 +570,7 @@ static void usage(void)
 
 void mformat(int argc, char **argv, int dummy)
 {
+	int r; /* generic return value */
 	Fs_t Fs;
 	int hs, hs_set;
 	int arguse_2m = 0;
@@ -538,6 +581,8 @@ void mformat(int argc, char **argv, int dummy)
 	int argssize=0; /* sector size */
 	int msize=0;
 	int fat32 = 0;
+	struct label_blk_t *labelBlock;
+	int bootOffset;
 
 #ifdef USE_XDF
 	int i;
@@ -563,6 +608,8 @@ void mformat(int argc, char **argv, int dummy)
  	int serial_set;
 	int fsVersion;
 
+	mt_off_t maxSize;
+
 	int Atari = 0; /* should we add an Atari-style serial number ? */
  
 	hs = hs_set = 0;
@@ -586,84 +633,139 @@ void mformat(int argc, char **argv, int dummy)
 
 	/* get command line options */
 	while ((c = getopt(argc,argv,
-			   "B:kr:IFCc:Xt:h:s:l:n:H:M:S:12:0Aaf:"))!= EOF) {
+			   "148f:t:n:v:qub"
+			   "kB:r:L:IFCc:Xh:s:l:N:H:M:S:230:Aa"))!= EOF) {
 		switch (c) {
-			case 'k':
-				keepBoot = 1;
+			/* standard DOS flags */
+			case '1':
+				argheads = 1;
 				break;
-			case 'B':
-				bootSector = optarg;
+			case '4':
+				argsectors = 9;
+				argtracks = 40;
 				break;
-			case 'r': 
-				Fs.dir_len = strtoul(optarg,0,0);
+			case '8':
+				argsectors = 8;
+				argtracks = 40;
 				break;
 			case 'f':
-				Fs.fat_len = strtoul(optarg,0,0);
+				r=old_dos_size_to_geom(atoi(optarg),
+						       &argtracks, &argheads,
+						       &argsectors);
+				if(r) {
+					fprintf(stderr, 
+						"Bad size %s\n", optarg);
+					exit(1);
+				}
 				break;
-			case 'F':
-				fat32 = 1;
-				break;
-			case 'I':
-				fsVersion = strtoul(optarg,0,0);
-				break;
-			case 'C':
-				create = O_CREAT;
-				break;
-			case 'c':
-				Fs.cluster_size = atoi(optarg);
-				break;
-			case 'H':
-				hs = atoi(optarg);
-				hs_set = 1;
-				break;
-#ifdef USE_XDF
-			case 'X':
-				format_xdf = 1;
-				break;
-#endif
 			case 't':
 				argtracks = atoi(optarg);
 				break;
-			case 'h':
-				argheads = atoi(optarg);
-				break;
+
+			case 'n': /*non-standard*/
 			case 's':
 				argsectors = atoi(optarg);
 				break;
-			case 'l':
+
+			case 'l': /* non-standard */
+			case 'v':
 				strncpy(label, optarg, VBUFSIZE-1);
 				label[VBUFSIZE-1] = '\0';
 				break;
- 			case 'n':
- 				serial = strtoul(optarg,0,0);
- 				serial_set = 1;
- 				break;
+
+			/* flags supported by Dos but not mtools */
+			case 'q':
+			case 'u':
+			case 'b':
+			/*case 's': leave this for compatibility */
+				fprintf(stderr, 
+					"Flag %c not supported by mtools\n",c);
+				exit(1);
+				
+
+
+			/* flags added by mtools */
+			case 'F':
+				fat32 = 1;
+				break;
+
+
 			case 'S':
 				argssize = atoi(optarg) | 0x80;
 				if(argssize < 0x81)
 					usage();
 				break;
-			case 'M':
-				msize = atoi(optarg);
-				if (msize % 256 || msize > 8192 )
-					usage();
+
+#ifdef USE_XDF
+			case 'X':
+				format_xdf = 1;
 				break;
-			case '1':
-				arguse_2m = 0x80;
-				break;
+#endif
+
 			case '2':
 				arguse_2m = 0xff;
 				sectors0 = atoi(optarg);
 				break;
+			case '3':
+				arguse_2m = 0x80;
+				break;
+
 			case '0': /* rate on track 0 */
 				rate_0 = atoi(optarg);
 				break;
 			case 'A': /* rate on other tracks */
 				rate_any = atoi(optarg);
 				break;
+
+			case 'M':
+				msize = atoi(optarg);
+				if (msize % 256 || msize > 8192 )
+					usage();
+				break;
+
+			case 'N':
+ 				serial = strtoul(optarg,0,16);
+ 				serial_set = 1;
+ 				break;
 			case 'a': /* Atari style serial number */
 				Atari = 1;
 				break;
+
+			case 'C':
+				create = O_CREAT;
+				break;
+
+			case 'H':
+				hs = atoi(optarg);
+				hs_set = 1;
+				break;
+
+			case 'I':
+				fsVersion = strtoul(optarg,0,0);
+				break;
+
+			case 'c':
+				Fs.cluster_size = atoi(optarg);
+				break;
+
+			case 'r': 
+				Fs.dir_len = strtoul(optarg,0,0);
+				break;
+			case 'L':
+				Fs.fat_len = strtoul(optarg,0,0);
+				break;
+
+
+			case 'B':
+				bootSector = optarg;
+				break;
+			case 'k':
+				keepBoot = 1;
+				break;
+			case 'h':
+				argheads = atoi(optarg);
+				break;
+
 			default:
 				usage();
 		}
@@ -707,13 +809,23 @@ void mformat(int argc, char **argv, int dummy)
 #endif
 
 #ifdef USE_XDF
-		if(!format_xdf)
+		if(!format_xdf) {
 #endif
-			Fs.Direct = SimpleFileOpen(&used_dev, dev, name,
-						   O_RDWR | create,
-						   errmsg, 0, 1);
+			Fs.Direct = 0;
+#ifdef USE_FLOPPYD
+			Fs.Direct = FloppydOpen(&used_dev, dev, name, O_RDWR | create,
+									errmsg, 0, 1);
+			if(Fs.Direct) {
+				maxSize = max_off_t_31;
+			}
+#endif
+			if(!Fs.Direct) {			
+				Fs.Direct = SimpleFileOpen(&used_dev, dev, name,
+										   O_RDWR | create,
+										   errmsg, 0, 1, &maxSize);
+			}
 #ifdef USE_XDF
-		else {
+		} else {
 			used_dev.misc_flags |= USE_XDF_FLAG;
 			Fs.Direct = XdfOpen(&used_dev, name, O_RDWR,
 					    errmsg, &info);
@@ -727,12 +839,49 @@ void mformat(int argc, char **argv, int dummy)
 		if (!Fs.Direct)
 			continue;
 
-		/* non removable media */
+#ifdef OS_linux
+		if ((!used_dev.tracks || !used_dev.heads || !used_dev.sectors) &&
+			(!IS_SCSI(dev))) {
+			int fd= get_fd(Fs.Direct);
+			struct MT_STAT buf;
+
+			if (MT_FSTAT(fd, &buf) < 0) {
+				sprintf(errmsg, "Could not stat file (%s)", strerror(errno));
+				continue;						
+			}
+
+			if (S_ISBLK(buf.st_mode)) {
+				struct hd_geometry geom;
+				long size;
+				int sect_per_track;
+
+				if (ioctl(fd, HDIO_GETGEO, &geom) < 0) {
+					sprintf(errmsg, "Could not get geometry of device (%s)",
+							strerror(errno));
+					continue;
+				}
+
+				if (ioctl(fd, BLKGETSIZE, &size) < 0) {
+					sprintf(errmsg, "Could not get size of device (%s)",
+							strerror(errno));
+					continue;
+				}
+
+				sect_per_track = geom.heads * geom.sectors;
+				used_dev.heads = geom.heads;
+				used_dev.sectors = geom.sectors;
+				used_dev.hidden = geom.start % sect_per_track;
+				used_dev.tracks = (size + used_dev.hidden) / sect_per_track;
+			}
+		}
+#endif
+
+		/* no way to find out geometry */
 		if (!used_dev.tracks || !used_dev.heads || !used_dev.sectors){
 			sprintf(errmsg, 
-				"Non-removable media is not supported "
+				"Unknown geometry "
 				"(You must tell the complete geometry "
-				"of the disk, either in /etc/mtools or "
+				"of the disk, \neither in /etc/mtools.conf or "
 				"on the command line) ");
 			continue;
 		}
@@ -746,15 +895,21 @@ void mformat(int argc, char **argv, int dummy)
 		}
 #endif
 		Fs.sector_size = 512;
-		Fs.sectorShift = 9;
-		Fs.sectorMask = 511;
 		if( !(used_dev.use_2m & 0x7f)) {
 			Fs.sector_size = 128 << (used_dev.ssize & 0x7f);
-			Fs.sectorShift  = 7 + (used_dev.ssize & 0x7f);
-			Fs.sectorMask  = Fs.sector_size - 1;
 		}
-		SET_INT(Fs.sector_size, msize);
 
+		SET_INT(Fs.sector_size, msize);
+		{
+		    int i;
+		    for(i = 0; i < 31; i++) {
+			if (Fs.sector_size == 1 << i) {
+			    Fs.sectorShift = i;
+			    break;
+			}
+		    }
+		    Fs.sectorMask = Fs.sector_size - 1;
+		}
 
 		if(!used_dev.blocksize || used_dev.blocksize < Fs.sector_size)
 			blocksize = Fs.sector_size;
@@ -789,7 +944,7 @@ void mformat(int argc, char **argv, int dummy)
 	if(bootSector) {
 		int fd;
 
-		fd = open(bootSector, O_RDONLY);
+		fd = open(bootSector, O_RDONLY | O_LARGEFILE);
 		if(fd < 0) {
 			perror("open boot sector");
 			exit(1);
@@ -797,8 +952,17 @@ void mformat(int argc, char **argv, int dummy)
 		read(fd, buf, blocksize);
 		keepBoot = 1;
 	}
-	if(!keepBoot)
+	if(!keepBoot) {
 		memset((char *)boot, '\0', Fs.sector_size);
+		if(Fs.sector_size == 512 && !used_dev.partition) {
+			/* install fake partition table pointing to itself */
+			struct partition *partTable=(struct partition *)
+				(((char*) boot) + 0x1ae);
+			setBeginEnd(&partTable[1], 0,
+						used_dev.heads * used_dev.sectors * used_dev.tracks,
+						used_dev.heads, used_dev.sectors, 1, 0);
+		}
+	}
 	set_dword(boot->nhs, used_dev.hidden);
 
 	Fs.Next = buf_init(Fs.Direct,
@@ -843,35 +1007,49 @@ void mformat(int argc, char **argv, int dummy)
 
 		/* no backup boot sector */
 		set_word(boot->ext.fat32.backupBoot, 6);
+		
+		labelBlock = & boot->ext.fat32.labelBlock;
 	} else {
 		Fs.infoSectorLoc = 0;
 		Fs.fat_start = 1;
 		calc_fs_parameters(&used_dev, tot_sectors, &Fs, boot);
-		boot->ext.old.physdrive = 0x00;
-		boot->ext.old.reserved = 0;
-		boot->ext.old.dos4 = 0x29;
 		Fs.dir_start = Fs.num_fat * Fs.fat_len + Fs.fat_start;
 		Fs.clus_start = Fs.dir_start + Fs.dir_len;
+		labelBlock = & boot->ext.old.labelBlock;
 
-		if (!serial_set || Atari)
-			srandom(time (0));
-		if (!serial_set)
-			serial=random();
-		set_dword(boot->ext.old.serial, serial);	
-		if(!label[0])
-			strncpy(shortlabel, "NO NAME    ",11);
-		else
-			label_name(label, 0, &mangled, shortlabel);
-		strncpy(boot->ext.old.label, shortlabel, 11);
-		sprintf(boot->ext.old.fat_type, "FAT%2.2d   ", Fs.fat_bits);
 	}
+	
+	if (!keepBoot)
+		/* only zero out physdrive if we don't have a template
+		 * bootsector */
+		labelBlock->physdrive = 0x00;
+	labelBlock->reserved = 0;
+	labelBlock->dos4 = 0x29;
+
+	if (!serial_set || Atari)
+		srandom((long)time (0));
+	if (!serial_set)
+		serial=random();
+	set_dword(labelBlock->serial, serial);	
+	if(!label[0])
+		strncpy(shortlabel, "NO NAME    ",11);
+	else
+		label_name(label, 0, &mangled, shortlabel);
+	strncpy(labelBlock->label, shortlabel, 11);
+	sprintf(labelBlock->fat_type, "FAT%2.2d  ", Fs.fat_bits);
+	labelBlock->fat_type[7] = ' ';
 
 	set_word(boot->secsiz, Fs.sector_size);
 	boot->clsiz = (unsigned char) Fs.cluster_size;
 	set_word(boot->nrsvsect, Fs.fat_start);
 
-	init_geometry_boot(boot, &used_dev, sectors0, rate_0, rate_any,
-			   &tot_sectors, keepBoot);
+	bootOffset = init_geometry_boot(boot, &used_dev, sectors0, 
+					rate_0, rate_any,
+					&tot_sectors, keepBoot);
+	if(!bootOffset) {
+		bootOffset = ((char *) labelBlock) - ((char *) boot) +
+			sizeof(struct label_blk_t);
+	}
 	if(Atari) {
 		boot->banner[4] = 0;
 		boot->banner[5] = random();
@@ -881,12 +1059,12 @@ void mformat(int argc, char **argv, int dummy)
 
 	if (create) {
 		WRITES(Fs.Direct, (char *) buf,
-		       Fs.sector_size * (tot_sectors-1),
+		       sectorsToBytes((Stream_t*)&Fs, tot_sectors-1),
 		       Fs.sector_size);
 	}
 
 	if(!keepBoot)
-		inst_boot_prg(boot);
+		inst_boot_prg(boot, bootOffset);
 	if(dev->use_2m & 0x7f)
 		Fs.num_fat = 1;
 	Fs.lastFatSectorNr = 0;
@@ -904,10 +1082,10 @@ void mformat(int argc, char **argv, int dummy)
 #endif
 
 	format_root(&Fs, label, boot);
-	WRITES((Stream_t *)&Fs, (char *) boot, 0, Fs.sector_size);
+	WRITES((Stream_t *)&Fs, (char *) boot, (mt_off_t) 0, Fs.sector_size);
 	if(Fs.fat_bits == 32 && WORD(ext.fat32.backupBoot) != MAX32) {
 		WRITES((Stream_t *)&Fs, (char *) boot, 
-		       WORD(ext.fat32.backupBoot) * Fs.sector_size,
+		       sectorsToBytes((Stream_t*)&Fs, WORD(ext.fat32.backupBoot)),
 		       Fs.sector_size);
 	}
 	FLUSH((Stream_t *)&Fs); /* flushes Fs. 

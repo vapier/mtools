@@ -22,34 +22,68 @@ static int attrib_file(direntry_t *entry, MainParam_t *mp)
 {
 	Arg_t *arg=(Arg_t *) mp->arg;
 
-	entry->dir.attr = (entry->dir.attr & arg->remove) | arg->add;
-	dir_write(entry);
+	if(entry->entry != -3) {
+		/* if not root directory, change it */
+		entry->dir.attr = (entry->dir.attr & arg->remove) | arg->add;
+		dir_write(entry);
+	}
 	return GOT_ONE;
 }
+
+static int replay_attrib(direntry_t *entry, MainParam_t *mp)
+{
+	if ( (IS_ARCHIVE(entry) && IS_DIR(entry)) ||
+		 (!IS_ARCHIVE(entry) && !IS_DIR(entry)) ||
+		 IS_SYSTEM(entry) || IS_HIDDEN(entry)) {
+
+		printf("mattrib ");
+
+		if (IS_ARCHIVE(entry) && IS_DIR(entry)) {
+			printf("+a ");
+		}
+
+		if (!IS_ARCHIVE(entry) && !IS_DIR(entry)) {
+			printf("-a ");
+		}
+
+		if (IS_SYSTEM(entry)) {
+			printf("+s ");
+		}
+
+		if (IS_HIDDEN(entry)) {
+			printf("+h ");
+		}
+
+		fprintPwd(stdout, entry, 1);
+		printf("\n");
+	}
+	return GOT_ONE;
+}
+
 
 
 static int view_attrib(direntry_t *entry, MainParam_t *mp)
 {
 	printf("  ");
-	if(entry->dir.attr & 0x20)
+	if(IS_ARCHIVE(entry))
 		putchar('A');
 	else
 		putchar(' ');
 	fputs("  ",stdout);
-	if(entry->dir.attr & 0x4)
+	if(IS_SYSTEM(entry))
 		putchar('S');
 	else
 		putchar(' ');
-	if(entry->dir.attr & 0x2)
+	if(IS_HIDDEN(entry))
 		putchar('H');
 	else
 		putchar(' ');
-	if(entry->dir.attr & 0x1)
+	if(IS_READONLY(entry))
 		putchar('R');
 	else
 		putchar(' ');
 	printf("     ");
-	fprintPwd(stdout, entry);
+	fprintPwd(stdout, entry, 0);
 	printf("\n");
 	return GOT_ONE;
 }
@@ -59,19 +93,19 @@ static int concise_view_attrib(direntry_t *entry, MainParam_t *mp)
 {
 	Arg_t *arg=(Arg_t *) mp->arg;
 
-	if(entry->dir.attr & 0x20)
+	if(IS_ARCHIVE(entry))
 		putchar('A');
-	if(entry->dir.attr & 0x10)
+	if(IS_DIR(entry))
 		putchar('D');	
-	if(entry->dir.attr & 0x4)
+	if(IS_SYSTEM(entry))
 		putchar('S');
-	if(entry->dir.attr & 0x2)
+	if(IS_HIDDEN(entry))
 		putchar('H');
-	if(entry->dir.attr & 0x1)
+	if(IS_READONLY(entry))
 		putchar('R');
 	if(arg->doPrintName) {
 		putchar(' ');
-		fprintPwd(stdout, entry);
+		fprintPwd(stdout, entry, 0);
 	}
 	putchar('\n');
 	return GOT_ONE;
@@ -99,13 +133,13 @@ static int letterToCode(int letter)
 {
 	switch (toupper(letter)) {
 		case 'A':
-			return 0x20;
+			return ATTR_ARCHIVE;
 		case 'H':
-			return 0x2;
+			return ATTR_HIDDEN;
 		case 'R':
-			return 0x1;
+			return ATTR_READONLY;
 		case 'S':
-			return 0x4;
+			return ATTR_SYSTEM;
 		default:
 			usage();
 	}
@@ -118,6 +152,7 @@ void mattrib(int argc, char **argv, int type)
 	int view;
 	int c;
 	int concise;
+	int replay;
 	char *ptr;
 
 	arg.add = 0;
@@ -126,11 +161,15 @@ void mattrib(int argc, char **argv, int type)
 	arg.doPrintName = 1;
 	view = 0;
 	concise = 0;
-
-	while ((c = getopt(argc, argv, "/ahrsAHRSX")) != EOF) {
+	replay = 0;
+	
+	while ((c = getopt(argc, argv, "/ahrsAHRSXp")) != EOF) {
 		switch (c) {
 			default:
 				arg.remove &= ~letterToCode(c);
+				break;
+			case 'p':
+				replay = 1;
 				break;
 			case '/':
 				arg.recursive = 1;
@@ -170,6 +209,8 @@ void mattrib(int argc, char **argv, int type)
 			arg.doPrintName = (argc - optind > 1 ||
 					   arg.recursive ||
 					   strpbrk(argv[optind], "*[?") != 0);
+		} else if (replay) {
+			arg.mp.callback = replay_attrib;
 		} else
 			arg.mp.callback = view_attrib;
 		arg.mp.openflags = O_RDONLY;

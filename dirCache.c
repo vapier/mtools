@@ -96,8 +96,20 @@ int isHashed(dirCache_t *cache, char *name)
 	return ret;
 }
 
+void checkXYZ(dirCache_t *cache)
+{
+	if(cache->entries[2])
+		printf(" at 2 = %d\n", cache->entries[2]->beginSlot);
+}
+
+
 int growDirCache(dirCache_t *cache, int slot)
 {
+	if(slot < 0) {
+		fprintf(stderr, "Bad slot %d\n", slot);
+		exit(1);
+	}
+
 	if( cache->nr_entries <= slot) {
 		int i;
 		
@@ -117,6 +129,12 @@ int growDirCache(dirCache_t *cache, int slot)
 dirCache_t *allocDirCache(Stream_t *Stream, int slot)
 {       
 	dirCache_t **dcp;
+
+	if(slot < 0) {
+		fprintf(stderr, "Bad slot %d\n", slot);
+		exit(1);
+	}
+
 	dcp = getDirCacheP(Stream);
 	if(!*dcp) {
 		*dcp = New(dirCache_t);

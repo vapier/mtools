@@ -1,4 +1,4 @@
-.TH mren 1 "13aug97" mtools-3.8
+.TH mren 1 "27May01" mtools-pre6-3.9.8
 .SH Name
 mren - rename an existing MSDOS file
 '\" t
@@ -12,15 +12,48 @@ mren - rename an existing MSDOS file
 .tr \(if`
 .tr \(pd"
 
-.SH Note
+.SH Note\ of\ warning
 This manpage has been automatically generated from mtools's texinfo
-documentation.  However, this process is only approximative, and some
+documentation, and may not be entirely accurate or complete.  See the
+end of this man page for details.
+.PP
+.SH Description
+.iX "p mren"
+.iX "c Renaming files (mren)"
+.iX "c Moving files (mren)"
+.PP
+The \fR\&\f(CWmren\fR command is used to rename or move an existing MS-DOS
+file or subdirectory. Its syntax is:
+.PP
+.(l I
+\&\fR\&\f(CWmren\fR [\fR\&\f(CW-voOsSrRA\fR] \fIsourcefile\fR \fItargetfile\fR
+.)l
+ 
+.PP
+\&\fR\&\f(CWMren\fR
+renames an existing file on an MS-DOS filesystem.
+.PP
+In verbose mode, \fR\&\f(CWMren\fR displays the new filename if the name
+supplied is invalid.
+.PP
+If the first syntax is used (only one sourcefile), and if the target
+name doesn't contain any slashes or colons, the file (or subdirectory)
+is renamed in the same directory, instead of being moved to the current
+\&\fR\&\f(CWmcd\fR directory as would be the case with \fR\&\f(CWmmove\fR. Unlike the
+MS-DOS version of \fR\&\f(CWREN\fR, \fR\&\f(CWmren\fR can be used to rename
+directories.
+.PP
+.SH See\ Also
+Mtools' texinfo doc
+.SH Viewing\ the\ texi\ doc
+This manpage has been automatically generated from mtools's texinfo
+documentation. However, this process is only approximative, and some
 items, such as crossreferences, footnotes and indices are lost in this
-translation process.  Indeed, this items have no appropriate
-representation in the manpage format.  Moreover, only the items specific
-to each command have been translated, and the general information about
-mtools has been dropped in the manpage version.  Thus I strongly advise
-you to use the original texinfo doc.
+translation process.  Indeed, these items have no appropriate
+representation in the manpage format.  Moreover, not all information has
+been translated into the manpage version.  Thus I strongly advise you to
+use the original texinfo doc.  See the end of this manpage for
+instructions how to view the texinfo doc.
 .TP
 * \ \ 
 To generate a printable copy from the texinfo doc, run the following
@@ -50,6 +83,8 @@ To generate a html copy,  run:
 .lp
  
 \&\fRA premade html can be found at:
+\&\fR\&\f(CW\(ifhttp://mtools.linux.lu\(is\fR
+and also at:
 \&\fR\&\f(CW\(ifhttp://www.tux.org/pub/knaff/mtools\(is\fR
 .TP
 * \ \ 
@@ -70,30 +105,3 @@ The texinfo doc looks most pretty when printed or as html.  Indeed, in
 the info version certain examples are difficult to read due to the
 quoting conventions used in info.
 .PP
-.SH Description
-.iX "p mren"
-.iX "c Renaming files (mren)"
-.iX "c Moving files (mren)"
-.PP
-The \fR\&\f(CWmren\fR command is used to rename or move an existing MS-DOS
-file or subdirectory. Its syntax is:
-.PP
-.(l I
-\&\fR\&\f(CWmren\fR [\fR\&\f(CW-voOsSrRA\fR] \fIsourcefile\fR \fItargetfile\fR
-.)l
- 
-.PP
-\&\fR\&\f(CWMren\fR
-renames an existing file on an MS-DOS filesystem.
-.PP
-In verbose mode, \fR\&\f(CWMren\fR displays the new filename if the name
-supplied is invalid.
-.PP
-If the first syntax is used (only one sourcefile), and if the target
-name doesn't contain any slashes or colons, the file (or subdirectory)
-is renamed in the same directory, instead of being moved to the current
-\&\fR\&\f(CWmcd\fR directory as would be the case with \fR\&\f(CWmmove\fR. Unlike the
-MS-DOS version of \fR\&\f(CWREN\fR, \fR\&\f(CWmren\fR can be used to rename
-directories.
-.SH See Also
-Mtools' texinfo doc

@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # add-disk
-# Contributed by Tim Hoogasian (thoogasi@us.oracle.com)
+# Contributed by Tim Hoogasian (hoogs@usa.net)
 #
 #       Runs the commands to make Solaris locate a new disk that
 #       has been plugged in after the system was booted.

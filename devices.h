@@ -1,10 +1,29 @@
 #ifdef OS_linux
 
 #include <sys/types.h>
+
+#ifdef HAVE_SYS_SYSMACROS_H
+
+#include <sys/sysmacros.h>
+#ifndef MAJOR
+#define MAJOR(dev) major(dev)
+#endif  /* MAJOR not defined */
+#ifndef MINOR
+#define MINOR(dev) minor(dev)
+#endif  /* MINOR not defined */
+
+#else
+ 
+#include <linux/fs.h>        /* get MAJOR/MINOR from Linux kernel */
+#ifndef major
+#define major(x) MAJOR(x)
+#endif
+
+#endif /* HAVE_SYS_SYSMACROS_H */
+
 #include <linux/fd.h>
 #include <linux/fdreg.h>
 #include <linux/major.h>
-#include <linux/fs.h>
 
 
 typedef struct floppy_raw_cmd RawRequest_t;
@@ -60,12 +79,14 @@ UNUSED(static inline void RR_SETSECTOR(struct floppy_raw_cmd *request,
 				       int sector))
 {
 	request->cmd[4] = sector;
+	request->cmd[6] = sector-1;
 }
 
 UNUSED(static inline void RR_SETSIZECODE(struct floppy_raw_cmd *request, 
 					 int sizecode))
 {
 	request->cmd[5] = sizecode;
+	request->cmd[6]++;
 	request->length += 128 << sizecode;
 }
 
@@ -79,13 +100,12 @@ static inline void RR_SETEND(struct floppy_raw_cmd *request, int end)
 UNUSED(static inline void RR_SETDIRECTION(struct floppy_raw_cmd *request, 
 					  int direction))
 {
-
 	if(direction == MT_READ) {
 		request->flags |= FD_RAW_READ;
-		request->cmd[0] = FD_READ;
+		request->cmd[0] = FD_READ & ~0x80;
 	} else {
 		request->flags |= FD_RAW_WRITE;
-		request->cmd[0] = FD_WRITE;
+		request->cmd[0] = FD_WRITE & ~0x80;
 	}
 }
 
@@ -127,9 +147,9 @@ UNUSED(static inline int RR_TRACK(struct floppy_raw_cmd *request))
 
 UNUSED(static inline int GET_DRIVE(int fd))
 {
-	struct stat statbuf;
+	struct MT_STAT statbuf;
 
-	if (fstat(fd, &statbuf) < 0 ){
+	if (MT_FSTAT(fd, &statbuf) < 0 ){
 		perror("stat");
 		return -1;
 	}

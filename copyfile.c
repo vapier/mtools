@@ -2,6 +2,7 @@
 #include "msdos.h"
 #include "mtools.h"
 #include "file.h"
+#include "llong.h"
 
 /*
  * Copy the data from source to target
@@ -10,9 +11,10 @@
 int copyfile(Stream_t *Source, Stream_t *Target)
 {
 	char buffer[8*16384];
-	int pos;
+	mt_off_t pos;
 	int ret, retw;
-	size_t len;
+/*	size_t len;*/
+	mt_size_t mt_len;
 
 	if (!Source){
 		fprintf(stderr,"Couldn't open source file\n");
@@ -25,18 +27,20 @@ int copyfile(Stream_t *Source, Stream_t *Target)
 	}
 
 	pos = 0;
-	GET_DATA(Source, 0, &len, 0, 0);
-	while(pos < len){
-		ret = READS(Source, buffer, pos, 8*16384);
+	GET_DATA(Source, 0, &mt_len, 0, 0);
+	while(1){
+		ret = READS(Source, buffer, (mt_off_t) pos, 8*16384);
 		if (ret < 0 ){
 			perror("file read");
 			return -1;
 		}
+		if(!ret)
+			break;
 		if(got_signal)
 			return -1;
 		if (ret == 0)
 			break;
-		if ((retw = force_write(Target, buffer, pos, ret)) != ret){
+		if ((retw = force_write(Target, buffer, (mt_off_t) pos, ret)) != ret){
 			if(retw < 0 )
 				perror("write in copy");
 			else

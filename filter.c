@@ -1,6 +1,7 @@
 #include "sysincludes.h"
 #include "msdos.h"
 #include "mtools.h"
+#include "codepage.h"
 
 typedef struct Filter_t {
 	Class_t *Class;
@@ -13,6 +14,7 @@ typedef struct Filter_t {
 	int mode;
 	int rw;
 	int lastchar;
+	int convertCharset;
 } Filter_t;
 
 #define F_READ 1
@@ -20,10 +22,13 @@ typedef struct Filter_t {
 
 /* read filter filters out messy dos' bizarre end of lines and final 0x1a's */
 
-static int read_filter(Stream_t *Stream, char *buf, off_t where, size_t len)
+static int read_filter(Stream_t *Stream, char *buf, mt_off_t iwhere, size_t len)
 {
 	DeclareThis(Filter_t);
 	int i,j,ret;
+	unsigned char newchar;
+
+	off_t where = truncBytes32(iwhere);
 
 	if ( where != This->unixpos ){
 		fprintf(stderr,"Bad offset\n");
@@ -35,7 +40,7 @@ static int read_filter(Stream_t *Stream, char *buf, off_t where, size_t len)
 	}
 	This->rw = F_READ;
 	
-	ret = READS(This->Next, buf, This->dospos, len);
+	ret = READS(This->Next, buf, (mt_off_t) This->dospos, len);
 	if ( ret < 0 )
 		return ret;
 
@@ -45,7 +50,9 @@ static int read_filter(Stream_t *Stream, char *buf, off_t where, size_t len)
 			continue;
 		if (buf[i] == 0x1a)
 			break;
-		This->lastchar = buf[j++] = buf[i];	
+		newchar = buf[i];
+		if (This->convertCharset) newchar = contents_to_unix(newchar);
+		This->lastchar = buf[j++] = newchar;
 	}
 
 	This->dospos += i;
@@ -53,11 +60,15 @@ static int read_filter(Stream_t *Stream, char *buf, off_t where, size_t len)
 	return j;
 }
 
-static int write_filter(Stream_t *Stream, char *buf, off_t where, size_t len)
+static int write_filter(Stream_t *Stream, char *buf, mt_off_t iwhere, 
+						size_t len)
 {
 	DeclareThis(Filter_t);
 	int i,j,ret;
 	char buffer[1025];
+	unsigned char newchar;
+	
+	off_t where = truncBytes32(iwhere);
 
 	if(This->unixpos == -1)
 		return -1;
@@ -81,11 +92,13 @@ static int write_filter(Stream_t *Stream, char *buf, off_t where, size_t len)
 			j++;
 			continue;
 		}
-		buffer[i++] = buf[j++];
+		newchar = buf[j++];
+		if (This->convertCharset) newchar = to_dos(newchar);
+		buffer[i++] = newchar;
 	}
 	This->unixpos += j;
 
-	ret = force_write(This->Next, buffer, This->dospos, i);
+	ret = force_write(This->Next, buffer, (mt_off_t) This->dospos, i);
 	if(ret >0 )
 		This->dospos += ret;
 	if ( ret != i ){
@@ -103,7 +116,7 @@ static int free_filter(Stream_t *Stream)
 
 	/* write end of file */
 	if (This->rw == F_WRITE)
-		return force_write(This->Next, &buffer, This->dospos, 1);
+		return force_write(This->Next, &buffer, (mt_off_t) This->dospos, 1);
 	else
 		return 0;
 }
@@ -118,7 +131,7 @@ static Class_t FilterClass = {
 	0
 };
 
-Stream_t *open_filter(Stream_t *Next)
+Stream_t *open_filter(Stream_t *Next, int convertCharset)
 {
 	Filter_t *This;
 
@@ -130,6 +143,7 @@ Stream_t *open_filter(Stream_t *Next)
 	This->Next = Next;
 	This->refs = 1;
 	This->Buffer = 0;
+	This->convertCharset = convertCharset;
 
 	return (Stream_t *) This;
 }

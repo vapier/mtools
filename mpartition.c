@@ -1,6 +1,7 @@
 /*
  * mformat.c
  */
+#define DONT_NEED_WAIT
 
 #include "sysincludes.h"
 #include "msdos.h"
@@ -13,6 +14,16 @@
 #include "buffer.h"
 #include "scsi.h"
 #include "partition.h"
+
+#ifdef OS_linux
+#include "linux/hdreg.h"
+
+#define _LINUX_STRING_H_
+#define kdev_t int
+#include "linux/fs.h"
+#undef _LINUX_STRING_H_
+
+#endif
 
 #define tolinear(x) \
 (sector(x)-1+(head(x)+cyl(x)*used_dev->heads)*used_dev->sectors)
@@ -44,7 +55,27 @@ static void set_offset(hsc *h, int offset, int heads, int sectors)
 	h->cyl = cyl & 0xff;
 }
 
-
+void setBeginEnd(struct partition *partTable, int begin, int end,
+				 int heads, int sectors, int activate, int type)
+{
+	set_offset(&partTable->start, begin, heads, sectors);
+	set_offset(&partTable->end, end-1, heads, sectors);
+	set_dword(partTable->start_sect, begin);
+	set_dword(partTable->nr_sects, end-begin);
+	if(activate)
+		partTable->boot_ind = 0x80;
+	else
+		partTable->boot_ind = 0;
+	if(!type) {
+		if(end-begin < 4096)
+			type = 1; /* DOS 12-bit FAT */
+		else if(end-begin<32*2048)
+			type = 4; /* DOS 16-bit FAT, <32M */
+		else
+			type = 6; /* DOS 16-bit FAT >= 32M */
+	}
+	partTable->sys_ind = type;
+}
 
 int consistencyCheck(struct partition *partTable, int doprint, int verbose,
 		     int *has_activated, int *last_end, int *j, 
@@ -218,7 +249,8 @@ static void usage(void)
 	fprintf(stderr, 
 		"Mtools version %s, dated %s\n", mversion, mdate);
 	fprintf(stderr, 
-		"Usage: %s [-prIadcv] [-s sectors] [-t cylinders] "
+		"Usage: %s [-pradcv] [-I [-B bootsect-template] [-s sectors] "
+			"[-t cylinders] "
 		"[-h heads] [-T type] [-b begin] [-l length] "
 		"drive\n", progname);
 	exit(1);
@@ -263,14 +295,18 @@ void mpartition(int argc, char **argv, int dummy)
 	struct partition *partTable=(struct partition *)(buf+ 0x1ae);
 	struct device *dev;
 	char errmsg[200];
- 
+	char *bootSector=0;
+
 	argtracks = 0;
 	argheads = 0;
 	argsectors = 0;
 
 	/* get command line options */
-	while ((c = getopt(argc, argv, "adprcIT:t:h:s:fvpb:l:S:")) != EOF) {
+	while ((c = getopt(argc, argv, "adprcIT:t:h:s:fvpb:l:S:B:")) != EOF) {
 		switch (c) {
+			case 'B':
+				bootSector = optarg;
+				break;
 			case 'a':
 				/* no privs, as it could be abused to
 				 * make other partitions unbootable, or
@@ -381,10 +417,14 @@ void mpartition(int argc, char **argv, int dummy)
 		expand(dev->name, name);
 		Stream = SimpleFileOpen(&used_dev, dev, name,
 					dirty ? O_RDWR : O_RDONLY, 
-					errmsg, open2flags, 1);
+					errmsg, open2flags, 1, 0);
 
 		if (!Stream) {
+#ifdef HAVE_SNPRINTF
+			snprintf(errmsg,199,"init: open: %s", strerror(errno));
+#else
 			sprintf(errmsg,"init: open: %s", strerror(errno));
+#endif
 			continue;
 		}			
 
@@ -399,7 +439,7 @@ void mpartition(int argc, char **argv, int dummy)
 			memset ((void *) &cmd[2], 0, 8);
 			memset ((void *) &data[0], 137, 10);
 			scsi_cmd(get_fd(Stream), cmd, 10, SCSI_IO_READ,
-				 data, 10);
+				 data, 10, get_extra_data(Stream));
 			
 			tot_sectors = 1 +
 				(data[0] << 24) +
@@ -410,11 +450,23 @@ void mpartition(int argc, char **argv, int dummy)
 				printf("%d sectors in total\n", tot_sectors);
 		}
 
+#ifdef OS_linux
+		if (tot_sectors == 0) {
+			ioctl(get_fd(Stream), BLKGETSIZE, &tot_sectors);
+		}
+#endif
+
 		/* read the partition table */
 		if (READS(Stream, (char *) buf, 0, 512) != 512) {
-			sprintf(errmsg, 
+#ifdef HAVE_SNPRINTF
+			snprintf(errmsg, 199,
 				"Error reading from '%s', wrong parameters?",
 				name);
+#else
+			sprintf(errmsg,
+				"Error reading from '%s', wrong parameters?",
+				name);
+#endif
 			continue;
 		}
 		if(verbose>=2)
@@ -437,9 +489,17 @@ void mpartition(int argc, char **argv, int dummy)
 	}
 
 	if(initialize) {
+		if (bootSector) {
+			int fd;
+			fd = open(bootSector, O_RDONLY | O_LARGEFILE);
+			if (fd < 0) {
+				perror("open boot sector");
+				exit(1);
+			}
+			read(fd, (char *) buf, 512);
+		}
 		memset((char *)(partTable+1), 0, 4*sizeof(*partTable));
-		buf[510] = 0x55;
-		buf[511] = 0xaa;
+		set_dword(((unsigned char*)buf)+510, 0xaa55);
 	}
 
 	/* check for boot signature, and place it if needed */
@@ -496,20 +556,32 @@ void mpartition(int argc, char **argv, int dummy)
 			end_set = 1;
 		}
 	}
-	
+
+#ifdef OS_linux
+	if(!used_dev.sectors && !used_dev.heads) {
+		if(!IS_SCSI(dev)) {
+			struct hd_geometry geom;
+			if(ioctl(get_fd(Stream), HDIO_GETGEO, &geom) == 0) {
+				used_dev.heads = geom.heads;
+				used_dev.sectors = geom.sectors;
+			}
+		}
+	}
+#endif
+
 	if(!used_dev.sectors && !used_dev.heads) {
 		if(tot_sectors)
 			setsize0(tot_sectors,&dummy2,&used_dev.heads,
-				 &used_dev.sectors);
+					 &used_dev.sectors);
 		else {
 			used_dev.heads = 64;
-			used_dev.heads = 32;
+			used_dev.sectors = 32;
 		}
 	}
 
 	if(verbose)
-		fprintf(stderr,"sectors: %d heads: %d\n",
-			used_dev.sectors, used_dev.heads);
+		fprintf(stderr,"sectors: %d heads: %d %d\n",
+			used_dev.sectors, used_dev.heads, tot_sectors);
 
 	sec_per_cyl = used_dev.sectors * used_dev.heads;
 	if(create) {
@@ -547,25 +619,9 @@ void mpartition(int argc, char **argv, int dummy)
 			exit(1);
 		}
 
-		set_offset(&partTable[dev->partition].start, begin, 
-			   used_dev.heads, used_dev.sectors);
-		set_offset(&partTable[dev->partition].end, end-1, 
-			   used_dev.heads, used_dev.sectors);
-		set_dword(partTable[dev->partition].start_sect, begin);
-		set_dword(partTable[dev->partition].nr_sects, end-begin);
-		if(has_activated)
-			partTable[dev->partition].boot_ind = 0;
-		else
-			partTable[dev->partition].boot_ind = 0x80;
-		if(!type) {
-			if(end-begin < 4096)
-				type = 1; /* DOS 12-bit FAT */
-			else if(end-begin<32*2048)
-				type = 4; /* DOS 16-bit FAT, <32M */
-			else
-				type = 6; /* DOS 16-bit FAT >= 32M */
-		}
-		partTable[dev->partition].sys_ind = type;
+		setBeginEnd(&partTable[dev->partition], begin, end,
+					used_dev.heads, used_dev.sectors, 
+					!has_activated, type);
 	}
 
 	if(activate) {
@@ -645,7 +701,7 @@ void mpartition(int argc, char **argv, int dummy)
 		}
 		if(verbose>=3)
 			print_sector("Sector written", buf, 512);
-		FREE(&Stream);
 	}
+	FREE(&Stream);
 	exit(0);
 }

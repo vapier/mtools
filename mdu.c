@@ -40,7 +40,7 @@ static int file_mdu(direntry_t *entry, MainParam_t *mp)
 
 	blocks = countBlocks(entry->Dir,getStart(entry->Dir, &entry->dir));
 	if(arg->all || !arg->inDir) {
-		fprintPwd(stdout, entry);		
+		fprintPwd(stdout, entry,0);
 		printf(" %d\n", blocks);
 	}
 	arg->blocks += blocks;
@@ -70,7 +70,7 @@ static int dir_mdu(direntry_t *entry, MainParam_t *mp)
 	/* recursion */
 	ret = mp->loop(mp->File, &arg.mp, "*");
 	if(!arg.summary || !parentArg->inDir) {
-		fprintPwd(stdout, entry);
+		fprintPwd(stdout, entry,0);
 		printf(" %d\n", arg.blocks);
 	}
 	arg.parent->blocks += arg.blocks;

@@ -29,6 +29,9 @@
 /* Define as the return type of signal handlers (int or void).  */
 #undef RETSIGTYPE
 
+/* Define if the `setpgrp' function takes no argument.  */
+#undef SETPGRP_VOID
+
 /* Define to `unsigned' if <sys/types.h> doesn't define.  */
 #undef size_t
 
@@ -40,6 +43,9 @@
 
 /* Define if your <sys/time.h> declares struct tm.  */
 #undef TM_IN_SYS_TIME
+
+/* Define if the X Window System is missing or not being used.  */
+#undef X_DISPLAY_MISSING
 
 /* Define this if you want to use Xdf */
 #undef USE_XDF
@@ -60,6 +66,27 @@
 /* Define when sys_errlist is defined in the standard include files */
 #undef DECL_SYS_ERRLIST
 
+/* Define when you want to include floppyd support */
+#undef USE_FLOPPYD
+
+/* Define when the compiler supports LOFF_T type */
+#undef HAVE_LOFF_T
+
+/* Define when the compiler supports OFFSET_T type */
+#undef HAVE_OFFSET_T
+
+/* Define when the compiler supports LONG_LONG type */
+#undef HAVE_LONG_LONG
+
+/* Define when the system has a 64 bit off_t type */
+#undef HAVE_OFF_T_64
+
+/* Define when you have an LLSEEK prototype */
+#undef HAVE_LLSEEK_PROTOTYPE
+
+/* Define when you have an LSEEK64 prototype */
+#undef HAVE_LSEEK64_PROTOTYPE
+
 /* Define if you have the atexit function.  */
 #undef HAVE_ATEXIT
 
@@ -78,8 +105,20 @@
 /* Define if you have the gettimeofday function.  */
 #undef HAVE_GETTIMEOFDAY
 
+/* Define if you have the htons function.  */
+#undef HAVE_HTONS
+
+/* Define if you have the llseek function.  */
+#undef HAVE_LLSEEK
+
 /* Define if you have the lockf function.  */
 #undef HAVE_LOCKF
+
+/* Define if you have the lseek64 function.  */
+#undef HAVE_LSEEK64
+
+/* Define if you have the media_oldaliases function.  */
+#undef HAVE_MEDIA_OLDALIASES
 
 /* Define if you have the memcpy function.  */
 #undef HAVE_MEMCPY
@@ -102,8 +141,14 @@
 /* Define if you have the setresuid function.  */
 #undef HAVE_SETRESUID
 
+/* Define if you have the snprintf function.  */
+#undef HAVE_SNPRINTF
+
 /* Define if you have the srandom function.  */
 #undef HAVE_SRANDOM
+
+/* Define if you have the stat64 function.  */
+#undef HAVE_STAT64
 
 /* Define if you have the strcasecmp function.  */
 #undef HAVE_STRCASECMP
@@ -132,6 +177,9 @@
 /* Define if you have the strspn function.  */
 #undef HAVE_STRSPN
 
+/* Define if you have the strtol function.  */
+#undef HAVE_STRTOL
+
 /* Define if you have the strtoul function.  */
 #undef HAVE_STRTOUL
 
@@ -150,6 +198,9 @@
 /* Define if you have the utimes function.  */
 #undef HAVE_UTIMES
 
+/* Define if you have the <arpa/inet.h> header file.  */
+#undef HAVE_ARPA_INET_H
+
 /* Define if you have the <fcntl.h> header file.  */
 #undef HAVE_FCNTL_H
 
@@ -162,6 +213,9 @@
 /* Define if you have the <limits.h> header file.  */
 #undef HAVE_LIMITS_H
 
+/* Define if you have the <linux/unistd.h> header file.  */
+#undef HAVE_LINUX_UNISTD_H
+
 /* Define if you have the <malloc.h> header file.  */
 #undef HAVE_MALLOC_H
 
@@ -170,6 +224,12 @@
 
 /* Define if you have the <mntent.h> header file.  */
 #undef HAVE_MNTENT_H
+
+/* Define if you have the <netdb.h> header file.  */
+#undef HAVE_NETDB_H
+
+/* Define if you have the <netinet/in.h> header file.  */
+#undef HAVE_NETINET_IN_H
 
 /* Define if you have the <sgtty.h> header file.  */
 #undef HAVE_SGTTY_H
@@ -201,8 +261,14 @@
 /* Define if you have the <sys/signal.h> header file.  */
 #undef HAVE_SYS_SIGNAL_H
 
+/* Define if you have the <sys/socket.h> header file.  */
+#undef HAVE_SYS_SOCKET_H
+
 /* Define if you have the <sys/stat.h> header file.  */
 #undef HAVE_SYS_STAT_H
+
+/* Define if you have the <sys/sysmacros.h> header file.  */
+#undef HAVE_SYS_SYSMACROS_H
 
 /* Define if you have the <sys/termio.h> header file.  */
 #undef HAVE_SYS_TERMIO_H
@@ -224,6 +290,18 @@
 
 /* Define if you have the <utime.h> header file.  */
 #undef HAVE_UTIME_H
+
+/* Define if you have the bsd library (-lbsd).  */
+#undef HAVE_LIBBSD
+
+/* Define if you have the cam library (-lcam).  */
+#undef HAVE_LIBCAM
+
+/* Define if you have the nsl library (-lnsl).  */
+#undef HAVE_LIBNSL
+
+/* Define if you have the socket library (-lsocket).  */
+#undef HAVE_LIBSOCKET
 
 /* Define if you have the sun library (-lsun).  */
 #undef HAVE_LIBSUN

@@ -10,7 +10,6 @@
 #include "mtools.h"
 #include "nameclash.h"
 
-
 static void usage(void)
 {
 	fprintf(stderr, 
@@ -30,10 +29,10 @@ static void displayInfosector(Stream_t *Stream, struct bootsector *boot)
 
 	infosec = (InfoSector_t *) safe_malloc(WORD(secsiz));
 	force_read(Stream, (char *) infosec, 
-		   WORD(secsiz) * WORD(ext.fat32.infoSector),
-		   WORD(secsiz));
+			   (mt_off_t) WORD(secsiz) * WORD(ext.fat32.infoSector),
+			   WORD(secsiz));
 	printf("\nInfosector:\n");
-	printf("signature=0x%08x\n", _DWORD(infosec->signature));
+	printf("signature=0x%08x\n", _DWORD(infosec->signature1));
 	if(_DWORD(infosec->count) != MAX32)
 		printf("free clusters=%u\n", _DWORD(infosec->count));
 	if(_DWORD(infosec->pos) != MAX32)
@@ -53,6 +52,7 @@ void minfo(int argc, char **argv, int type)
 	int verbose=0;
 	int c;
 	Stream_t *Stream;
+	struct label_blk_t *labelBlock;
 	
 	while ((c = getopt(argc, argv, "v")) != EOF) {
 		switch (c) {
@@ -73,7 +73,7 @@ void minfo(int argc, char **argv, int type)
 		drive = toupper(argv[optind][0]);
 
 		if(! (Stream = find_device(drive, O_RDONLY, &dev, boot, 
-					   name, &media)))
+					   name, &media, 0)))
 			exit(1);
 
 		tot_sectors = DWORD(bigsect);
@@ -108,20 +108,26 @@ void minfo(int argc, char **argv, int type)
 		printf("hidden sectors: %d\n", DWORD(nhs));
 		printf("big size: %d sectors\n", DWORD(bigsect));
 
-		if(WORD(fatlen)){
-			printf("physical drive id: 0x%x\n", 
-			       boot->ext.old.physdrive);
-			printf("reserved=0x%x\n", 
-			       boot->ext.old.reserved);
-			printf("dos4=0x%x\n", 
-			       boot->ext.old.dos4);
-			printf("serial number: %X\n", 
-			       DWORD(ext.old.serial));
-			printf("disk label=\"%11.11s\"\n", 
-			       boot->ext.old.label);
-			printf("disk type=\"%8.8s\"\n", 
-			       boot->ext.old.fat_type);
+		if(WORD(fatlen)) {
+		    labelBlock = &boot->ext.old.labelBlock;
 		} else {
+		    labelBlock = &boot->ext.fat32.labelBlock;
+		}
+
+		printf("physical drive id: 0x%x\n", 
+		       labelBlock->physdrive);
+		printf("reserved=0x%x\n", 
+		       labelBlock->reserved);
+		printf("dos4=0x%x\n", 
+		       labelBlock->dos4);
+		printf("serial number: %08X\n", 
+		       _DWORD(labelBlock->serial));
+		printf("disk label=\"%11.11s\"\n", 
+		       labelBlock->label);
+		printf("disk type=\"%8.8s\"\n", 
+		       labelBlock->fat_type);
+
+		if(!WORD(fatlen)){
 			printf("Big fatlen=%u\n",
 			       DWORD(ext.fat32.bigFat));
 			printf("Extended flags=0x%04x\n",
@@ -152,7 +158,7 @@ void minfo(int argc, char **argv, int type)
 				exit(1);
 			}
 
-			size = READS(Stream, buf, 0, size);
+			size = READS(Stream, buf, (mt_off_t) 0, size);
 			if(size < 0) {
 				perror("read boot sector");
 				exit(1);
@@ -161,6 +167,6 @@ void minfo(int argc, char **argv, int type)
 			print_sector("Boot sector hexdump", buf, size);
 		}
 	}
-
+	FREE(&Stream);
 	exit(0);
 }

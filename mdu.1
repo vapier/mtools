@@ -1,4 +1,4 @@
-.TH mdu 1 "13aug97" mtools-3.8
+.TH mdu 1 "27May01" mtools-pre6-3.9.8
 .SH Name
 mdu - display the amount of space occupied by an MSDOS directory
 '\" t
@@ -12,15 +12,42 @@ mdu - display the amount of space occupied by an MSDOS directory
 .tr \(if`
 .tr \(pd"
 
-.SH Note
+.SH Note\ of\ warning
 This manpage has been automatically generated from mtools's texinfo
-documentation.  However, this process is only approximative, and some
+documentation, and may not be entirely accurate or complete.  See the
+end of this man page for details.
+.PP
+.SH Description
+.iX "p mdu"
+.iX "c Space occupied by directories and files"
+.iX "c du"
+.iX "c Listing space occupied by directories and files"
+.iX "c Occupation of space by directories and files"
+.PP
+\&\fR\&\f(CWMdu\fR is used to list the space occupied by a directory, its
+subdirectories and its files. It is similar to the \fR\&\f(CWdu\fR command on
+Unix.  The unit used are clusters.  Use the minfo command to find out
+the cluster size.
+.PP
+\&\fR\&\f(CWmdu\fR [\fR\&\f(CW-a\fR] [ \fImsdosfiles\fR \&... ]
+.TP
+\&\fR\&\f(CWa\fR\ 
+All files.  List also the space occupied for individual files.
+.TP
+\&\fR\&\f(CWs\fR\ 
+Only list the total space, don't give details for each subdirectory.
+.PP
+.SH See\ Also
+Mtools' texinfo doc
+.SH Viewing\ the\ texi\ doc
+This manpage has been automatically generated from mtools's texinfo
+documentation. However, this process is only approximative, and some
 items, such as crossreferences, footnotes and indices are lost in this
-translation process.  Indeed, this items have no appropriate
-representation in the manpage format.  Moreover, only the items specific
-to each command have been translated, and the general information about
-mtools has been dropped in the manpage version.  Thus I strongly advise
-you to use the original texinfo doc.
+translation process.  Indeed, these items have no appropriate
+representation in the manpage format.  Moreover, not all information has
+been translated into the manpage version.  Thus I strongly advise you to
+use the original texinfo doc.  See the end of this manpage for
+instructions how to view the texinfo doc.
 .TP
 * \ \ 
 To generate a printable copy from the texinfo doc, run the following
@@ -50,6 +77,8 @@ To generate a html copy,  run:
 .lp
  
 \&\fRA premade html can be found at:
+\&\fR\&\f(CW\(ifhttp://mtools.linux.lu\(is\fR
+and also at:
 \&\fR\&\f(CW\(ifhttp://www.tux.org/pub/knaff/mtools\(is\fR
 .TP
 * \ \ 
@@ -70,24 +99,3 @@ The texinfo doc looks most pretty when printed or as html.  Indeed, in
 the info version certain examples are difficult to read due to the
 quoting conventions used in info.
 .PP
-.SH Description
-.iX "p mdu"
-.iX "c Space occupied by directories and files"
-.iX "c du"
-.iX "c Listing space occupied by directories and files"
-.iX "c Occupation of space by directories and files"
-.PP
-\&\fR\&\f(CWMdu\fR is used to list the space occupied by a directory, its
-subdirectories and its files. It is similar to the \fR\&\f(CWdu\fR command on
-Unix.  The unit used are clusters.  Use the minfo command to find out
-the cluster size.
-.PP
-\&\fR\&\f(CWmdu\fR [\fR\&\f(CW-a\fR] [ \fImsdosfiles\fR \&... ]
-.TP
-\&\fR\&\f(CWa\fR\ 
-All files.  List also the space occupied for individual files.
-.TP
-\&\fR\&\f(CWs\fR\ 
-Only list the total space, don't give details for each subdirectory.
-.SH See Also
-Mtools' texinfo doc

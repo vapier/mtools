@@ -73,16 +73,17 @@ struct scan_state {
 void clear_vfat(struct vfat_state  *);
 int unicode_write(char *, struct unicode_char *, int num, int *end);
 
-void clear_vses(Stream_t *, int, size_t);
+int clear_vses(Stream_t *, int, size_t);
 void autorename_short(char *, int);
 void autorename_long(char *, int);
 
 int lookupForInsert(Stream_t *Dir,
-		    char *dosname,
-		    char *longname,
-		    struct scan_state *ssp, 
-		    int ignore_entry,
-		    int pessimisticShortRename);
+					char *dosname,
+					char *longname,
+					struct scan_state *ssp, 
+					int ignore_entry,
+					int source_entry,
+					int pessimisticShortRename);
 
 #define DO_OPEN 1 /* open all files that are found */
 #define ACCEPT_LABEL 0x08

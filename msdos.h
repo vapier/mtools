@@ -67,9 +67,9 @@ UNUSED(static inline void set_word(unsigned char *data, unsigned short value))
 /*
  *	    hi byte     |    low byte
  *	|7|6|5|4|3|2|1|0|7|6|5|4|3|2|1|0|
- *      | | | | | | | | | | | | | | | | |
- *      \   7 bits    /\4 bits/\ 5 bits /
- *         year +80      month     day
+ *  | | | | | | | | | | | | | | | | |
+ *  \   7 bits    /\4 bits/\ 5 bits /
+ *     year +80     month     day
  */
 #define	DOS_YEAR(dir) (((dir)->date[1] >> 1) + 1980)
 #define	DOS_MONTH(dir) (((((dir)->date[1]&0x1) << 3) + ((dir)->date[0] >> 5)))
@@ -88,16 +88,27 @@ UNUSED(static inline void set_word(unsigned char *data, unsigned short value))
 
 
 typedef struct InfoSector_t {
-	unsigned char signature0[4];
-	unsigned char filler[0x1e0];
-	unsigned char signature[4];
+	unsigned char signature1[4];
+	unsigned char filler1[0x1e0];
+	unsigned char signature2[4];
 	unsigned char count[4];
 	unsigned char pos[4];
+	unsigned char filler2[14];
+	unsigned char signature3[2];
 } InfoSector_t;
 
-#define INFOSECT_SIGNATURE0 0x41615252
-#define INFOSECT_SIGNATURE 0x61417272
+#define INFOSECT_SIGNATURE1 0x41615252
+#define INFOSECT_SIGNATURE2 0x61417272
 
+
+typedef struct label_blk_t {
+	unsigned char physdrive;	/* 36 physical drive ? */
+	unsigned char reserved;		/* 37 reserved */
+	unsigned char dos4;		/* 38 dos > 4.0 diskette */
+	unsigned char serial[4];       	/* 39 serial number */
+	char label[11];			/* 43 disk label */
+	char fat_type[8];		/* 54 FAT type */
+} label_blk_t;
 
 /* FAT32 specific info in the bootsector */
 typedef struct fat32_t {
@@ -108,16 +119,12 @@ typedef struct fat32_t {
 	unsigned char infoSector[2];	/* 48 changeable global info */
 	unsigned char backupBoot[2];	/* 50 back up boot sector */
 	unsigned char reserved[6];	/* 52 ? */
+	unsigned char reserved2[6];	/* 52 ? */
+	struct label_blk_t labelBlock;
 } fat32; /* ends at 58 */
 
 typedef struct oldboot_t {
-	unsigned char physdrive;	/* 36 physical drive ? */
-	unsigned char reserved;		/* 37 reserved */
-	unsigned char dos4;		/* 38 dos > 4.0 diskette */
-	unsigned char serial[4];       	/* 39 serial number */
-	char label[11];			/* 43 disk label */
-	char fat_type[8];		/* 54 FAT type */
-			
+	struct label_blk_t labelBlock;
 	unsigned char res_2m;		/* 62 reserved by 2M */
 	unsigned char CheckSum;		/* 63 2M checksum (not used) */
 	unsigned char fmt_2mf;		/* 64 2MF format version */
@@ -176,6 +183,23 @@ extern struct OldDos_t {
 #define FAT12 4085 /* max. number of clusters described by a 12 bit FAT */
 #define FAT16 65525
 
+#define ATTR_ARCHIVE 0x20
+#define ATTR_DIR 0x10
+#define ATTR_LABEL 0x8
+#define ATTR_SYSTEM 0x4
+#define ATTR_HIDDEN 0x2
+#define ATTR_READONLY 0x1
+
+#define HAS_BIT(entry,x) ((entry)->dir.attr & (x))
+
+#define IS_ARCHIVE(entry) (HAS_BIT((entry),ATTR_ARCHIVE))
+#define IS_DIR(entry) (HAS_BIT((entry),ATTR_DIR))
+#define IS_LABEL(entry) (HAS_BIT((entry),ATTR_LABEL))
+#define IS_SYSTEM(entry) (HAS_BIT((entry),ATTR_SYSTEM))
+#define IS_HIDDEN(entry) (HAS_BIT((entry),ATTR_HIDDEN))
+#define IS_READONLY(entry) (HAS_BIT((entry),ATTR_READONLY))
+
+
 #define MAX_SECT_PER_CLUSTER 64
 /* Experimentally, it turns out that DOS only accepts cluster sizes
  * which are powers of two, and less than 128 sectors (else it gets a
@@ -200,6 +224,8 @@ extern struct OldDos_t {
 extern const char *mversion;
 extern const char *mdate;
 
+extern char *Version;
+extern char *Date;
 
 
 int init(char drive, int mode);

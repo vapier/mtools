@@ -15,6 +15,7 @@ typedef struct country_l {
 void init_codepage(void);
 unsigned char to_dos(unsigned char c);
 void to_unix(char *a, int n);
+char contents_to_unix(char a);
 
 extern Codepage_t *Codepage;
 extern char *mstoupper;

@@ -27,3 +27,5 @@ int consistencyCheck(struct partition *partTable, int doprint, int verbose,
 		     int *has_activated, int *last_end, int *j, 
 		     struct device *used_dev, int target_partition);
 
+void setBeginEnd(struct partition *partTable, int begin, int end,
+				 int heads, int sector, int activate, int type);

@@ -22,10 +22,6 @@
 
 typedef struct Arg_t {
 	char *target;
-	int nowarn;
-	int interactive;
-	int verbose;
-	int silent;
 	MainParam_t mp;
 
 	Stream_t *SrcDir;
@@ -56,11 +52,11 @@ int makeit(char *dosname,
 	int fat;
 	direntry_t subEntry;	
 
-	/* will it fit? At least one sector must be free */
-	if (!getfreeMin(targetEntry->Dir, 512))
+	/* will it fit? At least one cluster must be free */
+	if (!getfreeMinClusters(targetEntry->Dir, 1))
 		return -1;
 	
-	mk_entry(dosname, 0x10, 1, 0, arg->mtime, &targetEntry->dir);
+	mk_entry(dosname, ATTR_DIR, 1, 0, arg->mtime, &targetEntry->dir);
 	Target = OpenFileByDirentry(targetEntry);
 	if(!Target){
 		fprintf(stderr,"Could not open Target\n");
@@ -73,15 +69,19 @@ int makeit(char *dosname,
 
 	subEntry.entry = 1;
 	GET_DATA(targetEntry->Dir, 0, 0, 0, &fat);
-	mk_entry("..         ", 0x10, fat, 0, arg->mtime, &subEntry.dir);
+	if (fat == fat32RootCluster(targetEntry->Dir)) {
+	    fat = 0;
+	}
+	mk_entry("..         ", ATTR_DIR, fat, 0, arg->mtime, &subEntry.dir);
 	dir_write(&subEntry);
 
+	FLUSH((Stream_t *) Target);
 	subEntry.entry = 0;
 	GET_DATA(Target, 0, 0, 0, &fat);
-	mk_entry(".          ", 0x10, fat, 0, arg->mtime, &subEntry.dir);
+	mk_entry(".          ", ATTR_DIR, fat, 0, arg->mtime, &subEntry.dir);
 	dir_write(&subEntry);
 
-	mk_entry(dosname, 0x10 | arg->attr, fat, 0, arg->mtime, 
+	mk_entry(dosname, ATTR_DIR | arg->attr, fat, 0, arg->mtime, 
 		 &targetEntry->dir);
 	arg->NewDir = Target;
 	return 0;
@@ -93,15 +93,15 @@ static void usage(void)
 	fprintf(stderr,
 		"Mtools version %s, dated %s\n", mversion, mdate);
 	fprintf(stderr,
-		"Usage: %s [-itnmvV] file targetfile\n", progname);
+		"Usage: %s [-D clash_option] file targetfile\n", progname);
 	fprintf(stderr,
-		"       %s [-itnmvV] file [files...] target_directory\n", 
+		"       %s [-D clash_option] file [files...] target_directory\n", 
 		progname);
 	exit(1);
 }
 
 Stream_t *createDir(Stream_t *Dir, const char *filename, ClashHandling_t *ch, 
-		    unsigned char attr, time_t mtime)
+					unsigned char attr, time_t mtime)
 {
 	CreateArg_t arg;
 	int ret;
@@ -110,7 +110,7 @@ Stream_t *createDir(Stream_t *Dir, const char *filename, ClashHandling_t *ch,
 	arg.attr = attr;
 	arg.mtime = mtime;
 
-	if (!getfreeMin(Dir, 1))
+	if (!getfreeMinClusters(Dir, 1))
 		return NULL;
 
 	ret = mwrite_one(Dir, filename,0, makeit, &arg, ch);
@@ -125,9 +125,8 @@ static int createDirCallback(direntry_t *entry, MainParam_t *mp)
 	Stream_t *ret;
 	time_t now;
 
-	ret = createDir(mp->File, mp->targetName, 
-			&((Arg_t *)(mp->arg))->ch, 0x10, 
-			getTimeNow(&now));
+	ret = createDir(mp->File, mp->targetName, &((Arg_t *)(mp->arg))->ch, 
+					ATTR_DIR, getTimeNow(&now));
 	if(ret == NULL)
 		return ERROR_ONE;
 	else {
@@ -147,28 +146,18 @@ void mmd(int argc, char **argv, int type)
 	init_clash_handling(& arg.ch);
 
 	/* get command line options */
-	arg.nowarn = 0;
-	arg.interactive = 0;
-	arg.silent = 0;
-	while ((c = getopt(argc, argv, "XinvorsamORSAM")) != EOF) {
+	while ((c = getopt(argc, argv, "D:o")) != EOF) {
 		switch (c) {
-			case 'i':
-				arg.interactive = 1;
-				break;
-			case 'n':
-				arg.nowarn = 1;
-				break;
-			case 'v':
-				arg.verbose = 1;
-				break;
-			case 'X':
-				arg.silent = 1;
-				break;
 			case '?':
 				usage();
-			default:
-				if(handle_clash_options(&arg.ch, c))
+			case 'o':
+				handle_clash_options(&arg.ch, c);
+				break;
+			case 'D':
+				if(handle_clash_options(&arg.ch, *optarg))
 					usage();
+				break;
+			default:
 				break;
 		}
 	}

@@ -4,7 +4,7 @@
  * written by:
  *
  * Alain L. Knaff			
- * Alain.Knaff@poboxes.com
+ * alain@linux.lu
  *
  */
 
@@ -13,8 +13,8 @@
 #include "stream.h"
 
 static int force_io(Stream_t *Stream,
-		    char *buf, off_t start, size_t len,
-		    int (*io)(Stream_t *, char *, off_t, size_t))
+		    char *buf, mt_off_t start, size_t len,
+		    int (*io)(Stream_t *, char *, mt_off_t, size_t))
 {
 	int ret;
 	int done=0;
@@ -35,14 +35,14 @@ static int force_io(Stream_t *Stream,
 	return done;
 }
 
-int force_write(Stream_t *Stream, char *buf, off_t start, size_t len)
+int force_write(Stream_t *Stream, char *buf, mt_off_t start, size_t len)
 {
 	return force_io(Stream, buf, start, len,
-			Stream->Class->write);
+					Stream->Class->write);
 }
 
-int force_read(Stream_t *Stream, char *buf, off_t start, size_t len)
+int force_read(Stream_t *Stream, char *buf, mt_off_t start, size_t len)
 {
 	return force_io(Stream, buf, start, len,
-			Stream->Class->read);
+					Stream->Class->read);
 }

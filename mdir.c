@@ -12,12 +12,18 @@
 #include "fs.h"
 #include "codepage.h"
 
+#ifdef TEST_SIZE
+#include "fsP.h"
+#endif
+
 static int recursive;
 static int wide;
 static int all;
 static int concise;
 static int fast=0;
-
+#if 0
+static int testmode = 0;
+#endif
 static char *dirPath;
 static char currentDrive;
 static Stream_t *currentDir;
@@ -29,8 +35,8 @@ static int dirsOnDrive; /* number of listed directories on this drive */
 
 static int debug = 0; /* debug mode */
 
-static int bytesInDir;
-static int bytesOnDrive;
+static mt_size_t bytesInDir;
+static mt_size_t bytesOnDrive;
 static Stream_t *RootDir;	
 
 
@@ -97,11 +103,19 @@ static inline void print_time(struct directory *dir)
 /*
  * Return a number in dotted notation
  */
-static const char *dotted_num(unsigned long num, int width, char **buf)
+static const char *dotted_num(mt_size_t num, int width, char **buf)
 {
 	int      len;
 	register char *srcp, *dstp;
 	int size;
+
+	unsigned long numlo;
+	unsigned long numhi;
+
+	if (num < 0) {
+	    /* warn about negative numbers here.  They should not occur */
+	    fprintf(stderr, "Invalid negative number\n");
+	}
 
 	size = width + width;
 	*buf = malloc(size+1);
@@ -112,7 +126,15 @@ static const char *dotted_num(unsigned long num, int width, char **buf)
 	/* Create the number in maximum width; make sure that the string
 	 * length is not exceeded (in %6ld, the result can be longer than 6!)
 	 */
-	sprintf(*buf, "%.*ld", size, num);
+
+	numlo = num % 1000000000;
+	numhi = num / 1000000000;
+
+	if(numhi && size > 9) {
+		sprintf(*buf, "%.*lu%09lu", size-9, numhi, numlo);
+	} else {
+		sprintf(*buf, "%.*lu", size, numlo);
+	}
 
 	for (srcp=*buf; srcp[1] != '\0'; ++srcp)
 		if (srcp[0] == '0')
@@ -135,7 +157,7 @@ static const char *dotted_num(unsigned long num, int width, char **buf)
 		dstp[1] = srcp[1];
 		dstp[2] = srcp[2];
 		if (dstp + 3 < (*buf) + len)
-			/* use spaces instead of dots: they place both
+			/* use spaces instead of dots: they please both
 			 * Americans and Europeans */
 			dstp[3] = ' ';		
 		srcp += 3;
@@ -145,25 +167,30 @@ static const char *dotted_num(unsigned long num, int width, char **buf)
 	return (*buf) + len-width;
 }
 
-static inline void print_volume_label(Stream_t *Dir, char drive)
+static inline int print_volume_label(Stream_t *Dir, char drive)
 {
 	Stream_t *Stream = GetFs(Dir);
 	direntry_t entry;
 	DeclareThis(FsPublic_t);
 	char shortname[13];
 	char longname[VBUFSIZE];
+	int r;
 
 	RootDir = OpenRoot(Stream);
 	if(concise)
-		return;
+		return 0;
 	
 	/* find the volume label */
 
-	initializeDirentry(&entry, Dir);
-	if(vfat_lookup(&entry, 0, 0, ACCEPT_LABEL | MATCH_ANY,
-		       shortname, longname) )
+	initializeDirentry(&entry, RootDir);
+	if((r=vfat_lookup(&entry, 0, 0, ACCEPT_LABEL | MATCH_ANY,
+			  shortname, longname)) ) {
+		if (r == -2) {
+			/* I/O Error */
+			return -1;
+		}
 		printf(" Volume in drive %c has no label", drive);
-	else if (*longname)
+	} else if (*longname)
 		printf(" Volume in drive %c is %s (abbr=%s)",
 		       drive, longname, shortname);
 	else
@@ -173,95 +200,113 @@ static inline void print_volume_label(Stream_t *Dir, char drive)
 		printf("\n Volume Serial Number is %04lX-%04lX",
 		       (This->serial_number >> 16) & 0xffff, 
 		       This->serial_number & 0xffff);
+	return 0;
 }
 
 
-static void printSummary(int files, int bytes)
+static void printSummary(int files, mt_size_t bytes)
 {
 	if(!filesInDir)
 		printf("No files\n");
 	else {		
-		char *s1;
+		char *s1 = NULL;
 		printf("      %3d file", files);
 		if(files == 1)
 			putchar(' ');
 		else
 			putchar('s');
 		printf("       %s bytes\n",
-		       dotted_num(bytes,13, &s1));
+		       dotted_num(bytes, 13, &s1));
 		if(s1)
 			free(s1);
 	}
 }
 
-static void leaveDirectory(void);
+static void leaveDirectory(int haveError);
 
-static void leaveDrive(void)
+static void leaveDrive(int haveError)
 {
 	if(!currentDrive)
 		return;
-	leaveDirectory();
-	if(!concise) {
-		char *s1;
+	leaveDirectory(haveError);
+	if(!concise && !haveError) {
 
 		if(dirsOnDrive > 1) {
 			printf("\nTotal files listed:\n");
 			printSummary(filesOnDrive, bytesOnDrive);
 		}
 		if(RootDir && !fast) {
-			int blocks = getfree(RootDir);
-			printf("                      %s bytes free\n\n",
-			       dotted_num(blocks,13, &s1));
+			char *s1 = NULL;
+			mt_off_t bytes = getfree(RootDir);
+			printf("                  %s bytes free\n\n",
+			       dotted_num(bytes,17, &s1));
+#ifdef TEST_SIZE
+			((Fs_t*)GetFs(RootDir))->freeSpace = 0;
+			bytes = getfree(RootDir);
+			printf("                  %s bytes free\n\n",
+			       dotted_num(bytes,17, &s1));
+#endif
+			if(s1)
+				free(s1);
 		}
-		if(s1)
-			free(s1);
 	}
 	FREE(&RootDir);
 	currentDrive = '\0';
 }
 
 
-static void enterDrive(Stream_t *Dir, char drive)
+static int enterDrive(Stream_t *Dir, char drive)
 {
+	int r;
 	if(currentDrive == drive)
-		return; /* still the same */
+		return 0; /* still the same */
 	
-	leaveDrive();
-	
-	print_volume_label(Dir, drive);
-
+	leaveDrive(0);
 	currentDrive = drive;
+	
+	r = print_volume_label(Dir, drive);
+	if (r)
+		return r;
+
+
 	bytesOnDrive = 0;
 	filesOnDrive = 0;
 	dirsOnDrive = 0;
+	return 0;
 }
 
 static char *emptyString="<out-of-memory>";
 
-static void leaveDirectory(void)
+static void leaveDirectory(int haveError)
 {
 	if(!currentDir)
 		return;
-	if(dirPath && dirPath != emptyString)
-		free(dirPath);
-	if(wide)
-		putchar('\n');
 
-	if(!concise)
-		printSummary(filesInDir, bytesInDir);
+	if (!haveError) {
+		if(dirPath && dirPath != emptyString)
+			free(dirPath);
+		if(wide)
+			putchar('\n');
+		
+		if(!concise)
+			printSummary(filesInDir, bytesInDir);
+	}
 	FREE(&currentDir);
 }
 
-static void enterDirectory(Stream_t *Dir)
+static int enterDirectory(Stream_t *Dir)
 {
+	int r;
 	char drive;
 	if(currentDir == Dir)
-		return; /* still the same directory */
+		return 0; /* still the same directory */
 
-	leaveDirectory();
+	leaveDirectory(0);
 
 	drive = getDrive(Dir);
-	enterDrive(Dir, drive);
+	r=enterDrive(Dir, drive);
+	if(r)
+		return r;
 	currentDir = COPY(Dir);
 
 	dirPath = getPwd(getDirentry(Dir));
@@ -280,14 +325,15 @@ static void enterDirectory(Stream_t *Dir)
 	dirsOnDrive++;
 	bytesInDir = 0;
 	filesInDir = 0;
+	return 0;
 }
-
 
 static int list_file(direntry_t *entry, MainParam_t *mp)
 {
-	size_t size;
+	unsigned long size;
 	int i;
 	int Case;
+	int r;
 
 	if(!all && (entry->dir.attr & 0x6))
 		return 0;
@@ -295,7 +341,9 @@ static int list_file(direntry_t *entry, MainParam_t *mp)
 	if(concise && isSpecial(entry->name))
 		return 0;
 
-	enterDirectory(entry->Dir);
+	r=enterDirectory(entry->Dir);
+	if (r)
+		return ERROR_ONE;
 	if (wide) {
 		if(filesInDir % 5)
 			putchar(' ');				
@@ -303,7 +351,7 @@ static int list_file(direntry_t *entry, MainParam_t *mp)
 			putchar('\n');
 	}
 	
-	if(entry->dir.attr & 0x10){
+	if(IS_DIR(entry)){
 		size = 0;
 	} else
 		size = FILE_SIZE(&entry->dir);
@@ -324,7 +372,7 @@ static int list_file(direntry_t *entry, MainParam_t *mp)
 	}
 	to_unix(entry->dir.name,8);
 	if(wide){
-		if(entry->dir.attr & 0x10)
+		if(IS_DIR(entry))
 			printf("[%s]%*s", shortname,
 			       (int) (15 - 2 - strlen(shortname)), "");
 		else
@@ -337,7 +385,7 @@ static int list_file(direntry_t *entry, MainParam_t *mp)
 			printf("%-8.8s %-3.3s ",
 			       entry->dir.name, 
 			       entry->dir.ext);
-		if(entry->dir.attr & 0x10)
+		if(IS_DIR(entry))
 			printf("<DIR>    ");
 		else
 			printf(" %8ld", (long) size);
@@ -354,7 +402,7 @@ static int list_file(direntry_t *entry, MainParam_t *mp)
 		printf("\n");
 	} else {
 		printf("%s/%s", dirPath, entry->name);
-		if(entry->dir.attr & 0x10)
+		if(IS_DIR(entry))
 			putchar('/');
 		putchar('\n');
 	}
@@ -362,13 +410,14 @@ static int list_file(direntry_t *entry, MainParam_t *mp)
 	filesOnDrive++;
 	filesInDir++;
 
-	bytesOnDrive += size;
-	bytesInDir += size;
+	bytesOnDrive += (mt_size_t) size;
+	bytesInDir += (mt_size_t) size;
 	return GOT_ONE;
 }
 
 static int list_non_recurs_directory(direntry_t *entry, MainParam_t *mp)
 {
+	int r;
 	/* list top-level directory
 	 *   If this was matched by wildcard in the basename, list it as
 	 *   file, otherwise, list it as directory */
@@ -379,7 +428,9 @@ static int list_non_recurs_directory(direntry_t *entry, MainParam_t *mp)
 		/* no wildcard, list it as directory */
 		MainParam_t subMp;
 
-		enterDirectory(mp->File);
+		r=enterDirectory(mp->File);
+		if(r)
+			return ERROR_ONE;
 
 		subMp = *mp;
 		subMp.dirCallback = subMp.callback;
@@ -407,16 +458,31 @@ static int list_recurs_directory(direntry_t *entry, MainParam_t *mp)
 	return ret | mp->loop(mp->File, &subMp, "*");
 }
 
+#if 0
+static int test_directory(direntry_t *entry, MainParam_t *mp)
+{
+	Stream_t *File=mp->File;
+	Stream_t *Target;
+	char errmsg[80];
 
+	if ((Target = SimpleFileOpen(0, 0, "-",
+				     O_WRONLY,
+				     errmsg, 0, 0, 0))) {
+		copyfile(File, Target);
+		FREE(&Target);
+	}
+	return GOT_ONE;
+}
+#endif
 
 static void usage(void)
 {
 		fprintf(stderr, "Mtools version %s, dated %s\n",
 			mversion, mdate);
-		fprintf(stderr, "Usage: %s: [-V] [-w] [-a] msdosdirectory\n",
+		fprintf(stderr, "Usage: %s: [-V] [-w] [-a] [-b] [-s] [-f] msdosdirectory\n",
 			progname);
 		fprintf(stderr,
-			"       %s: [-V] [-w] [-a] msdosfile [msdosfiles...]\n",
+			"       %s: [-V] [-w] [-a] [-b] [-s] [-f] msdosfile [msdosfiles...]\n",
 			progname);
 		exit(1);
 }
@@ -434,7 +500,7 @@ void mdir(int argc, char **argv, int type)
 	recursive = 0;
 	wide = all = 0;
 					/* first argument */
-	while ((c = getopt(argc, argv, "waXfd/")) != EOF) {
+	while ((c = getopt(argc, argv, "waXbfds/")) != EOF) {
 		switch(c) {
 			case 'w':
 				wide = 1;
@@ -442,10 +508,12 @@ void mdir(int argc, char **argv, int type)
 			case 'a':
 				all = 1;
 				break;
+			case 'b':
 			case 'X':
 				concise = 1;
-				recursive = 1;
+				/*recursive = 1;*/
 				break;
+			case 's':
 			case '/':
 				recursive = 1;
 				break;
@@ -455,6 +523,11 @@ void mdir(int argc, char **argv, int type)
 			case 'd':
 				debug = 1;
 				break;
+#if 0
+			case 't': /* test mode */
+				testmode = 1;
+				break;
+#endif
 			default:
 				usage();
 		}
@@ -473,7 +546,13 @@ void mdir(int argc, char **argv, int type)
 	currentDir = 0;
 	RootDir = 0;
 	dirPath = 0;
-	if(recursive) {
+#if 0
+	if (testmode) {
+		mp.lookupflags = ACCEPT_DIR | NO_DOTS;
+		mp.dirCallback = test_directory;
+	} else 
+#endif
+		if(recursive) {
 		mp.lookupflags = ACCEPT_DIR | DO_OPEN_DIRS | NO_DOTS;
 		mp.dirCallback = list_recurs_directory;
 	} else {
@@ -484,7 +563,7 @@ void mdir(int argc, char **argv, int type)
 	mp.longname = longname;
 	mp.shortname = shortname;
 	ret=main_loop(&mp, argv + optind, argc - optind);
-	leaveDirectory();
-	leaveDrive();
+	leaveDirectory(ret);
+	leaveDrive(ret);
 	exit(ret);
 }

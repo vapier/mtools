@@ -23,8 +23,6 @@
 
 typedef struct Arg_t {
 	const char *fromname;
-	int nowarn;
-	int interactive;
 	int verbose;
 	MainParam_t mp;
 
@@ -49,7 +47,7 @@ int renameit(char *dosname,
 	strncpy(targetEntry->dir.name, dosname, 8);
 	strncpy(targetEntry->dir.ext, dosname + 8, 3);
 
-	if(targetEntry->dir.attr & 0x10) {
+	if(IS_DIR(targetEntry)) {
 		direntry_t *movedEntry;
 
 		/* get old direntry. It is important that we do this
@@ -65,12 +63,21 @@ int renameit(char *dosname,
 			/* we have a directory here. Change its parent link */
 			
 			initializeDirentry(&subEntry, arg->mp.File);
-			if(vfat_lookup(&subEntry, "..", 2, ACCEPT_DIR,
-				       NULL, NULL))
+
+			switch(vfat_lookup(&subEntry, "..", 2, ACCEPT_DIR,
+					   NULL, NULL)) {
+			    case -1:
 				fprintf(stderr,
 					" Directory has no parent entry\n");
-			else {
+				break;
+			    case -2:
+				return ERROR_ONE;
+			    case 0:
 				GET_DATA(targetEntry->Dir, 0, 0, 0, &fat);
+				if (fat == fat32RootCluster(targetEntry->Dir)) {
+				    fat = 0;
+				}
+
 				subEntry.dir.start[1] = (fat >> 8) & 0xff;
 				subEntry.dir.start[0] = fat & 0xff;
 				dir_write(&subEntry);
@@ -78,6 +85,7 @@ int renameit(char *dosname,
 					fprintf(stderr,
 						"Easy, isn't it? I wonder why DOS can't do this.\n");
 				}
+				break;
 			}
 			
 			/* wipe out original entry */			
@@ -117,6 +125,7 @@ static int rename_file(direntry_t *entry, MainParam_t *mp)
 	if (targetDir == entry->Dir){
 		arg->ch.ignore_entry = -1;
 		arg->ch.source = entry->entry;
+		arg->ch.source_entry = entry->entry;
 	} else {
 		arg->ch.ignore_entry = -1;
 		arg->ch.source = -2;
@@ -140,16 +149,16 @@ static int rename_directory(direntry_t *entry, MainParam_t *mp)
 	/* moves a DOS dir */
 	if(isSubdirOf(mp->targetDir, mp->File)) {
 		fprintf(stderr, "Cannot move directory ");
-		fprintPwd(stderr, entry);
+		fprintPwd(stderr, entry,0);
 		fprintf(stderr, " into one of its own subdirectories (");
-		fprintPwd(stderr, getDirentry(mp->targetDir));
+		fprintPwd(stderr, getDirentry(mp->targetDir),0);
 		fprintf(stderr, ")\n");
 		return ERROR_ONE;
 	}
 
 	if(entry->entry == -3) {
 		fprintf(stderr, "Cannot move a root directory: ");
-		fprintPwd(stderr, entry);
+		fprintPwd(stderr, entry,0);
 		return ERROR_ONE;
 	}
 
@@ -172,14 +181,19 @@ static int rename_oldsyntax(direntry_t *entry, MainParam_t *mp)
 
 	arg->ch.ignore_entry = -1;
 	arg->ch.source = entry->entry;
+	arg->ch.source_entry = entry->entry;
 
+#if 0
 	if(!strcasecmp(mp->shortname, arg->fromname)){
 		longname = mp->longname;
 		shortname = mp->targetName;
 	} else {
+#endif
 		longname = mp->targetName;
 		shortname = 0;
+#if 0
 	}
+#endif
 	result = mwrite_one(targetDir, longname, shortname,
 			    renameit, (void *)arg, &arg->ch);
 	if(result == 1)
@@ -194,9 +208,9 @@ static void usage(void)
 	fprintf(stderr,
 		"Mtools version %s, dated %s\n", mversion, mdate);
 	fprintf(stderr,
-		"Usage: %s [-itnmvV] file targetfile\n", progname);
+		"Usage: %s [-vV] [-D clash_option] file targetfile\n", progname);
 	fprintf(stderr,
-		"       %s [-itnmvV] file [files...] target_directory\n", 
+		"       %s [-vV] [-D clash_option] file [files...] target_directory\n", 
 		progname);
 	exit(1);
 }
@@ -209,34 +223,28 @@ void mmove(int argc, char **argv, int oldsyntax)
 	char longname[VBUFSIZE];
 	char def_drive;
 	int i;
-	int interactive;
 
 	/* get command line options */
 
 	init_clash_handling(& arg.ch);
 
-	interactive = 0;
-
 	/* get command line options */
 	arg.verbose = 0;
-	arg.nowarn = 0;
-	arg.interactive = 0;
-	while ((c = getopt(argc, argv, "invorsamORSAM")) != EOF) {
+	while ((c = getopt(argc, argv, "vD:o")) != EOF) {
 		switch (c) {
-			case 'i':
-				arg.interactive = 1;
-				break;
-			case 'n':
-				arg.nowarn = 1;
-				break;
 			case 'v':	/* dummy option for mcopy */
 				arg.verbose = 1;
 				break;
 			case '?':
 				usage();
-			default:
-				if(handle_clash_options(&arg.ch, c))
+			case 'o':
+				handle_clash_options(&arg.ch, c);
+				break;
+			case 'D':
+				if(handle_clash_options(&arg.ch, *optarg))
 					usage();
+				break;
+			default:
 				break;
 		}
 	}
@@ -268,7 +276,7 @@ void mmove(int argc, char **argv, int oldsyntax)
 		oldsyntax = 0;
 
 	arg.mp.lookupflags = 
-	  ACCEPT_PLAIN | ACCEPT_DIR | DO_OPEN_DIRS | NO_DOTS;
+	  ACCEPT_PLAIN | ACCEPT_DIR | DO_OPEN_DIRS | NO_DOTS | NO_UNIX;
 
 	if (!oldsyntax){
 		target_lookup(&arg.mp, argv[argc-1]);
@@ -287,7 +295,10 @@ void mmove(int argc, char **argv, int oldsyntax)
 
 
 	arg.mp.longname = longname;
+	longname[0]='\0';
+
 	arg.mp.shortname = shortname;
+	shortname[0]='\0';
 
 	exit(main_loop(&arg.mp, argv + optind, argc - optind - 1));
 }

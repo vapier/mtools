@@ -13,7 +13,7 @@ typedef enum clash_action {
 	NAMEMATCH_OVERWRITE,
 	NAMEMATCH_ERROR,
 	NAMEMATCH_SUCCESS,
-	NAMEMATCH_GREW
+	NAMEMATCH_GREW,
 } clash_action;
 
 /* clash handling structure */
@@ -32,6 +32,8 @@ typedef struct ClashHandling_t {
 	int use_longname;
 	int ignore_entry;
 	int source; /* to prevent the source from overwriting itself */
+	int source_entry; /* to account for the space freed up by the original 
+					   * name */
 	char * (*name_converter)(char *filename, int verbose, 
 				 int *mangled, char *ans);
 } ClashHandling_t;

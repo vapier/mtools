@@ -8,16 +8,18 @@
 @setchapternewpage off
 @c %**end of header
 
+@c MANskip 5
+
+
 @ignore
 @unnumbered Name
 mtools - utilities to access DOS disks in Unix.
 @end ignore
 
-@c MANskip
 
-@set EDITION 3.9
-@set VERSION 3.9
-@set UPDATED March 1998
+@set EDITION pre-3.9.8
+@set VERSION pre-3.9.8
+@set UPDATED May 2001
 
 @iftex
 @finalout
@@ -98,7 +100,7 @@ by the Free Software Foundation.
 
 @end ifinfo
 
-@c MANend-skip
+@c MANstart 1
 
 @unnumbered Introduction
 Mtools is a public domain collection of tools to allow Unix systems to
@@ -129,14 +131,15 @@ change floppies too without unmounting and mounting.
 * Concept Index::     Concept Index
 @end menu
 
-@c MANskip
+@c MANskip 1
 
 @unnumbered Warning, beware of the cookie monster!
 
 If you are reading this documentation on the World Wide Web, this
 section might interest you.  If you are reading it using info, or as a
-printed document, or on one of our own sites (www.tux.org and
-www.poboxes.com/Alain.Knaff) you do not need to worry.
+printed document, or on one of our own sites
+(http://www.tux.org/pub/knaff and http://mtools.linux.lu) you do not need
+to worry.
 
 It has come to my attention that some of the Web sites which display
 this documentation deal so called "cookies".  These "cookies" are tags
@@ -148,7 +151,7 @@ Options->Network_Preferences->Protocols and checking the box for "Show
 an Alert before Accepting a cookie". Then, when the alert box pops up,
 click "Cancel" to refuse the cookie and protect your privacy.
 
-@c MANend-skip
+@c MANend-skip 1
 
 @node Location, Common features, Top, Top
 @chapter Where to get mtools
@@ -160,19 +163,17 @@ click "Cancel" to refuse the cookie and protect your privacy.
 
 Mtools can be found at the following places (and their mirrors):
 @example
-ftp://www.tux.org/pub/knaff/mtools/mtools-3.9.tar.gz
-ftp://sunsite.unc.edu/pub/Linux/utils/disk-management/mtools-3.9.tar.gz
+http://mtools.linux.lu/mtools-3.9.8.tar.gz
+ftp://www.tux.org/pub/knaff/mtools/mtools-3.9.8.tar.gz
+ftp://metalab.unc.edu/pub/Linux/utils/disk-management/mtools-3.9.8.tar.gz
 @end example
 
 Before reporting a bug, make sure that it has not yet been fixed in the
 Alpha patches which can be found at:
 @example
-http://www.poboxes.com/Alain.Knaff/mtools
+http://mtools.linux.lu/
 ftp://www.tux.org/pub/knaff/mtools
 @end example
-
-Note: It is highly probable that the innet address will cease to exist after
-November 1997.  The wauug address is permanent.
 
 These patches are named
 @code{mtools-}@var{version}@code{-}@var{ddmm}@code{.taz}, where version
@@ -252,7 +253,7 @@ those systems where the device name is derived from the SCSI id, the Jaz
 drive is assumed to be at Scsi target 4, and the Zip at Scsi target 5
 (factory default settings).  On Linux, both drives are assumed to be the
 second drive on the Scsi bus (/dev/sdb). The default settings can be
-changes using a configuration file (@xref{Configuration}).
+changes using a configuration file (@pxref{Configuration}).
 
 
 @node directory, long names, drive letters, Common features
@@ -285,7 +286,7 @@ of DOS.
  The following table shows some examples of short names:
 
 @example
-Long name       MS-DOS name      Reason for the change
+Long name       MS-DOS name     Reason for the change
 ---------       ----------      ---------------------
 thisisatest     THISIS~1        filename too long
 alain.knaff     ALAIN~1.KNA     extension too long
@@ -336,7 +337,7 @@ characters left (@code{\"*\\<>/?:|}), and device names are still
 reserved.
 
 @example
-Unix name       Long name      Reason for the change
+Unix name       Long name       Reason for the change
 ---------       ----------      ---------------------
 prn             prn-1           PRN is a device name
 ab:c            ab_c-1          illegal character
@@ -388,25 +389,25 @@ You may also chose actions (for all files) on the command line, when
 invoking mtools:
 
 @table @code
-@item -o
+@item -D o
 Overwrites primary names by default.
-@item -O
+@item -D O
 Overwrites secondary names by default.
-@item -r
+@item -D r
 Renames primary name by default.
-@item -R
+@item -D R
 Renames secondary name by default.
-@item -a
+@item -D a
 Autorenames primary name by default.
-@item -A
+@item -D A
 Autorenames secondary name by default.
-@item -s
+@item -D s
 Skip primary name by default.
-@item -S
+@item -D S
 Skip secondary name by default.
-@item -m
+@item -D m
 Ask user what to do with primary name.
-@item -M
+@item -D M
 Ask user what to do with secondary name.
 @end table
 
@@ -466,7 +467,7 @@ specific tool. For Linux, suitable floppy tools can be found in the
 @code{fdutils} package at the following locations~:
 @example
 @code{ftp://www.tux.org/pub/knaff/fdutils/}.
-@code{ftp://sunsite.unc.edu/pub/Linux/utils/disk-management/fdutils-*}
+@code{ftp://metalab.unc.edu/pub/Linux/utils/disk-management/fdutils-*}
 @end example
 
 See the manpages included in that package for further detail: Use
@@ -505,7 +506,7 @@ the DELL Unix PC.
 
 @node bigger sectors, 2m, more sectors, high capacity formats
 @subsection Bigger sectors
-@cindex 2m
+@cindex bigger sectors
 By using bigger sectors it is possible to go beyond the capacity which
 can be obtained by the standard 512-byte sectors. This is because of the
 sector header. The sector header has the same size, regardless of how
@@ -553,7 +554,7 @@ that it is fast: 600 milliseconds per track. That's faster than the 21
 sector format, and almost as fast as the standard 18 sector format. In
 order to access these disks, make sure mtools has been compiled with XDF
 support, and set the @code{use_xdf} variable for the drive in the
-configuration file. @xref{Compiling mtools} and @ref{misc variables},
+configuration file. @xref{Compiling mtools}, and @ref{misc variables},
 for details on how to do this. Fast XDF access is only available for
 Linux kernels which are more recent than 1.1.34.
 
@@ -590,18 +591,35 @@ mtools. Set the environmental variable MTOOLS_FAT_COMPATIBILITY (or the
 corresponding configuration file variable, @ref{global variables}) to
 bypass the fat checking.
 
+@c MANskip 1
+
+@ignore
+@unnumbered Name
+mtools.conf - mtools configuration files
+
+@c MANend-skip 5
+@section Description
+
+This manpage describes the configuration files for mtools. They 
+@c MANskip 5
+@end ignore
+
+
 @node Configuration, Commands, Common features, Top
+
+
 @chapter How to configure mtools for your environment
 @section Description
 @cindex Configuration files
 @vindex MTOOLSRC
 
  This sections explains the syntax of the configurations files for
-mtools. The configuration files are called
-@file{/usr/local/etc/mtools.conf} and @file{~/.mtoolsrc}. If the
-environmental variable @code{MTOOLSRC} is set, its contents is used as
-the filename for a third configuration file. These configuration files
-describe the following items:
+mtools. The configuration files
+@c MANend-skip 5
+are called @file{/usr/local/etc/mtools.conf} and @file{~/.mtoolsrc}. If
+the environmental variable @code{MTOOLSRC} is set, its contents is used
+as the filename for a third configuration file. These configuration
+files describe the following items:
 
 @itemize @bullet
 @item Global configuration flags and variables
@@ -783,7 +801,7 @@ disk. Its has three purposes:
 @item formatting
 The geometry information is written into the boot sector of the newly
 made disk. However, you may also describe the geometry information on
-the command line. @xref{mformat} for details.
+the command line. @xref{mformat}, for details.
 @item filtering
 On some Unices there are device nodes which only support one physical
 geometry. For instance, you might need a different node to access a disk
@@ -791,7 +809,7 @@ as high density or as low density. The geometry is compared to the
 actual geometry stored on the boot sector to make sure that this device
 node is able to correctly read the disk. If the geometry doesn't match,
 this drive entry fails, and the next drive entry bearing the same drive
-letter is tried. @xref{multiple descriptions} for more details on
+letter is tried. @xref{multiple descriptions}, for more details on
 supplying several descriptions for one drive letter.
 
 If no geometry information is supplied in the configuration file, all
@@ -805,6 +823,9 @@ which would actually need filtering).
 If you do not need filtering, but want still a default geometry for
 mformatting, you may switch off filtering using the @code{mformat_only}
 flag.
+
+If you want filtering, you should supply the @code{filter} flag.  If you 
+supply a geometry, you must supply one of both flags.
 
 @item initial geometry
 On devices that support it (usually floppy devices), the geometry
@@ -847,6 +868,7 @@ Example: the following drive section describes a 1.44M drive:
       file="/dev/fd0H1440"
       fat_bits=12
       cylinders=80 heads=2 sectors=18
+      mformat_only
 @end example
 
 The following shorthand geometry descriptions are available:
@@ -1058,12 +1080,19 @@ flag is only available if you configured mtools with the
 @vindex use_xdf
 If this is set to a non-zero value, mtools also tries to access this
 disk as an XDF disk. XDF is a high capacity format used by OS/2. This
-is off by default. @xref{XDF} for more details.
+is off by default. @xref{XDF}, for more details.
 @item mformat_only
 @vindex mformat_only
 Tells mtools to use the geometry for this drive only for mformatting and 
 not for filtering.
 
+@item filter
+@vindex filter
+Tells mtools to use the geometry for this drive both for mformatting and 
+filtering.
+
+@item remote
+Tells mtools to connect to floppyd (@pxref{floppyd}).
 @end table
 
 
@@ -1205,7 +1234,7 @@ thus mtools always uses compiled-in defaults for those. Thus, only a
 limited amount of code pages are supported. If your preferred code page
 is missing, or if you know the name of the Windows 95 file which
 contains this mapping, could you please drop me a line at
-@code{Alain.Knaff@@poboxes.com}.
+@code{alain@@linux.lu}.
 
 The @code{COUNTRY} variable can also be set using the environment.
 
@@ -1341,6 +1370,7 @@ same configuration file, in order to make upgrading easier. Support for
 the old syntax will be phased out eventually, and in order to discourage
 its use, I purposefully omit its description here.
 
+@c MANskip 5
 
 @node Commands, Compiling mtools, Configuration, Top
 @chapter Command list
@@ -1353,8 +1383,11 @@ all mtools commands are not described here, @ref{arguments} for a
 description of those.
 
 @menu
+* floppyd::           floppy daemon to run on your X server box
+* floppyd_installtest:: small utility to check for the presence of floppyd
 * mattrib::           change MS-DOS file attribute flags
 * mbadblocks::        tests a floppy disk, and marks the bad blocks in the FAT
+* mcat::              same as cat. Only usefull with floppyd.
 * mcd::               change MS-DOS directory
 * mcopy::             copy MS-DOS files to/from Unix
 * mdel::              delete an MS-DOS file
@@ -1375,10 +1408,168 @@ description of those.
 * mtoolstest::        tests and displays the configuration
 * mtype::             display contents of an MS-DOS file
 * mzip::              zip disk specific commands
-* xcopy::             recursively copy a dos directory into another
 @end menu
 
-@node mattrib, mbadblocks, Commands, Commands
+@node floppyd, floppyd_installtest, Commands, Commands
+@section Floppyd
+@pindex floppyd
+@cindex X terminal
+@cindex remote floppy access
+
+@code{Floppyd} is used as a server to grant access to the floppy drive
+to clients running on a remote machine, just as an X server grants
+access to the display to remote clients.  It has the following syntax:
+
+@code{floppyd} [@code{-d}] [@code{-l}] [@code{-s} @var{port}] [@code{-r}
+@var{user}] [@code{-b} @var{ipaddr}] @var{devicename} [@var{displaynames}]
+
+
+@code{floppyd} is always associated with an X server.  It runs on the
+same machine as its X server, and listens on port 5703 and above.
+
+@subsection Authentication
+
+@code{floppyd} authenticates remote clients using the @code{Xauthority}
+protocol. Xhost authentication is not supported. Each floppyd is
+associated with an X server.  When a remote client attempts to connect
+to floppyd, it sends floppyd the X authority record corresponding to
+floppyd's X server.  Floppyd in turn then tries to open up a connection
+to the X server in order to verify the authenticity of the xauth record.
+If the connection to the X server succeeds, the client is granted access
+
+@strong{Caution}: In order to make authentication work correctly, the
+local host should @strong{not} be listed in the @code{xhost} list of
+allowed hosts.
+ Indeed, hosts listed in @code{xhost} do not need a correct
+@code{Xauthority} cookie to connect to the X server. As @code{floppyd}
+runs on the same host as the X server, all its probe connection would
+succeed even for clients who supplied a bad cookie.  This means that
+your floppy drive would be open to the world, i.e. a huge security hole.
+ If your X server does not allow you to remove @code{localhost:0} and
+@code{:0} from the @code{xhost} list, you can prevent floppyd from
+probing those display names with the @code{-l} option.
+
+@subsection Command line options
+
+@table @code
+@item d
+Daemon mode. Floppyd runs its own server loop.  Do not supply this if
+you start floppyd from @code{inetd.conf}
+@item s  @var{port}
+Port number for deamon mode.  Default is 5703 + @var{displaynumber}.
+This flag implies daemon mode.  For example, for display
+@code{hitchhiker:5}, the port would be 5708.
+@item b  @var{ipaddr}
+Bind address (for multihomed hosts). This flag implies daemon mode
+@item r @var{user}
+Run the server under as the given user
+@item l
+Do not generate local default display names
+@end table
+
+@var{devicename} is the name of the device node to be opened.  Default
+is @code{/dev/fd0}.
+
+@var{displaynames} is a list of display names to connect to for
+authentication.  All displays in the list are tried until one is found
+that grants access or until the list is exhausted.  If no list is
+supplied, the a display name list based on the ip address supplied using
+the @code{-b} flag is constructed: 
+@itemize @bullet
+@code{@var{ipaddr}:@var{n}.0}.
+@item @code{:}@var{n}@code{.0}
+@end itemize
+ If @code{floppyd} is started from inetd, the address of the socket used
+for stdin is used as a bind address.
+
+ If no bind address is supplied, a list containing the following 3 items
+is constructed:
+@itemize @bullet
+@item @var{hostname}@code{:}@var{n}@code{.0}
+@item @code{localhost:}@var{n}@code{.0}
+@item @code{:}@var{n}@code{.0}
+@end itemize
+
+ @var{n} is the display number derived from the port number (@var{port}
+- 5703 modulo 10). The local items (@code{localhost:0} and @code{:0})
+are not constructed if the @code{-l} flag is given.
+
+@subsection Connecting to floppyd
+
+ In order to use floppyd, add the flag @code{remote} to the device
+description in your @file{~/.mtoolsrc} file.  If the flag @code{remote}
+is given, the @code{file} parameter of the device description is taken
+to be a remote address.  It's format is the following:
+@var{hostname}@code{:}@var{displaynumber}[@code{/}@var{baseport}]. When
+using this entry, mtools connects to port
+@var{baseport}+@var{displaynumber} at @var{hostname}. By default
+@var{baseport} is 5703.
+
+@subsection Examples:
+
+ The following starts a floppy daemon giving access to @file{/dev/fd0},
+listening on the default port 5703, tied to the default X servers:
+
+@example
+floppyd -d /dev/fd0
+@end example
+
+ Each of the following starts a floppy daemon giving access to
+@file{/dev/fd1}, tied to the :1 local X servers, and listening on port
+5704. We assume that the local host is named @code{hitchhiker}.
+
+@example
+floppyd -d /dev/fd0 localhost:1 hitchhiker:1 :1
+floppyd -p 5704 /dev/fd0 
+@end example
+
+ If you want to start floppyd by @code{inetd} instead of running it as a 
+daemon, insert the following lines into @file{/etc/services}:
+@example
+# floppy daemon
+floppyd-0    5703/tcp    # floppy daemon for X server :0
+floppyd-1    5704/tcp    # floppy daemon for X server :1
+@end example
+
+ And insert the following into @file{/etc/inetd.conf} (assuming that you
+have defined a user named floppy in your @file{/etc/passwd}):
+
+@example
+# floppy daemon
+floppyd-0   stream  tcp  wait  floppy  /usr/sbin/floppyd floppyd /dev/fd0 
+floppyd-1   stream  tcp  wait  floppy  /usr/sbin/floppyd floppyd /dev/fd1
+@end example
+
+ Note that you need to supply the X display names for the second
+floppyd.  This is because the port is opened by inetd.conf, and hence
+floppyd cannot know its number to interfere the display number.
+
+
+ On the client side, insert the following into your @file{~/.mtoolsrc}
+to define a drive letter accessing floppy drive in your X terminal:
+@example
+drive x: file="$DISPLAY" remote
+@end example
+
+@node floppyd_installtest, mattrib, floppyd, Commands
+@section Floppyd_installtest
+@pindex floppyd_installtest
+@cindex X terminal
+@cindex remote floppy access
+
+@code{Floppyd_installtest} is used to check for the presence of a running
+floppyd daemon. This is usefull, if you have a small frontend script to
+mtools, which decides whether to use floppyd or not.
+
+@code{floppyd_installtest} [@code{-f}]  Connect-String
+
+If the @code{-f} option is specified, @code{floppyd_installtest} does a
+full X-Cookie authentication and complains if this does not work.
+
+The connect-String has the format described in the floppyd-section:
+@var{hostname}@code{:}@var{displaynumber}[@code{/}@var{baseport}]
+
+@node mattrib, mbadblocks, floppyd_installtest, Commands
 @section Mattrib
 @pindex mattrib
 @cindex Changing file attributes
@@ -1391,7 +1582,7 @@ description of those.
 following syntax:
 
 @code{mattrib} [@code{-a|+a}] [@code{-h|+h}] [@code{-r|+r}]
-[@code{-s|+s}] [@code{-/}]  [@code{-X}] @var{msdosfile} [ @var{msdosfiles} @dots{} ]
+[@code{-s|+s}] [@code{-/}]  [@code{-p}] [@code{-X}] @var{msdosfile} [ @var{msdosfiles} @dots{} ]
 
 @code{Mattrib} adds attribute flags to an MS-DOS file (with the
 `@code{+}' operator) or remove attribute flags (with the `@code{-}'
@@ -1416,15 +1607,22 @@ Hidden bit.  Used to make files hidden from @code{DIR}.
 @item /
 Recursive.  Recursively list the attributes of the files in the subdirectories.
 @item X
-Concise. Prints the attributes whithout any whitespace padding.  This is 
-convenient for script.  If neither the "/" option is given, nor the
-@var{msdosfile} contains a wildcard, and there is only one Msdos file
-parameter on the command line, only the attribute is printed, and not
-the filename.
-This option is convenient for scripts
+Concise. Prints the attributes whithout any whitespace padding.  If
+neither the "/" option is given, nor the @var{msdosfile} contains a
+wildcard, and there is only one Msdos file parameter on the command
+line, only the attribute is printed, and not the filename.  This option
+is convenient for scripts
+@item p
+Replay mode.  Outputs a series of mformat commands that will reproduce
+the current situation, starting from a situation as left by untarring
+the Dos filesystem.  Commands are only output for attribute settings
+that differ from the default (archive bit set for files, unset for
+directories).  This option is intended to be used in addition to
+tar. The @code{readonly} attribute is not taken into account, as tar can
+set that one itself.
 @end table
 
-@node mbadblocks, mcd, mattrib, Commands
+@node mbadblocks, mcat, mattrib, Commands
 @section Mbadblocks
 
 The @code{mbadblocks} command is used to scan an MS-DOS floppy and mark
@@ -1444,7 +1642,32 @@ after @code{mformat}.  It is not intended to salvage bad disks.
 blocks which are in use by reading them repeatedly, and then mark them
 bad.
 
-@node mcd, mcopy, mbadblocks, Commands
+@node mcat, mcd, mbadblocks, Commands
+@section Mcat
+
+The @code{mcat} command is used to copy an entire disk image from or
+to the floppy device. It uses the following syntax:
+
+@code{mcat} [@code{-w}] @var{drive}@code{:}
+@pindex mcat
+@cindex Copying an entire disk image
+@cindex Disk image
+@cindex Floppyd cat
+
+@code{Mcat} performs the same task as the unix @code{cat} command. It
+is included into the mtools package, since @code{cat} cannot access
+remote floppy devices offered by the mtools floppy daemon.
+Now it is possible to create boot floppies remotely.
+
+The default operation is reading. The output is written to stdout.
+
+If the @code{-w} option is specified, mcat reads a disk-image from 
+stdin and writes it to the given device. 
+@strong{Use this carefully!} Because of the lowlevel nature of this 
+command, it will happily destroy any data written before on the
+disk without warning!
+
+@node mcd, mcopy, mcat, Commands
 @section Mcd
 @pindex mcd
 @cindex Directory (changing)
@@ -1488,8 +1711,8 @@ The @code{mcopy} command is used to copy MS-DOS files to and from
 Unix. It uses the following syntax:
 
 @example
-@code{mcopy} [@code{-b/ptnvmoQOsSrRA}] @var{sourcefile} @var{targetfile}
-@code{mcopy} [@code{-b/ptnvmoQOsSrRA}] @var{sourcefile} [ @var{sourcefiles}@dots{} ] @var{targetdirectory}
+@code{mcopy} [@code{-bspanvmQT}] [@code{-D} @var{clash_option}] @var{sourcefile} @var{targetfile}
+@code{mcopy} [@code{-bspanvmQT}] [@code{-D} @var{clash_option}] @var{sourcefile} [ @var{sourcefiles}@dots{} ] @var{targetdirectory}
 @code{mcopy} [@code{-tnvm}] @var{MSDOSsourcefile}
 @end example
 
@@ -1515,19 +1738,29 @@ on its position on the command line.
 @code{Mcopy} accepts the following command line options:
 
 @table @code
+@item t
+Text file transfer.  Mcopy translates incoming carriage return/line
+feeds to line feeds when copying from Dos to Unix, and vice-versa when
+copying from Unix to Dos.
 @item b
 Batch mode. Optimized for huge recursive copies, but less secure if a
 crash happens during the copy.
-@item /
+@item s
 Recursive copy.  Also copies directories and their contents
 @item p
 Preserves the attributes of the copied files
 @item Q
 When mcopying multiple files, quits as soon as one copy fails (for
 example due to lacking storage space on the target disk)
-@item t
-Text file transfer.  @code{Mcopy} translates incoming carriage
+@item a
+Text (Ascii) file transfer.  @code{Mcopy} translates incoming carriage
 return/line feeds to line feeds.
+@item T
+Text (Ascii) file transfer with charset conversion.  Differs from
+@code{-a} in the @code{Mcopy} also translates incoming PC-8 characters
+to ISO-8859-1 equivalents as far as possible.  When reading DOS files,
+untranslatable characters are replaced by '@code{#}'; when writing DOS files,
+untranslatable characters are replaced by '@code{.}'.
 @item n
 No confirmation when overwriting Unix files.  @code{Mcopy} doesn't warn
 the user when overwriting an existing Unix file.  In order to switch off
@@ -1537,6 +1770,8 @@ Preserve the file modification time. If the target file already exists,
 and the @code{-n} option is not in effect, @code{mcopy} asks whether to
 overwrite the file or to rename the new file (@ref{name clashes}) for
 details).
+@item v
+Verbose. Displays the name of each file as it is copied.
 @end table
 
 @subsection Bugs
@@ -1594,7 +1829,7 @@ to be removed does not exist.
 The @code{mdir} command is used to display an MS-DOS directory. Its
 syntax is:
 
-@code{mdir} [@code{-/}] [@code{-f}] [@code{-w}] [@code{-a}] [@code{-X}] @var{msdosfile} [ @var{msdosfiles}@dots{}] 
+@code{mdir} [@code{-/}] [@code{-f}] [@code{-w}] [@code{-a}] [@code{-b}] @var{msdosfile} [ @var{msdosfiles}@dots{}] 
 
 @code{Mdir}
 displays the contents of MS-DOS directories, or the entries for some
@@ -1616,14 +1851,16 @@ the amount of free space takes up some non trivial amount of time, as
 the whole FAT must be read in and scanned.  The @code{-f} flag bypasses
 this step.  This flag is not needed on FAT32 filesystems, which store
 the size explicitely.
-@item X
-Concise listing.  List only a newline separated list of pathnames
-without any decoration nor additional information
+@item b
+Concise listing. Lists each directory name or filename, one per line
+(including the filename extension). This switch displays no heading
+information and no summary. Only a newline separated list of pathnames
+is displayed.
 @end table
 
 An error occurs if a component of the path is not a directory.
 
-@node mdu, mformat, mdir, Commands, Commands
+@node mdu, mformat, mdir, Commands
 @section Mdu
 @pindex mdu
 @cindex Space occupied by directories and files
@@ -1659,13 +1896,18 @@ The @code{mformat} command is used to add an MS-DOS filesystem to a
 low-level formatted diskette. Its syntax is:
 
 @display
-@code{mformat} [@code{-t} @var{cylinders}] [@code{-h} @var{heads}]
-[@code{-s} @var{sectors}] [@code{-l} @var{volume_label}] [@code{-F}]
-[@code{-I} @var{fsVersion}] [@code{-S} @var{sizecode}] [@code{-2}
-@var{sectors_on_track_0}] [@code{-M} @var{software_sector_size}]
-[@code{-a}] [@code{-X}] [@code{-C}] [@code{-H} @var{hidden_sectors}]
-[@code{-r} @var{root_sectors}] [@code{-B} @var{boot_sector}]
-[@code{-k}] @var{drive:}
+@code{mformat} [@code{-t} @var{cylinders}] [@code{-h} @var{heads}] [@code{-n} @var{sectors}]
+  [@code{-f} @var{size}] [@code{-1}] [@code{-4}] [@code{-8}]
+  [@code{-v} @var{volume_label}]
+  [@code{-F}] [@code{-S} @var{sizecode}] [@code{-X}]
+  [@code{-2} @var{sectors_on_track_0}] [@code{-3}]
+  [@code{-0} @var{rate_on_track_0}] [@code{-A} @var{rate_on_other_tracks}]
+  [@code{-M} @var{software_sector_size}]
+  [@code{-N} @var{serial_number}] [@code{-a}]
+  [@code{-C}] [@code{-H} @var{hidden_sectors}] [@code{-I} @var{fsVersion}]
+  [@code{-r} @var{root_sectors}] [@code{-L} @var{fat_len}] 
+  [@code{-B} @var{boot_sector}] [@code{-k}]
+  @var{drive:}
 @end display
 
 @code{Mformat} adds a minimal MS-DOS filesystem (boot sector, FAT, and
@@ -1677,53 +1919,107 @@ The following options are supported: (The S, 2, 1 and M options may not
 exist if this copy of mtools has been compiled without the USE_2M
 option)
 
+The following options are the same as for Dos's format command:
+
 @c xMANoptions
 
 @table @code
+@item v
+Specifies the volume label. A volume label identifies the disk and can
+be a maximum of 11 characters. If you omit the -v switch, mlabel will
+assign no label to the disk.
+@item f
+Specifies the size of the DOS filesystem to format. Only a certain
+number of predefined sizes are supported by this flag; for others use
+the -h/-t/-n flags. The following sizes are supported:
+@table @asis
+@item 160
+160K, single-sided, 8 sectors per track, 40 cylinders (for 5 1/4 DD)
+@item 180
+160K, single-sided, 9 sectors per track, 40 cylinders (for 5 1/4 DD)
+@item 320
+320K, double-sided, 8 sectors per track, 40 cylinders (for 5 1/4 DD)
+@item 360
+360K, double-sided, 9 sectors per track, 40 cylinders (for 5 1/4 DD)
+@item 720
+720K, double-sided, 9 sectors per track, 80 cylinders (for 3 1/2 DD)
+@item 1200
+1200K, double-sided, 15 sectors per track, 80 cylinders (for 5 1/4 HD)
+@item 1440
+1440K, double-sided, 18 sectors per track, 80 cylinders (for 3 1/2 HD)
+@item 2880
+2880K, double-sided, 36 sectors per track, 80 cylinders (for 3 1/2 ED)
+@end table
+
 @item t
-The number of cylinders.
+Specifies the number of tracks on the disk.
 @item h
 The number of heads (sides).
-@item s
-The number of sectors per track. If the 2m option is given, number of
-512-byte sector equivalents on generic tracks (i.e. not head 0 track 0).
-If the 2m option is not given, number of physical sectors per track
-(which may be bigger than 512 bytes).
-@item l
-An optional volume label.
+@item n
+Specifies the number of sectors per track. If the 2m option is given,
+number of 512-byte sector equivalents on generic tracks (i.e. not head 0
+track 0).  If the 2m option is not given, number of physical sectors per
+track (which may be bigger than 512 bytes).
+
+@item 1
+Formats a single side (equivalent to -h 1)
+
+@item 4
+Formats a 360K double-sided disk (equivalent to -f 360). When used
+together with -the 1 switch, this switch formats a 180K disk
+
+@item 8
+Formats a disk with 8 sectors per track.
+
+@end table
+
+MSDOS format's @code{q}, @code{u} and @code{b} options are not
+supported, and @code{s} has a different meaning.
+
+The following options are specific to mtools:
+
+@table @code
+
+@item F
+Format the partition as FAT32.
+
 @item S
 The sizecode. The size of the sector is 2 ^ (sizecode + 7).
+@item X
+formats the disk as an XDF disk. @xref{XDF}, for more details. The disk
+has first to be low-level formatted using the xdfcopy utility included
+in the fdutils package. XDF disks are used for instance for OS/2 install
+disks.
 @item 2
 2m format. The parameter to this option describes the number of
 sectors on track 0, head 0. This option is recommended for sectors
 bigger than normal.
-@item 1
+@item 3
 don't use a 2m format, even if the current geometry of the disk is a 2m 
 geometry.
+@item 0
+Data transfer rate on track 0
+@item A
+Data transfer rate on tracks other than 0
 @item M
 software sector size. This parameter describes the sector size in bytes used
 by the MS-DOS filesystem. By default it is the physical sector size.
+@item N
+Uses the requested serial number, instead of generating one
+automatically
 @item a
 If this option is given, an Atari style serial number is generated.
 Ataris store their serial number in the OEM label.
-@item X
-formats the disk as an XDF disk. @xref{XDF} for more details. The
-disk has first to be low-level formatted using the xdfcopy utility
-included in the fdutils package.
 @item C
 creates the disk image file to install the MS-DOS filesystem on
 it. Obviously, this is useless on physical devices such as floppies
-and hard disk partitions.
+and hard disk partitions, but is interesting for image files.
 @item H
 number of hidden sectors. This parameter is useful for formatting hard
 disk partition, which are not aligned on track boundaries (i.e. first
 head of first track doesn't belong to the partition, but contains a
 partition table). In that case the number of hidden sectors is in
 general the number of sectors per cylinder. This is untested.
-@item n
-serial number
-@item F
-Format the partition as FAT32 (experimental).
 @item I
 Sets the fsVersion id when formatting a FAT32 drive.  In order to find
 this out, run minfo on an existing FAT32 drive, and mail me about it, so
@@ -1735,13 +2031,16 @@ increases the cluster size, until the FAT is small enough.
 @item r
 Sets the size of the root directory (in sectors).  Only applicable to 12
 and 16 bit FATs.
+@item L
+Sets the length of the FAT.
 @item B
 Use the bootsector stored in the given file or device, instead of using
 its own.  Only the geometry fields are updated to match the target disks
 parameters.
 @item k
 Keep the existing boot sector as much as possible.  Only the geometry
-fields are updated to match the target disks parameters.
+fields and other similar filesystem data are updated to match the target
+disks parameters.
 @end table
 
 To format a diskette at a density other than the default, you must supply
@@ -1751,7 +2050,7 @@ default.
 @code{Mformat} returns 0 on success or 1 on failure.
 
 It doesn't record bad block information to the Fat, use
-@code{mkmanifest} for that.
+@code{mbadblocks} for that.
 
 @node mkmanifest, minfo, mformat, Commands
 @section Mkmanifest
@@ -1829,7 +2128,7 @@ The short names generated by @code{mkmanifest} follow the old convention
 
 @node minfo, mlabel, mkmanifest, Commands
 @section Minfo
-@pindex mlabel
+@pindex minfo
 @cindex mformat parameters
 @cindex getting parameters of a Dos fs
 
@@ -1857,7 +2156,7 @@ Prints a hexdump of the bootsector, in addition to the other information
 
 The @code{mlabel} command adds a volume label to a disk. Its syntax is:
 @display
-@code{mlabel} [@code{-vcs}] @var{drive}:[@var{new_label}]
+@code{mlabel} [@code{-vcsn}] [@code{-N} @var{serial}] @var{drive}:[@var{new_label}]
 @end display
 
 @code{Mlabel} displays the current volume label, if present. If
@@ -1876,6 +2175,11 @@ Mlabel supports the following options:
 Clears an existing label, without prompting the user
 @item s
 Shows the existing label, without prompting the user.
+@item n 
+Assigns a new (random) serial number to the disk
+@item N @var{serial}
+Sets the supplied serial number. The serial number should be supplied as
+an 8 digit hexadecimal number, without spaces
 @end table
 
 
@@ -1890,7 +2194,7 @@ Shows the existing label, without prompting the user.
 The @code{mmd} command is used to make an MS-DOS subdirectory. Its
 syntax is:
 
-@code{mmd} [@code{-voOsSrRA}] @var{msdosdirectory} [
+@code{mmd} [@code{-D} @var{clash_option}] @var{msdosdirectory} [
 @var{msdosdirectories}@dots{} ]
 
 @code{Mmd} makes a new directory on an MS-DOS filesystem. An error occurs
@@ -1928,13 +2232,16 @@ only.
 The @code{mmove} command is used to moves or renames an existing MS-DOS
 file or subdirectory.
 @display
-@code{mmove} [@code{-voOsSrRA}] @var{sourcefile} @var{targetfile}
-@code{mmove} [@code{-voOsSrRA}] @var{sourcefile} [ @var{sourcefiles}@dots{} ] @var{targetdirectory}
+@code{mmove} [@code{-v}] [@code{-D} @var{clash_option}] @var{sourcefile} @var{targetfile}
+@code{mmove} [@code{-v}]  [@code{-D} @var{clash_option}] @var{sourcefile} [ @var{sourcefiles}@dots{} ] @var{targetdirectory}
 @end display
 @code{Mmove} moves or renames an existing MS-DOS file or
 subdirectory. Unlike the MS-DOS version of @code{MOVE}, @code{mmove} is
-able to move subdirectories.
-
+able to move subdirectories.  Files or directories can only be moved
+within one filesystem. Data cannot be moved from Dos to Unix or
+vice-versa.  If you omit the drive letter from the target file or
+directory, the same letter as for the source is assumed.  If you omit
+the drive letter from all parameters, drive a: is assumed by default.
 
 @node mpartition, mrd, mmove, Commands
 @section Mpartition
@@ -1952,7 +2259,7 @@ is set.
 @display
 @code{mpartition} @code{-p} @var{drive}
 @code{mpartition} @code{-r} @var{drive}
-@code{mpartition} @code{-I} @var{drive}
+@code{mpartition} @code{-I} [@code{-B} @var{bootSector}] @var{drive} 
 @code{mpartition} @code{-a} @var{drive}
 @code{mpartition} @code{-d} @var{drive}
 @code{mpartition} @code{-c} [@code{-s} @var{sectors}] [@code{-h} @var{heads}]
@@ -2021,7 +2328,7 @@ partition table is not changes.  The @code{-f} allows you to override
 these safeguards.
 @end table
 
-The following option is available for all operations:
+The following options are available for all operations:
 @table @code
 @item v
 Together with @code{-p} prints the partition table as it is now (no
@@ -2031,6 +2338,13 @@ If the verbosity flag is given twice, mpartition will print out a
 hexdump of the partition table when reading it from and writing it to
 the device.
 @end table
+
+The following option is available for partition table initialization:
+@table @code
+@item B @var{bootSector}
+Reads the template master boot record from file @var{bootSector}.
+@end table
+
 
 @node mrd, mren, mpartition, Commands
 @section Mrd
@@ -2139,7 +2453,7 @@ Unlike the MS-DOS version of @code{TYPE}, @code{mtype} allows multiple
 arguments.
 
 
-@node mzip, xcopy, mtype, Commands
+@node mzip, , mtype, Commands
 @section Mzip
 @cindex Zip disk (utilities)
 @cindex Jaz disk (utilities)
@@ -2152,7 +2466,7 @@ arguments.
 @cindex password protected Zip disks
 
 The @code{mzip} command is used to issue ZIP disk specific commands on
-Solaris or HPUX. Its syntax is:
+Linux, Solaris or HPUX. Its syntax is:
 
 @display
 @code{mzip} [@code{-epqrwx}]
@@ -2205,25 +2519,6 @@ On a PC, the Mac filesystem appears as a hidden file named
 @file{partishn.mac}.  You may erase it to reclaim the 50 Megs of space
 taken up by the Mac filesystem.
 
-@node xcopy, , mzip, Commands
-@section Xcopy
-@cindex recursive copy
-@cindex xcopy
-@pindex xcopy
-
-
-The @code{xcopy} script is used to recursively copy one directory to
-another. Its syntax is:
-
-@display
-@code{xcopy} @var{sourcedirectory} @var{targetdirectory}
-@end display
-
-
-If targetdirectory does not exist, it is created.  If it does exist, the
-files of sourcedirectory are directly copied into it, and no
-subdirectory called @var{sourcedirectory} is created, unlike with
-@code{cp -rf}.
 
 @subsection Bugs
 
@@ -2252,12 +2547,17 @@ for details.
 @item ./configure --enable-vold
 @itemx ./configure --disable-vold
 Enables support for vold on Solaris. When used in conjunction with vold,
-mtools should uses different device nodes as for direct access.
+mtools should use different device nodes than for direct access.
 
 @item ./configure --enable-new-vold
 @itemx ./configure --disable-new-vold
-Enables new support for vold on Solaris.  This is supposed to work more
+Enables new support for vold on Solaris. This is supposed to work more
 smoothly than the old support.
+
+@item ./configure --enable-floppyd
+@itemx ./configure --disable-floppyd
+Enables support for floppyd.  By default, floppyd support is enabled as
+long as the necessary X includes and libraries are available.
 @end table
 
 @node Porting mtools, Command Index, Compiling mtools, Top
@@ -2333,6 +2633,9 @@ generic ZIP drive using normal access. This uses partition 4.
 @item RZIPJAZ(flags)
 generic ZIP drive using raw SCSI access. This uses partition 4.
 @code{Flags} are any special flags to be passed to open.
+@item REMOTE
+the remote drive used for floppyd.  Unlike the other items, this macro
+also includes the file name ($DISPLAY) and the drive letter (X)
 @end table
 
  Entries may be described in more detail:
@@ -2424,7 +2727,7 @@ doesn't have raw devices)
  For the truly high capacity formats (XDF, 2m, etc), there is no clean
 and documented interface yet.
 
-@c MANskip
+@c MANskip 1
 
 @node Command Index, Variable Index,  Porting mtools, Top
 @unnumbered Command Index
@@ -2440,5 +2743,6 @@ and documented interface yet.
 
 @contents
 
-@c MANend-skip
+@c MANend-skip 1
+@c MANend-skip 5
 @bye

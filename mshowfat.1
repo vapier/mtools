@@ -1,5 +1,6 @@
-.TH mshowfat 1 "13aug97" mtools-3.8
+.TH mshowfat 1 "27May01" mtools-pre6-3.9.8
 .SH Name
+mshowfat - shows FAT clusters allocated to file
 '\" t
 .de TQ
 .br
@@ -11,15 +12,35 @@
 .tr \(if`
 .tr \(pd"
 
-.SH Note
+.SH Note\ of\ warning
 This manpage has been automatically generated from mtools's texinfo
-documentation.  However, this process is only approximative, and some
+documentation, and may not be entirely accurate or complete.  See the
+end of this man page for details.
+.PP
+.SH Description
+.iX "p mshowfat"
+.iX "c Clusters of a file"
+.iX "c Fat"
+.PP
+The \fR\&\f(CWmshowfat\fR command is used to display the FAT entries for a
+file.  Syntax:
+.PP
+.(l I
+\&\fR\&\f(CW$ mshowfat files\fR
+.)l
+ 
+.PP
+.SH See\ Also
+Mtools' texinfo doc
+.SH Viewing\ the\ texi\ doc
+This manpage has been automatically generated from mtools's texinfo
+documentation. However, this process is only approximative, and some
 items, such as crossreferences, footnotes and indices are lost in this
-translation process.  Indeed, this items have no appropriate
-representation in the manpage format.  Moreover, only the items specific
-to each command have been translated, and the general information about
-mtools has been dropped in the manpage version.  Thus I strongly advise
-you to use the original texinfo doc.
+translation process.  Indeed, these items have no appropriate
+representation in the manpage format.  Moreover, not all information has
+been translated into the manpage version.  Thus I strongly advise you to
+use the original texinfo doc.  See the end of this manpage for
+instructions how to view the texinfo doc.
 .TP
 * \ \ 
 To generate a printable copy from the texinfo doc, run the following
@@ -49,6 +70,8 @@ To generate a html copy,  run:
 .lp
  
 \&\fRA premade html can be found at:
+\&\fR\&\f(CW\(ifhttp://mtools.linux.lu\(is\fR
+and also at:
 \&\fR\&\f(CW\(ifhttp://www.tux.org/pub/knaff/mtools\(is\fR
 .TP
 * \ \ 
@@ -69,17 +92,3 @@ The texinfo doc looks most pretty when printed or as html.  Indeed, in
 the info version certain examples are difficult to read due to the
 quoting conventions used in info.
 .PP
-.SH Description
-.iX "p mshowfat"
-.iX "c Clusters of a file"
-.iX "c Fat"
-.PP
-The \fR\&\f(CWmshowfat\fR command is used to display the FAT entries for a
-file.  Syntax:
-.PP
-.(l I
-\&\fR\&\f(CW$ mshowfat files\fR
-.)l
- 
-.SH See Also
-Mtools' texinfo doc

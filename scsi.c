@@ -49,6 +49,10 @@ struct scsi_ioctl_command {
 #include <sys/scsicmd.h>
 #endif
 
+#if (defined(OS_freebsd)) && (__FreeBSD__ >= 2)
+#include <camlib.h>
+#endif
+
 int scsi_max_length(void)
 {
 #ifdef OS_linux
@@ -58,8 +62,27 @@ int scsi_max_length(void)
 #endif
 }
 
+int scsi_open(const char *name, int flag, int mode, void **extra_data)
+{
+#if (defined(OS_freebsd)) && (__FreeBSD__ >= 2)
+    struct cam_device *cam_dev;
+    cam_dev = cam_open_device(name, O_RDWR);
+    *extra_data = (void *) cam_dev;
+    if (cam_dev)
+        return cam_dev->fd;
+    else
+        return -1;
+#else
+    return open(name, O_RDONLY | O_LARGEFILE |
+#ifdef O_NDELAY
+		O_NDELAY
+#endif
+	/* O_RDONLY  | dev->mode*/);
+#endif
+}
+
 int scsi_cmd(int fd, unsigned char *cdb, int cmdlen, scsi_io_mode_t mode,
-	     void *data, size_t len)
+	     void *data, size_t len, void *extra_data)
 {
 #if defined OS_hpux
 	struct sctl_io sctl_io;
@@ -205,8 +228,47 @@ int scsi_cmd(int fd, unsigned char *cdb, int cmdlen, scsi_io_mode_t mode,
         }
         
         return 0;
+#elif (defined OS_freebsd) && (__FreeBSD__ >= 2)
+#define MSG_SIMPLE_Q_TAG 0x20 /* O/O */
+      union ccb *ccb;
+      int flags;
+      int r;
+      struct cam_device *cam_dev = (struct cam_device *) extra_data;
+
+
+      if (cam_dev==NULL || cam_dev->fd!=fd)
+      {
+                fprintf(stderr,"invalid file descriptor\n");
+              return -1;
+      }
+      ccb = cam_getccb(cam_dev);
+
+      bcopy(cdb, ccb->csio.cdb_io.cdb_bytes, cmdlen);
+
+      if (mode == SCSI_IO_READ)
+              flags = CAM_DIR_IN;
+      else if (data && len)
+              flags = CAM_DIR_OUT;
+      else
+              flags = CAM_DIR_NONE;
+      cam_fill_csio(&ccb->csio,
+                    /* retry */ 1,
+                    /* cbfcnp */ NULL,
+                    flags,
+                    /* tag_action */ MSG_SIMPLE_Q_TAG,
+                    /*data_ptr*/ len ? data : 0,
+                    /*data_len */ data ? len : 0,
+                    96,
+                    cmdlen,
+                    5000);
+                    
+      if (cam_send_ccb(cam_dev, ccb) < 0 ||
+	  (ccb->ccb_h.status & CAM_STATUS_MASK) != CAM_REQ_CMP) {
+	  return -1;
+      }
+      return 0;
 #else
-	fprintf(stderr, "scsi_io not implemented\n");
-	return -1;
+      fprintf(stderr, "scsi_io not implemented\n");
+      return -1;
 #endif
 }

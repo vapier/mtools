@@ -45,8 +45,8 @@ void mbadblocks(int argc, char **argv, int type)
 		exit(1);
 	}
 	for(i=0; i < Fs->clus_start; i++ ){
-		ret = READS(Fs->Next, in_buf, i * Fs->sector_size, 
-			   Fs->sector_size);
+		ret = READS(Fs->Next, 
+					in_buf, sectorsToBytes((Stream_t*)Fs, i), Fs->sector_size);
 		if( ret < 0 ){
 			perror("early error");
 			exit(1);
@@ -65,7 +65,7 @@ void mbadblocks(int argc, char **argv, int type)
 			continue;
 		start = (i - 2) * Fs->cluster_size + Fs->clus_start;
 		ret = force_read(Fs->Next, in_buf, 
-				 start * Fs->sector_size, in_len);
+						 sectorsToBytes((Stream_t*)Fs, start), in_len);
 		if(ret < in_len ){
 			printf("Bad cluster %d found\n", i);
 			fatEncode((Fs_t*)Fs, i, 0xfff7);

@@ -54,7 +54,7 @@ typedef struct Fs_t {
 	int preallocatedClusters;
 
 	int lastFatSectorNr;
-	char *lastFatSectorData;
+	unsigned char *lastFatSectorData;
 	fatAccessMode_t lastFatAccessMode;
 	int sectorMask;
 	int sectorShift;
@@ -73,10 +73,12 @@ void fatAllocate(Fs_t *This, unsigned int pos, unsigned int value);
 void fatEncode(Fs_t *This, unsigned int pos, unsigned int value);
 
 int fat_read(Fs_t *This, struct bootsector *boot, int fat_bits,
-	     unsigned int tot_sectors, int nodups);
+			 size_t tot_sectors, int nodups);
 void fat_write(Fs_t *This);
 int zero_fat(Fs_t *Fs, int media_descriptor);
 extern Class_t FsClass;
-int fsPreallocate(Fs_t *Fs, int);
+int fsPreallocateClusters(Fs_t *Fs, long);
+Fs_t *getFs(Stream_t *Stream);
+
 
 #endif

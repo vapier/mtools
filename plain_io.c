@@ -4,7 +4,7 @@
  * written by:
  *
  * Alain L. Knaff			
- * Alain.Knaff@poboxes.com
+ * alain@linux.lu
  *
  */
 
@@ -13,20 +13,27 @@
 #include "mtools.h"
 #include "msdos.h"
 #include "plain_io.h"
-#include "patchlevel.h"
 #include "scsi.h"
 #include "partition.h"
+#include "llong.h"
+
+
 typedef struct SimpleFile_t {
-	Class_t *Class;
-	int refs;
-	Stream_t *Next;
-	Stream_t *Buffer;
-	struct stat stat;
-	int fd;
-	int offset;
-	int lastwhere;
-	int seekable;
-	int privileged;
+    Class_t *Class;
+    int refs;
+    Stream_t *Next;
+    Stream_t *Buffer;
+    struct MT_STAT statbuf;
+    int fd;
+    mt_off_t offset;
+    mt_off_t lastwhere;
+    int seekable;
+    int privileged;
+#ifdef OS_hpux
+    int size_limited;
+#endif
+    int scsi_sector_size;
+    void *extra_data; /* extra system dependant information for scsi */
 } SimpleFile_t;
 
 
@@ -89,8 +96,10 @@ int lock_dev(int fd, int mode, struct device *dev)
 
 typedef int (*iofn) (int, char *, int);
 
-static int file_io(Stream_t *Stream, char *buf, int where, int len,
-		   iofn io)
+
+
+static int file_io(Stream_t *Stream, char *buf, mt_off_t where, int len,
+				   iofn io)
 {
 	DeclareThis(SimpleFile_t);
 	int ret;
@@ -98,16 +107,37 @@ static int file_io(Stream_t *Stream, char *buf, int where, int len,
 	where += This->offset;
 
 	if (This->seekable && where != This->lastwhere ){
-		if(lseek( This->fd, where, SEEK_SET) < 0 ){
+		if(mt_lseek( This->fd, where, SEEK_SET) < 0 ){
 			perror("seek");
-			This->lastwhere = -1;
+			This->lastwhere = (mt_off_t) -1;
 			return -1;
 		}
 	}
+
+#ifdef OS_hpux
+	/*
+	 * On HP/UX, we can not write more than MAX_LEN bytes in one go.
+	 * If more are written, the write fails with EINVAL
+	 */
+	#define MAX_SCSI_LEN (127*1024)
+	if(This->size_limited && len > MAX_SCSI_LEN)
+		len = MAX_SCSI_LEN;
+#endif
 	ret = io(This->fd, buf, len);
+
+#ifdef OS_hpux
+	if (ret == -1 && 
+		errno == EINVAL && /* if we got EINVAL */
+		len > MAX_SCSI_LEN) {
+		This->size_limited = 1;
+		len = MAX_SCSI_LEN;
+		ret = io(This->fd, buf, len);
+	}
+#endif
+
 	if ( ret == -1 ){
 		perror("plain_io");
-		This->lastwhere = -1;
+		This->lastwhere = (mt_off_t) -1;
 		return -1;
 	}
 	This->lastwhere = where + ret;
@@ -116,12 +146,12 @@ static int file_io(Stream_t *Stream, char *buf, int where, int len,
 	
 
 
-static int file_read(Stream_t *Stream, char *buf, off_t where, size_t len)
+static int file_read(Stream_t *Stream, char *buf, mt_off_t where, size_t len)
 {	
 	return file_io(Stream, buf, where, len, (iofn) read);
 }
 
-static int file_write(Stream_t *Stream, char *buf, off_t where, size_t len)
+static int file_write(Stream_t *Stream, char *buf, mt_off_t where, size_t len)
 {
 	return file_io(Stream, buf, where, len, (iofn) write);
 }
@@ -157,16 +187,21 @@ static int file_geom(Stream_t *Stream, struct device *dev,
 	int sectors, j;
 	unsigned char sum;
 	int sect_per_track;
+	struct label_blk_t *labelBlock;
 
 	dev->ssize = 2; /* allow for init_geom to change it */
 	dev->use_2m = 0x80; /* disable 2m mode to begin */
 
 	if(media == 0xf0 || media >= 0x100){		
-		dev->heads = CHAR(nheads);
-		dev->sectors = CHAR(nsect);
+		dev->heads = WORD(nheads);
+		dev->sectors = WORD(nsect);
 		tot_sectors = DWORD(bigsect);
 		SET_INT(tot_sectors, WORD(psect));
 		sect_per_track = dev->heads * dev->sectors;
+		if(sect_per_track == 0) {
+		    fprintf(stderr, "The devil is in the details: zero number of heads or sectors\n");
+		    exit(1);
+		}
 		tot_sectors += sect_per_track - 1; /* round size up */
 		dev->tracks = tot_sectors / sect_per_track;
 
@@ -175,9 +210,14 @@ static int file_geom(Stream_t *Stream, struct device *dev,
 		InfpX = WORD(ext.old.InfpX);
 		InfTm = WORD(ext.old.InfTm);
 		
+		if(WORD(fatlen)) {
+			labelBlock = &boot->ext.old.labelBlock;
+		} else {
+			labelBlock = &boot->ext.fat32.labelBlock;
+		}
+
 		if (boot->descr >= 0xf0 &&
-		    boot->ext.old.dos4 == 0x29 &&
-		    WORD(fatlen) &&
+		    labelBlock->dos4 == 0x29 &&
 		    strncmp( boot->banner,"2M", 2 ) == 0 &&
 		    BootP < 512 && Infp0 < 512 && InfpX < 512 && InfTm < 512 &&
 		    BootP >= InfTm + 2 && InfTm >= InfpX && InfpX >= Infp0 && 
@@ -210,7 +250,7 @@ static int file_geom(Stream_t *Stream, struct device *dev,
 	       media, dev->tracks, dev->heads, dev->sectors, dev->ssize,
 	       dev->use_2m);
 #endif
-	ret = init_geom(This->fd,dev, orig_dev, &This->stat);
+	ret = init_geom(This->fd,dev, orig_dev, &This->statbuf);
 	dev->sectors = sectors;
 #ifdef JPD
 	printf("f_geom: after init_geom(), sects=%d\n", dev->sectors);
@@ -219,17 +259,17 @@ static int file_geom(Stream_t *Stream, struct device *dev,
 }
 
 
-static int file_data(Stream_t *Stream, long *date, size_t *size,
+static int file_data(Stream_t *Stream, time_t *date, mt_size_t *size,
 		     int *type, int *address)
 {
 	DeclareThis(SimpleFile_t);
 
 	if(date)
-		*date = This->stat.st_mtime;
+		*date = This->statbuf.st_mtime;
 	if(size)
-		*size = This->stat.st_size;
+		*size = This->statbuf.st_size;
 	if(type)
-		*type = S_ISDIR(This->stat.st_mode);
+		*type = S_ISDIR(This->statbuf.st_mode);
 	if(address)
 		*address = 0;
 	return 0;
@@ -254,52 +294,52 @@ static int file_data(Stream_t *Stream, long *date, size_t *size,
 
 #define MAXBLKSPERCMD 255
 
-static void scsi_init(int);
-static int scsi_sector_size=512;
-
-static void scsi_init(int fd)
+static void scsi_init(SimpleFile_t *This)
 {
-   unsigned char cdb[6],buf[8];
+   int fd = This->fd;
+   unsigned char cdb[10],buf[8];
 
    memset(cdb, 0, sizeof cdb);
    memset(buf,0, sizeof(buf));
    cdb[0]=SCSI_READ_CAPACITY;
    if (scsi_cmd(fd, (unsigned char *)cdb, 
-		sizeof(cdb), SCSI_IO_READ, buf, sizeof(buf))==0)
+		sizeof(cdb), SCSI_IO_READ, buf, sizeof(buf), This->extra_data)==0)
    {
-       scsi_sector_size=
+       This->scsi_sector_size=
 	       ((unsigned)buf[5]<<16)|((unsigned)buf[6]<<8)|(unsigned)buf[7];
-       if (scsi_sector_size != 512)
-	   fprintf(stderr,"  (scsi_sector_size=%d)\n",scsi_sector_size);
+       if (This->scsi_sector_size != 512)
+	   fprintf(stderr,"  (scsi_sector_size=%d)\n",This->scsi_sector_size);
    }
 }
 
-int scsi_io(Stream_t *Stream, char *buf,  off_t where, size_t len, int rwcmd)
+int scsi_io(Stream_t *Stream, char *buf,  mt_off_t where, size_t len, int rwcmd)
 {
 	unsigned int firstblock, nsect;
-	int clen,r,max,offset;
+	int clen,r,max;
+	off_t offset;
 	unsigned char cdb[10];
 	DeclareThis(SimpleFile_t);
-		
-	firstblock=(where + This->offset)/scsi_sector_size;
+
+	firstblock=truncBytes32((where + This->offset)/This->scsi_sector_size);
 	/* 512,1024,2048,... bytes/sector supported */
-	offset=where + This->offset - firstblock*scsi_sector_size;
-	nsect=(offset+len+scsi_sector_size-1)/scsi_sector_size;
+	offset=truncBytes32(where + This->offset - 
+						firstblock*This->scsi_sector_size);
+	nsect=(offset+len+This->scsi_sector_size-1)/ This->scsi_sector_size;
 #if defined(OS_sun) && defined(OS_i386)
-	if (scsi_sector_size>512)
-		firstblock*=scsi_sector_size/512; /* work around a uscsi bug */
+	if (This->scsi_sector_size>512)
+		firstblock*=This->scsi_sector_size/512; /* work around a uscsi bug */
 #endif /* sun && i386 */
 
 	if (len>512) {
 		/* avoid buffer overruns. The transfer MUST be smaller or
 		* equal to the requested size! */
-		while (nsect*scsi_sector_size>len)
+		while (nsect*This->scsi_sector_size>len)
 			--nsect;
 		if(!nsect) {			
 			fprintf(stderr,"Scsi buffer too small\n");
 			exit(1);
 		}
-		if(SCSI_IO_WRITE && offset) {
+		if(rwcmd == SCSI_IO_WRITE && offset) {
 			/* there seems to be no memmove before a write */
 			fprintf(stderr,"Unaligned write\n");
 			exit(1);
@@ -365,7 +405,7 @@ int scsi_io(Stream_t *Stream, char *buf,  off_t where, size_t len, int rwcmd)
 		reclaim_privs();
 
 	r=scsi_cmd(This->fd, (unsigned char *)cdb, clen, rwcmd, buf,
-		   nsect*scsi_sector_size);
+		   nsect*This->scsi_sector_size, This->extra_data);
 
 	if(This->privileged)
 		drop_privs();
@@ -381,13 +421,13 @@ int scsi_io(Stream_t *Stream, char *buf,  off_t where, size_t len, int rwcmd)
 #ifdef JPD
 	printf("zip: read or write OK\n");
 #endif
-	if (offset>0) memmove(buf,buf+offset,nsect*scsi_sector_size-offset);
+	if (offset>0) memmove(buf,buf+offset,nsect*This->scsi_sector_size-offset);
 	if (len==256) return 256;
 	else if (len==512) return 512;
-	else return nsect*scsi_sector_size-offset;
+	else return nsect*This->scsi_sector_size-offset;
 }
 
-int scsi_read(Stream_t *Stream, char *buf, off_t where, size_t len)
+int scsi_read(Stream_t *Stream, char *buf, mt_off_t where, size_t len)
 {
 	
 #ifdef JPD
@@ -396,7 +436,7 @@ int scsi_read(Stream_t *Stream, char *buf, off_t where, size_t len)
 	return scsi_io(Stream, buf, where, len, SCSI_IO_READ);
 }
 
-int scsi_write(Stream_t *Stream, char *buf, off_t where, size_t len)
+int scsi_write(Stream_t *Stream, char *buf, mt_off_t where, size_t len)
 {
 #ifdef JPD
 	Printf("zip: to write %d bytes at %d\n", len, where);
@@ -421,23 +461,31 @@ static Class_t SimpleFileClass = {
 	file_flush,
 	file_free,
 	file_geom,
-	file_data
+	file_data,
+	0 /* pre_allocate */
 };
 
 
 Stream_t *SimpleFileOpen(struct device *dev, struct device *orig_dev,
 			 const char *name, int mode, char *errmsg, 
-			 int mode2, int locked)
+			 int mode2, int locked, mt_size_t *maxSize)
 {
 	SimpleFile_t *This;
-
+#ifdef __EMX__
+HFILE FileHandle;
+ULONG Action;
+APIRET rc;
+#endif
 	This = New(SimpleFile_t);
 	if (!This){
 		printOom();
 		return 0;
 	}
+	This->scsi_sector_size = 512;
 	This->seekable = 1;
-
+#ifdef OS_hpux
+	This->size_limited = 0;
+#endif
 	This->Class = &SimpleFileClass;
 	if (!name || strcmp(name,"-") == 0 ){
 		if (mode == O_RDONLY)
@@ -448,6 +496,19 @@ Stream_t *SimpleFileOpen(struct device *dev, struct device *orig_dev,
 		This->refs = 1;
 		This->Next = 0;
 		This->Buffer = 0;
+		if (MT_FSTAT(This->fd, &This->statbuf) < 0) {
+		    Free(This);
+		    if(errmsg)
+#ifdef HAVE_SNPRINTF
+			snprintf(errmsg,199,"Can't stat -: %s", 
+				strerror(errno));   
+#else
+			sprintf(errmsg,"Can't stat -: %s", 
+				strerror(errno));
+#endif
+		    return NULL;
+		}
+
 		return (Stream_t *) This;
 	}
 
@@ -462,7 +523,41 @@ Stream_t *SimpleFileOpen(struct device *dev, struct device *orig_dev,
 	if(IS_PRIVILEGED(dev) && !(mode2 & NO_PRIV))
 		reclaim_privs();
 
-	This->fd = open(name, mode, 0666);
+#ifdef __EMX__
+#define DOSOPEN_FLAGS	(OPEN_FLAGS_DASD | OPEN_FLAGS_WRITE_THROUGH | \
+			OPEN_FLAGS_NOINHERIT | OPEN_FLAGS_RANDOM | \
+			OPEN_FLAGS_NO_CACHE)
+#define DOSOPEN_FD_ACCESS (OPEN_SHARE_DENYREADWRITE | OPEN_ACCESS_READWRITE)
+#define DOSOPEN_HD_ACCESS (OPEN_SHARE_DENYNONE | OPEN_ACCESS_READONLY)
+
+	if (isalpha(*name) && (*(name+1) == ':')) {
+		rc = DosOpen(
+			name, &FileHandle, &Action, 0L, FILE_NORMAL,
+			OPEN_ACTION_OPEN_IF_EXISTS, DOSOPEN_FLAGS |
+			(IS_NOLOCK(dev)?DOSOPEN_HD_ACCESS:DOSOPEN_FD_ACCESS),
+			0L);
+#if DEBUG
+		if (rc != NO_ERROR) fprintf (stderr, "DosOpen() returned %d\n", rc);
+#endif
+		if (!IS_NOLOCK(dev)) {
+			rc = DosDevIOCtl(
+			FileHandle, 0x08L, DSK_LOCKDRIVE, 0, 0, 0, 0, 0, 0);
+#if DEBUG
+			if (rc != NO_ERROR) fprintf (stderr, "DosDevIOCtl() returned %d\n", rc);
+#endif
+		}
+		if (rc == NO_ERROR)
+			This->fd = _imphandle(FileHandle); else This->fd = -1;
+	} else
+#endif
+	    {
+		if (IS_SCSI(dev))
+		    This->fd = scsi_open(name, mode, IS_NOLOCK(dev)?0444:0666,
+					 &This->extra_data);
+		else
+		    This->fd = open(name, mode | O_LARGEFILE, 
+				    IS_NOLOCK(dev)?0444:0666);
+	    }
 
 	if(IS_PRIVILEGED(dev) && !(mode2 & NO_PRIV))
 		drop_privs();
@@ -470,56 +565,94 @@ Stream_t *SimpleFileOpen(struct device *dev, struct device *orig_dev,
 	if (This->fd < 0) {
 		Free(This);
 		if(errmsg)
+#ifdef HAVE_SNPRINTF
+			snprintf(errmsg, 199, "Can't open %s: %s",
+				name, strerror(errno));
+#else
 			sprintf(errmsg, "Can't open %s: %s",
 				name, strerror(errno));
+#endif
 		return NULL;
 	}
 
 	if(IS_PRIVILEGED(dev) && !(mode2 & NO_PRIV))
 		closeExec(This->fd);
 
-	if (fstat(This->fd, &This->stat) < 0){
+#ifdef __EMX__
+	if (*(name+1) != ':')
+#endif
+	if (MT_FSTAT(This->fd, &This->statbuf) < 0){
 		Free(This);
-		if(errmsg)
-			sprintf(errmsg,"Can't stat %s: %s", 
+		if(errmsg) {
+#ifdef HAVE_SNPRINTF
+			snprintf(errmsg,199,"Can't stat %s: %s", 
 				name, strerror(errno));
-
+#else
+			if(strlen(name) > 50) {
+			    sprintf(errmsg,"Can't stat file: %s", 
+				    strerror(errno));
+			} else {
+			    sprintf(errmsg,"Can't stat %s: %s", 
+				name, strerror(errno));
+			}
+#endif
+		}
 		return NULL;
 	}
-
+#ifndef __EMX__
 	/* lock the device on writes */
 	if (locked && lock_dev(This->fd, mode == O_RDWR, dev)) {
+		if(errmsg)
+#ifdef HAVE_SNPRINTF
+			snprintf(errmsg,199,
+				"plain floppy: device \"%s\" busy (%s):",
+				dev ? dev->name : "unknown", strerror(errno));
+#else
+			sprintf(errmsg,
+				"plain floppy: device \"%s\" busy (%s):",
+				(dev && strlen(dev->name) < 50) ? 
+				 dev->name : "unknown", strerror(errno));
+#endif
+
 		close(This->fd);
 		Free(This);
-		if(errmsg)
-			sprintf(errmsg,
-				"plain floppy: device \"%s\" busy:",
-				dev ? dev->name : "unknown");
 		return NULL;
 	}
-		
+#endif
 	/* set default parameters, if needed */
 	if (dev){		
-		if (IS_MFORMAT_ONLY(dev) &&
-			init_geom(This->fd, dev, orig_dev, &This->stat)){
+		if ((IS_MFORMAT_ONLY(dev) || !dev->tracks) &&
+			init_geom(This->fd, dev, orig_dev, &This->statbuf)){
 			close(This->fd);
 			Free(This);
 			if(errmsg)
 				sprintf(errmsg,"init: set default params");
 			return NULL;
 		}
-		This->offset = dev->offset;
+		This->offset = (mt_off_t) dev->offset;
 	} else
 		This->offset = 0;
-
-	This->lastwhere = -This->offset;
-	/* provoke a seek on those devices that don't start on a partition
-	 * boundary */
 
 	This->refs = 1;
 	This->Next = 0;
 	This->Buffer = 0;
 
+	if(maxSize) {
+		if (IS_SCSI(dev)) {
+			*maxSize = MAX_OFF_T_B(31+log_2(This->scsi_sector_size));
+		} else {
+			*maxSize = max_off_t_seek;
+		}
+		if(This->offset > *maxSize) {
+			close(This->fd);
+			Free(This);
+			if(errmsg)
+				sprintf(errmsg,"init: Big disks not supported");
+			return NULL;
+		}
+		
+		*maxSize -= This->offset;
+	}
 	/* partitioned drive */
 
 	/* jpd@usl.edu: assume a partitioned drive on these 2 systems is a ZIP*/
@@ -531,7 +664,7 @@ Stream_t *SimpleFileOpen(struct device *dev, struct device *orig_dev,
 		This->Class = &ScsiClass;
 		if(This->privileged)
 			reclaim_privs();
-		scsi_init(This->fd);
+		scsi_init(This);
 		if(This->privileged)
 			drop_privs();
 	}
@@ -540,13 +673,27 @@ Stream_t *SimpleFileOpen(struct device *dev, struct device *orig_dev,
 		int has_activated, last_end, j;
 		unsigned char buf[2048];
 		struct partition *partTable=(struct partition *)(buf+ 0x1ae);
+		size_t partOff;
 		
 		/* read the first sector, or part of it */
 		if (force_read((Stream_t *)This, (char*) buf, 0, 512) != 512)
 			break;
 		if( _WORD(buf+510) != 0xaa55)
 			break;
-		This->offset += BEGIN(partTable[dev->partition]) << 9;
+
+		partOff = BEGIN(partTable[dev->partition]);
+		if (maxSize) {
+			if (partOff > *maxSize >> 9) {
+				close(This->fd);
+				Free(This);
+				if(errmsg)
+					sprintf(errmsg,"init: Big disks not supported");
+				return NULL;
+			}
+			*maxSize -= (mt_off_t) partOff << 9;
+		}
+			
+		This->offset += (mt_off_t) partOff << 9;
 		if(!partTable[dev->partition].sys_ind) {
 			if(errmsg)
 				sprintf(errmsg,
@@ -563,19 +710,33 @@ Stream_t *SimpleFileOpen(struct device *dev, struct device *orig_dev,
 				cyl(partTable[dev->partition].start)+1;
 		}
 		dev->hidden=dev->sectors*head(partTable[dev->partition].start);
-		if(consistencyCheck((struct partition *)(buf+0x1ae), 0, 0,
+		if(!mtools_skip_check &&
+		   consistencyCheck((struct partition *)(buf+0x1ae), 0, 0,
 				    &has_activated, &last_end, &j, dev, 0)) {
 			fprintf(stderr,
 				"Warning: inconsistent partition table\n");
 			fprintf(stderr,
 				"Possibly unpartitioned device\n");
 			fprintf(stderr,
-				"\n*** Maybe try without partition=%d in device definition ***\n\n",
+				"\n*** Maybe try without partition=%d in "
+				"device definition ***\n\n",
 				dev->partition);
+			fprintf(stderr,
+                                "If this is a PCMCIA card, or a disk "
+				"partitioned on another computer, this "
+				"message may be in error: add "
+				"mtools_skip_check=1 to your .mtoolsrc "
+				"file to suppress this warning\n");
+
 		}
 		break;
 		/* NOTREACHED */
 	}
+
+	This->lastwhere = -This->offset;
+	/* provoke a seek on those devices that don't start on a partition
+	 * boundary */
+
 	return (Stream_t *) This;
 }
 
@@ -586,3 +747,9 @@ int get_fd(Stream_t *Stream)
 	return This->fd;
 }
 
+void *get_extra_data(Stream_t *Stream)
+{
+	DeclareThis(SimpleFile_t);
+	
+	return This->extra_data;
+}

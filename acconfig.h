@@ -24,3 +24,28 @@
 
 /* Define when sys_errlist is defined in the standard include files */
 #undef DECL_SYS_ERRLIST
+
+/* Define when you want to include floppyd support */
+#undef USE_FLOPPYD
+
+
+/* Define when the compiler supports LOFF_T type */
+#undef HAVE_LOFF_T
+
+
+/* Define when the compiler supports OFFSET_T type */
+#undef HAVE_OFFSET_T
+
+
+/* Define when the compiler supports LONG_LONG type */
+#undef HAVE_LONG_LONG
+
+
+/* Define when the system has a 64 bit off_t type */
+#undef HAVE_OFF_T_64
+
+/* Define when you have an LLSEEK prototype */
+#undef HAVE_LLSEEK_PROTOTYPE
+
+/* Define when you have an LSEEK64 prototype */
+#undef HAVE_LSEEK64_PROTOTYPE

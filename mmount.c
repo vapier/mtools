@@ -4,7 +4,7 @@
  * written by:
  *
  * Alain L. Knaff			
- * Alain.Knaff@poboxes.com
+ * alain@linux.lu
  *
  */
 
@@ -13,8 +13,6 @@
 #include "mtools.h"
 
 #ifdef OS_linux
-#include "patchlevel.h"
-#include <linux/fd.h>
 #include <sys/wait.h>
 #include "mainloop.h"
 #include "fs.h"
@@ -37,7 +35,7 @@ void mmount(int argc, char **argv, int type)
 		exit(1);
 	}
 	drive = toupper(argv[1][0]);
-	Stream = find_device(drive, O_RDONLY, &dev, &boot, name, &media);
+	Stream = find_device(drive, O_RDONLY, &dev, &boot, name, &media, 0);
 	if(!Stream)
 		exit(1);
 	FREE(&Stream);
@@ -46,7 +44,7 @@ void mmount(int argc, char **argv, int type)
 
 	if ( dev.partition ) {
 		char part_name[4];
-		snprintf(part_name, 3, "%d", dev.partition); 
+		sprintf(part_name, "%d", dev.partition %1000);
 		strcat(name, part_name); 
 	}
 
@@ -57,7 +55,7 @@ void mmount(int argc, char **argv, int type)
 		exit(1);
 	case 0:
 		close(2);
-		open("/dev/null", O_RDWR);
+		open("/dev/null", O_RDWR | O_LARGEFILE);
 		argv[1] = strdup("mount");
 		if ( argc > 2 )
 			execvp("mount", argv + 1 );

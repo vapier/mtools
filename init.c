@@ -10,6 +10,7 @@
 #include "mtools.h"
 #include "fsP.h"
 #include "plain_io.h"
+#include "floppyd_io.h"
 #include "xdf_io.h"
 #include "buffer.h"
 
@@ -64,7 +65,7 @@ static int get_media_type(Stream_t *St, struct bootsector *boot)
 		char temp[512];
 		/* old DOS disk. Media descriptor in the first FAT byte */
 		/* old DOS disk always have 512-byte sectors */
-		if (force_read(St,temp,512,512) == 512)
+		if (force_read(St,temp,(mt_off_t) 512,512) == 512)
 			media = (unsigned char) temp[0];
 		else
 			media = 0;
@@ -83,9 +84,9 @@ Stream_t *GetFs(Stream_t *Fs)
 
 Stream_t *find_device(char drive, int mode, struct device *out_dev,
 		      struct bootsector *boot,
-		      char *name, int *media)
+		      char *name, int *media, mt_size_t *maxSize)
 {
-	char errmsg[80];
+	char errmsg[200];
 	Stream_t *Stream;
 	struct device *dev;
 	int r;
@@ -103,21 +104,35 @@ Stream_t *find_device(char drive, int mode, struct device *out_dev,
 		strcpy(name, getVoldName(dev, name));
 #endif
 
+		Stream = 0;
+		if(out_dev->misc_flags & FLOPPYD_FLAG) {
+		    Stream = 0;
+#ifdef USE_FLOPPYD
+		    Stream = FloppydOpen(out_dev, dev, name, mode, 
+					 errmsg, 0, 1);
+		    if(Stream && maxSize)
+			*maxSize = max_off_t_31;
+#endif
+		} else {
 
 #ifdef USE_XDF
-		Stream = XdfOpen(out_dev, name, mode, errmsg, 0);
-#else
-		Stream = 0;
+		    Stream = XdfOpen(out_dev, name, mode, errmsg, 0);
+		    if(Stream) {
+			out_dev->use_2m = 0x7f;
+			if(maxSize)
+			    *maxSize = max_off_t_31;
+		    }
 #endif
 
-		if (!Stream)
+		    
+		    if (!Stream)
 			Stream = SimpleFileOpen(out_dev, dev, name, mode,
-						errmsg, 0, 1);
-		else
-			out_dev->use_2m = 0x7f;
+						errmsg, 0, 1, maxSize);
+		    
+		}
 
 		if( !Stream)
-			continue;
+		    continue;
 
 		/* read the boot sector */
 		if ((r=read_boot(Stream, boot, out_dev->blocksize)) < 0){
@@ -141,9 +156,15 @@ Stream_t *find_device(char drive, int mode, struct device *out_dev,
 		errno = 0;
 		if(SET_GEOM(Stream, out_dev, dev, *media, boot)){
 			if(errno)
-				sprintf(errmsg, 
+#ifdef HAVE_SNPRINTF
+				snprintf(errmsg, 199,
 					"Can't set disk parameters for %c: %s", 
 					drive, strerror(errno));
+#else
+				sprintf(errmsg,
+					"Can't set disk parameters for %c: %s", 
+					drive, strerror(errno));
+#endif
 			else
 				sprintf(errmsg, 
 					"Can't set disk parameters for %c", 
@@ -173,6 +194,7 @@ Stream_t *fs_init(char drive, int mode)
 	char name[EXPAND_BUF];
 	int cylinder_size;
 	struct device dev;
+	mt_size_t maxSize;
 
 	struct bootsector boot0;
 #define boot (&boot0)
@@ -188,10 +210,14 @@ Stream_t *fs_init(char drive, int mode)
 	This->Buffer = 0;
 	This->Class = &FsClass;
 	This->preallocatedClusters = 0;
+	This->lastFatSectorNr = 0;
+	This->lastFatAccessMode = 0;
+	This->lastFatSectorData = 0;
 	This->drive = drive;
 	This->last = 0;
 
-	This->Direct = find_device(drive, mode, &dev, &boot0, name, &media);
+	This->Direct = find_device(drive, mode, &dev, &boot0, name, &media, 
+							   &maxSize);
 	if(!This->Direct)
 		return NULL;
 	
@@ -200,11 +226,10 @@ Stream_t *fs_init(char drive, int mode)
 		fprintf(stderr,"init %c: sector size too big\n", drive);
 		return NULL;
 	}
-	for(i=0; i<16; i++) {
-		if(1 << i == This->sector_size)
-			break;
-	}
-	if(i == 16) {
+
+	i = log_2(This->sector_size);
+
+	if(i == 24) {
 		fprintf(stderr, 
 			"init %c: sector size (%d) not a small power of two\n",
 			drive, This->sector_size);
@@ -230,6 +255,7 @@ Stream_t *fs_init(char drive, int mode)
 		This->fat_bits = 12;
 		nhs = 0;
 	} else {
+		struct label_blk_t *labelBlock;
 		/*
 		 * all numbers are in sectors, except num_clus 
 		 * (which is in clusters)
@@ -241,22 +267,37 @@ Stream_t *fs_init(char drive, int mode)
 		} else
 			nhs = WORD(nhs);
 
-		if(boot0.ext.old.dos4 == 0x29 && WORD(fatlen)) {
-			This->serialized = 1;
-			This->serial_number = DWORD(ext.old.serial);
-		}
 
 		This->cluster_size = boot0.clsiz; 		
 		This->fat_start = WORD(nrsvsect);
 		This->fat_len = WORD(fatlen);
 		This->dir_len = WORD(dirents) * MDIR_SIZE / This->sector_size;
 		This->num_fat = boot0.nfat;
+
+		if (This->fat_len) {
+			labelBlock = &boot0.ext.old.labelBlock;
+		} else {
+			labelBlock = &boot0.ext.fat32.labelBlock;
+		}
+
+		if(labelBlock->dos4 == 0x29) {
+			This->serialized = 1;
+			This->serial_number = _DWORD(labelBlock->serial);
+		}
+	}
+
+	if (tot_sectors >= (maxSize >> This->sectorShift)) {
+		fprintf(stderr, "Big disks not supported on this architecture\n");
+		exit(1);
 	}
 
 	if(!mtools_skip_check && (tot_sectors % dev.sectors)){
 		fprintf(stderr,
 			"Total number of sectors not a multiple of"
 			" sectors per track!\n");
+		fprintf(stderr,
+			"Add mtools_skip_check=1 to your .mtoolsrc file "
+			"to skip this test\n");
 		exit(1);
 	}
 
@@ -325,9 +366,9 @@ char getDrive(Stream_t *Stream)
 		return This->drive;
 }
 
-int fsPreallocate(Fs_t *Fs, int size)
+int fsPreallocateClusters(Fs_t *Fs, long size)
 {
-	if(size > 0 && getfreeMin((Stream_t *)Fs, size) != 1)
+	if(size > 0 && getfreeMinClusters((Stream_t *)Fs, size) != 1)
 		return -1;
 
 	Fs->preallocatedClusters += size;

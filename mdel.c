@@ -20,6 +20,8 @@ typedef struct Arg_t {
 static int del_entry(direntry_t *entry, MainParam_t *mp)
 {
 	Arg_t *arg=(Arg_t *) mp->arg;
+	direntry_t longNameEntry;
+	int i;
 
 	if(got_signal)
 		return ERROR_ONE;
@@ -31,16 +33,28 @@ static int del_entry(direntry_t *entry, MainParam_t *mp)
 
 	if (arg->verbose) {
 		fprintf(stderr,"Removing ");
-		fprintPwd(stdout, entry);
+		fprintPwd(stdout, entry,0);
 		putchar('\n');
 	}
 
-	if ((entry->dir.attr & 0x05) &&
+	if ((entry->dir.attr & (ATTR_READONLY | ATTR_SYSTEM)) &&
 	    (ask_confirmation("%s: \"%s\" is read only, erase anyway (y/n) ? ",
 			      progname, entry->name)))
 		return ERROR_ONE;
 	if (fatFreeWithDirentry(entry)) 
 		return ERROR_ONE;
+
+	initializeDirentry(&longNameEntry, entry->Dir);
+	for(i=entry->beginSlot; i< entry->endSlot; i++) {
+	    int error;
+	    longNameEntry.entry=i;
+	    dir_read(&longNameEntry, &error);
+	    if(error)
+		break;
+	    longNameEntry.dir.name[0] = (char) DELMARK;
+	    dir_write(&longNameEntry);
+	}
+
 	entry->dir.name[0] = (char) DELMARK;
 	dir_write(entry);
 	return GOT_ONE;
@@ -54,25 +68,27 @@ static int del_file(direntry_t *entry, MainParam_t *mp)
 	Arg_t *arg = (Arg_t *) mp->arg;
 	MainParam_t sonmp;
 	int ret;
+	int r;
 
 	sonmp = *mp;
 	sonmp.arg = mp->arg;
 
-	if (entry->dir.attr & 0x10){
+	r = 0;
+	if (IS_DIR(entry)){
 		/* a directory */
 		SubDir = OpenFileByDirentry(entry);
 		initializeDirentry(&subEntry, SubDir);
 		ret = 0;
-		while(!vfat_lookup(&subEntry, "*", 1,
-				   ACCEPT_DIR | ACCEPT_PLAIN,
-				   shortname, NULL) ){
+		while((r=vfat_lookup(&subEntry, "*", 1,
+				     ACCEPT_DIR | ACCEPT_PLAIN,
+				     shortname, NULL)) == 0 ){
 			if(shortname[0] != DELMARK &&
 			   shortname[0] &&
 			   shortname[0] != '.' ){
 				if(arg->deltype != 2){
 					fprintf(stderr,
 						"Directory ");
-					fprintPwd(stderr, entry);
+					fprintPwd(stderr, entry,0);
 					fprintf(stderr," non empty\n");
 					ret = ERROR_ONE;
 					break;
@@ -88,6 +104,8 @@ static int del_file(direntry_t *entry, MainParam_t *mp)
 			}
 		}
 		FREE(&SubDir);
+		if (r == -2)
+			return ERROR_ONE;
 		if(ret)
 			return ret;
 	}
@@ -106,15 +124,15 @@ static void usage(void)
 
 void mdel(int argc, char **argv, int deltype)
 {
-	int verbose=0;
 	Arg_t arg;
 	MainParam_t mp;
 	int c,i;
 
+	arg.verbose = 0;
 	while ((c = getopt(argc, argv, "v")) != EOF) {
 		switch (c) {
 			case 'v':
-				verbose = 1;
+				arg.verbose = 1;
 				break;
 			default:
 				usage();

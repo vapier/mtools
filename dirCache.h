@@ -4,7 +4,7 @@
 typedef enum {
 	DCET_FREE,
 	DCET_USED,
-	DCET_END,
+	DCET_END
 } dirCacheEntryType_t;
 
 #define DC_BITMAP_SIZE 128

@@ -11,15 +11,17 @@ typedef struct Stream_t {
 #include "mtools.h"
 #include "msdos.h"
 
+#include "llong.h"
+
 typedef struct Class_t {
-	int (*read)(Stream_t *, char *, off_t, size_t);
-	int (*write)(Stream_t *, char *, off_t, size_t);
+	int (*read)(Stream_t *, char *, mt_off_t, size_t);
+	int (*write)(Stream_t *, char *, mt_off_t, size_t);
 	int (*flush)(Stream_t *);
 	int (*freeFunc)(Stream_t *);
 	int (*set_geom)(Stream_t *, device_t *, device_t *, int media,
-			struct bootsector *);
-	int (*get_data)(Stream_t *, long *, size_t *, int *, int *);
-	int (*pre_allocate)(Stream_t *, size_t);
+					struct bootsector *);
+	int (*get_data)(Stream_t *, time_t *, mt_size_t *, int *, int *);
+	int (*pre_allocate)(Stream_t *, mt_size_t);
 } Class_t;
 
 #define READS(stream, buf, address, size) \
@@ -53,16 +55,16 @@ copy_stream( (stream) )
 
 #define DeclareThis(x) x *This = (x *) Stream
 
-int force_write(Stream_t *Stream, char *buf, off_t start, size_t len);
-int force_read(Stream_t *Stream, char *buf, off_t start, size_t len);
+int force_write(Stream_t *Stream, char *buf, mt_off_t start, size_t len);
+int force_read(Stream_t *Stream, char *buf, mt_off_t start, size_t len);
 
 extern struct Stream_t *default_drive;
 
-int get_data_pass_through(Stream_t *Stream, long *date, size_t *size,
-			  int *type, int *address);
+int get_data_pass_through(Stream_t *Stream, time_t *date, mt_size_t *size,
+						  int *type, int *address);
 
-int read_pass_through(Stream_t *Stream, char *buf, off_t start, size_t len);
-int write_pass_through(Stream_t *Stream, char *buf, off_t start, size_t len);
+int read_pass_through(Stream_t *Stream, char *buf, mt_off_t start, size_t len);
+int write_pass_through(Stream_t *Stream, char *buf, mt_off_t start, size_t len);
 
 
 #endif

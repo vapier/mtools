@@ -8,7 +8,6 @@
 
 #include "sysincludes.h"
 #include "msdos.h"
-#include "patchlevel.h"
 #include "mtools.h"
 
 static char *dos_name2();
@@ -21,7 +20,7 @@ int main(int argc, char **argv)
 
 	/* print the version */
 	if(argc >= 2 && strcmp(argv[1], "-V") == 0) {
-		printf("Mtools version %s, dated %s\n", VERSION, DATE);
+		printf("Mtools version %s, dated %s\n", mversion, mdate);
 		return 0;
 	}
 
@@ -63,8 +62,8 @@ static char *dos_name2(const char *name)
 			buf[i] = '\0';
 			ext = &buf[i+1];
 		}
-		if (isupper(buf[i]))
-			buf[i] = tolower(buf[i]);
+		if (isupper((unsigned char)buf[i]))
+			buf[i] = tolower((unsigned char)buf[i]);
 	}
 					/* if no name */
 	if (*temp == '\0')

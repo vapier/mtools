@@ -9,6 +9,8 @@ void initializeDirentry(direntry_t *entry, Stream_t *Dir)
 	entry->entry = -1;
 /*	entry->parent = getDirentry(Dir);*/
 	entry->Dir = Dir;
+	entry->beginSlot = 0;
+	entry->endSlot = 0;
 }
 
 int isNotFound(direntry_t *entry)
@@ -59,7 +61,9 @@ static char *sprintPwd(direntry_t *entry, char *ptr)
 }
 
 
-static void _fprintPwd(FILE *f, direntry_t *entry, int recurs)
+#define NEED_ESCAPE "\"$\\"
+
+static void _fprintPwd(FILE *f, direntry_t *entry, int recurs, int escape)
 {
 	if(entry->entry == -3) {
 		putc(getDrive(entry->Dir), f);
@@ -67,14 +71,27 @@ static void _fprintPwd(FILE *f, direntry_t *entry, int recurs)
 		if(!recurs)
 			putc('/', f);
 	} else {
-		_fprintPwd(f, getDirentry(entry->Dir), 1);
-		fprintf(f, "/%s", entry->name);
+		_fprintPwd(f, getDirentry(entry->Dir), 1, escape);
+		if (escape && strpbrk(entry->name, NEED_ESCAPE)) {
+			char *ptr;
+			for(ptr = entry->name; *ptr; ptr++) {
+				if (strchr(NEED_ESCAPE, *ptr))
+					putc('\\', f);
+				putc(*ptr, f);
+			}
+		} else {
+			fprintf(f, "/%s", entry->name);
+		}
 	}
 }
 
-void fprintPwd(FILE *f, direntry_t *entry)
+void fprintPwd(FILE *f, direntry_t *entry, int escape)
 {
-	_fprintPwd(f, entry, 0);
+	if (escape)
+		putc('"', f);
+	_fprintPwd(f, entry, 0, escape);
+	if(escape)
+		putc('"', f);
 }
 
 char *getPwd(direntry_t *entry)
