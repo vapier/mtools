@@ -395,12 +395,12 @@ static __inline__ void inst_boot_prg(struct bootsector *boot, int offset)
 	memcpy((char *) boot->jump + offset, 
 	       (char *) bootprog, sizeof(bootprog) /sizeof(bootprog[0]));
 	if(offset - 2 < 0x80) {
-	  // short jump
+	  /* short jump */
 	  boot->jump[0] = 0xeb;
 	  boot->jump[1] = offset -2;
 	  boot->jump[2] = 0x90;
 	} else {
-	  // long jump, if offset is too large
+	  /* long jump, if offset is too large */
 	  boot->jump[0] = 0xe9;
 	  boot->jump[1] = offset -3;
 	  boot->jump[2] = 0x00;
@@ -1088,8 +1088,9 @@ void mformat(int argc, char **argv, int dummy)
 
 	if(!keepBoot)
 		inst_boot_prg(boot, bootOffset);
-	// Mimic 3.8 behavior, else 2m disk do not work (???)
-	// luferbu@fluidsignal.com (Luis Bustamante), Fri, 14 Jun 2002
+	/* Mimic 3.8 behavior, else 2m disk do not work (???)
+	 * luferbu@fluidsignal.com (Luis Bustamante), Fri, 14 Jun 2002
+	 */
 	if(used_dev.use_2m & 0x7f) {
 	  boot->jump[0] = 0xeb;
 	  boot->jump[1] = 0x80;
