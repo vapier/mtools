@@ -43,7 +43,7 @@ static int parse_range(const char **p, const char *s, char *out,
 				last = 256;
 			else
 				last = *((*p)++);				
-			for(i=first; i<last; i++)
+			for(i=first; i<=last; i++)
 				table[i] = 1;
 		} else
 			table[(int) *((*p)++)] = 1;
