@@ -13,6 +13,6 @@ AC_CACHE_VAL(cf_cv_dcl_sys_errlist,[
     [cf_cv_dcl_sys_errlist=yes],
     [cf_cv_dcl_sys_errlist=no])])
 AC_MSG_RESULT($cf_cv_dcl_sys_errlist)
-test $cf_cv_dcl_sys_errlist = no || AC_DEFINE(DECL_SYS_ERRLIST)
+test $cf_cv_dcl_sys_errlist = no || AC_DEFINE([DECL_SYS_ERRLIST],1,[Define when sys_errlist is defined in the standard include files])
 ])dnl
 dnl
