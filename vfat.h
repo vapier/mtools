@@ -11,7 +11,7 @@
 struct unicode_char {
 	char lchar;
 	char uchar;
-};
+} PACKED;
 
 
 /* #define MAX_VFAT_SUBENTRIES 32 */ /* Theoretical max # of VSEs */
