@@ -42,15 +42,15 @@ struct {
     {	{0,3},	{0,4},	{1,6},	{0,2},	{1,2},	{0,6},	{1,4},	{1,3},	{0,0} }
   },
   {
-    46, 37, 0x43, 1,
+    46, 37, 1, 0x43,
     {	{0,3},	{0,4},	{0,5},	{0,7},	{1,3},	{1,4},	{1,5},	{1,7},	{0,0} }
   },
   {
-    24, 20, 0, 1,
+    24, 20, 1, 0,
     {	{0,5},	{1,6},	{0,6},	{1, 5} }
   },
   {
-    48, 41, 0, 1,
+    48, 41, 1, 0,
     {	{0,6},	{1,7},	{0,7},	{1, 6} }
   }
 };
@@ -659,6 +659,7 @@ Stream_t *XdfOpen(struct device *dev, char *name,
 			This->map = xdf_table[type].map;
 			This->track0_size = xdf_table[type].track0_size;
 			This->rootskip = xdf_table[type].rootskip;
+			This->rate = xdf_table[type].rate;
 			break;
 		}
 	}
