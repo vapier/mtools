@@ -17,9 +17,9 @@ mtools - utilities to access DOS disks in Unix.
 @end ignore
 
 
-@set EDITION pre-3.9.8
-@set VERSION pre-3.9.8
-@set UPDATED May 2001
+@set EDITION pre-3.9.9
+@set VERSION pre-3.9.9
+@set UPDATED February 2003
 
 @iftex
 @finalout
@@ -163,9 +163,9 @@ click "Cancel" to refuse the cookie and protect your privacy.
 
 Mtools can be found at the following places (and their mirrors):
 @example
-http://mtools.linux.lu/mtools-3.9.8.tar.gz
-ftp://www.tux.org/pub/knaff/mtools/mtools-3.9.8.tar.gz
-ftp://ibiblio.unc.edu/pub/Linux/utils/disk-management/mtools-3.9.8.tar.gz
+http://mtools.linux.lu/mtools-3.9.9.tar.gz
+ftp://www.tux.org/pub/knaff/mtools/mtools-3.9.9.tar.gz
+ftp://ibiblio.unc.edu/pub/Linux/utils/disk-management/mtools-3.9.9.tar.gz
 @end example
 
 Before reporting a bug, make sure that it has not yet been fixed in the
