@@ -19,7 +19,7 @@ mtools - utilities to access DOS disks in Unix.
 
 @set EDITION 3.9.9
 @set VERSION 3.9.9
-@set UPDATED March 2003
+@set UPDATED May 2003
 
 @iftex
 @finalout
@@ -1779,13 +1779,12 @@ untranslatable characters are replaced by '@code{#}'; when writing DOS files,
 untranslatable characters are replaced by '@code{.}'.
 @item n
 No confirmation when overwriting Unix files.  @code{Mcopy} doesn't warn
-the user when overwriting an existing Unix file.  In order to switch off
-confirmation for DOS files, use @code{-o}.
-@item m
-Preserve the file modification time. If the target file already exists,
+the user when overwriting an existing Unix file. If the target file already exists,
 and the @code{-n} option is not in effect, @code{mcopy} asks whether to
 overwrite the file or to rename the new file (@ref{name clashes}) for
-details).
+details).  In order to switch off confirmation for DOS files, use @code{-o}.
+@item m
+Preserve the file modification time.
 @item v
 Verbose. Displays the name of each file as it is copied.
 @end table
@@ -2044,9 +2043,13 @@ I can include the correct value in future versions of mtools.
 Sets the size of a cluster (in sectors).  If this cluster size would
 generate a FAT that too big for its number of bits, mtools automatically
 increases the cluster size, until the FAT is small enough.
+@item d
+Sets the number of FAT copies. Default is 2. This setting can also be
+specified using the @code{MTOOLS_NFATS} environment variable.
 @item r
 Sets the size of the root directory (in sectors).  Only applicable to 12
-and 16 bit FATs.
+and 16 bit FATs. This setting can also be specified using the
+@code{MTOOLS_DIR_LEN} environment variable.
 @item L
 Sets the length of the FAT.
 @item B
