@@ -134,7 +134,7 @@ void clear_vfat(struct vfat_state *v)
  * Thanks to Jeffrey Richter of Microsoft Systems Journal for
  * pointing me to the correct algorithm.
  *
- * David C. Niemi (niemi@tux.org) 95.01.19
+ * David C. Niemi (niemi@tuxers.net) 95.01.19
  */
 static __inline__ unsigned char sum_shortname(char *name)
 {
