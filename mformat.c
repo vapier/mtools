@@ -874,7 +874,7 @@ void mformat(int argc, char **argv, int dummy)
 				break;
 
 			case 'C':
-				create = O_CREAT;
+				create = O_CREAT | O_TRUNC;
 				break;
 
 			case 'H':
