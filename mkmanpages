@@ -62,6 +62,7 @@ echo floppyd_installtest >>mtools.1
 echo mattrib >>mtools.1
 echo mbadblocks >>mtools.1
 echo mcd >>mtools.1
+echo mclasserase >>mclasserase.1
 echo mcopy >>mtools.1
 echo mdel >>mtools.1
 echo mdeltree >>mtools.1

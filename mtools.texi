@@ -1405,6 +1405,7 @@ description of those.
 * mbadblocks::        tests a floppy disk, and marks the bad blocks in the FAT
 * mcat::              same as cat. Only usefull with floppyd.
 * mcd::               change MS-DOS directory
+* mclasserase::       erase memory card
 * mcopy::             copy MS-DOS files to/from Unix
 * mdel::              delete an MS-DOS file
 * mdeltree::          recursively delete an MS-DOS directory
@@ -1683,7 +1684,7 @@ stdin and writes it to the given device.
 command, it will happily destroy any data written before on the
 disk without warning!
 
-@node mcd, mcopy, mcat, Commands
+@node mcd, mclasserase, mcat, Commands
 @section Mcd
 @pindex mcd
 @cindex Directory (changing)
@@ -1713,7 +1714,38 @@ if the file is more than 6 hours old.
 Unlike MS-DOS versions of @code{CD}, @code{mcd} can be used to change to
 another device. It may be wise to remove old @file{.mcwd} files at logout.
 
-@node mcopy, mdel, mcd, Commands
+@node mclasserase, mcopy, mcd, Commands
+@section Mclasserase
+@pindex mclasserase
+@cindex Memory Card
+@cindex Physically erase
+
+The @code{mclasserase} command is used to wipe memory cards by
+overwriting it three times: first with @code{0xff}, then with
+@code{0x00}, then with @code{0xff} again. The command uses the following
+syntax:
+
+@example
+@code{mclasserase} [@code{-d}] @var{msdosdrive}
+@end example
+
+Dos drive is optional, if none is specified, use @code{A:}. If more than
+one drive are specified, all but the last are ignored.
+
+@code{Mclasserase} accepts the following command line options:
+
+@table @code
+@item d
+Stop after each erase cycle, for testing purposes
+@item p
+Not yet implemented
+@end table
+
+
+@code{Mclasserase} returns 0 on success or -1 on failure.
+
+
+@node mcopy, mdel, mclasserase, Commands
 @section Mcopy
 @pindex mcopy
 @cindex Reading MS-DOS files

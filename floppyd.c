@@ -99,9 +99,6 @@ typedef unsigned long Dword;
 void serve_client(int sock, char* device_name);
 
 
-
-#define New(type) ((type*)(malloc(sizeof(type))))
-
 #ifdef USE_FLOPPYD_BUFFERED_IO
 typedef struct io_buffer {
 	Byte out_buffer[BUFFERED_IO_SIZE];

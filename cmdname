@@ -4,6 +4,7 @@ mattrib - change MSDOS file attribute flags
 mbadblocks - tests a floppy disk, and marks the bad blocks in the FAT
 mcd - change MSDOS directory
 mcat - dump raw disk image
+mclasserase - erase memory cards
 mcopy - copy MSDOS files to/from Unix
 mdel - delete an MSDOS file
 mdeltree - recursively delete an MSDOS directory and its contents
