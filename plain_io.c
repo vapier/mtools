@@ -749,9 +749,14 @@ APIRET rc;
 
 int get_fd(Stream_t *Stream)
 {
+	Class_t *clazz;
 	DeclareThis(SimpleFile_t);
-	
-	return This->fd;
+	clazz = This->Class;
+	if(clazz != &ScsiClass &&
+	   clazz != &SimpleFileClass)
+	  return -1;
+	else
+	  return This->fd;
 }
 
 void *get_extra_data(Stream_t *Stream)
