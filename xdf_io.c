@@ -492,7 +492,7 @@ static int xdf_write(Stream_t *Stream, char *buf, mt_off_t where, size_t len)
 		return len2;
 	maximize(end, (off_t)len2);
 	len2 -= begin;
-	maximize((off_t)len, (off_t)len2);
+	maximize(len, (off_t)len2);
 	memcpy(This->buffer + begin, buf, len);
 	mark_dirty(This, begin, end);
 	return end - begin;
