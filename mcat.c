@@ -24,6 +24,15 @@ void usage()
 
 #define BUF_SIZE 16000
 
+static size_t bufLen(size_t blocksize, mt_size_t totalSize, mt_off_t address)
+{
+	if(totalSize == 0)
+		return blocksize;
+	if(address + blocksize > totalSize)
+		return totalSize - address;
+	return blocksize;
+}
+
 void mcat(int argc, char **argv, int type)
 {
 	struct device *dev;
@@ -108,22 +117,25 @@ void mcat(int argc, char **argv, int type)
                 exit(1);
         }
 
+
 	if (mode == O_WRONLY) {
-		while ((len = fread(buf, 1, BUF_SIZE, stdin)) 
-		       == BUF_SIZE) {
-			WRITES(Stream, buf, address, BUF_SIZE);
-			address += BUF_SIZE;
+		mt_size_t size=0;
+		size = out_dev.sectors * out_dev.heads * out_dev.tracks;
+		size *= 512;
+		while ((len = fread(buf, 1,
+				    bufLen(BUF_SIZE, size, address),
+				    stdin)) > 0) {			
+			int r = WRITES(Stream, buf, address, len);
+			fprintf(stderr, "Wrote to %d\n", (int) address);
+			if(r < 0)
+				break;
+			address += len;
 		}
-		if (len)
-			WRITES(Stream, buf, address, len);
 	} else {
-		while ((len = READS(Stream, buf, address, BUF_SIZE)) 
-		       == BUF_SIZE) {
-			fwrite(buf, 1, BUF_SIZE, stdout);
-			address += BUF_SIZE;
-		}
-		if (len)
+		while ((len = READS(Stream, buf, address, BUF_SIZE)) > 0) {
 			fwrite(buf, 1, len, stdout);
+			address += len;
+		}
 	}
 
 	FREE(&Stream);

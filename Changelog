@@ -1,3 +1,5 @@
+030118	Fixed mcat end-of-file bugs (mcat went on writing, and writing,
+	and writing, even after end of file)
 030105	If "standard" CHS specified, but non-standard root dir size do not
 	use table-lookup based geometry ("old-dos media descriptor")
 021118	David's new uz script, that can use commands other than gzip for
