@@ -17,6 +17,9 @@
 #include "partition.h"
 #include "llong.h"
 
+#ifndef O_BINARY
+#define O_BINARY 0
+#endif
 
 typedef struct SimpleFile_t {
     Class_t *Class;
@@ -599,7 +602,7 @@ APIRET rc;
 		    This->fd = scsi_open(name, mode, IS_NOLOCK(dev)?0444:0666,
 					 &This->extra_data);
 		else
-		    This->fd = open(name, mode | O_LARGEFILE, 
+		    This->fd = open(name, mode | O_LARGEFILE | O_BINARY, 
 				    IS_NOLOCK(dev)?0444:0666);
 	    }
 
