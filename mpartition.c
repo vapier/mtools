@@ -401,6 +401,8 @@ void mpartition(int argc, char **argv, int dummy)
 	sprintf(errmsg, "Drive '%c:' not supported", drive);
 	Stream = 0;
 	for(dev=devices;dev->drive;dev++) {
+		int mode ;
+
 		FREE(&(Stream));
 		/* drive letter */
 		if (dev->drive != drive)
@@ -418,8 +420,12 @@ void mpartition(int argc, char **argv, int dummy)
 		SET_INT(used_dev.sectors, argsectors);
 		
 		expand(dev->name, name);
-		Stream = SimpleFileOpen(&used_dev, dev, name,
-					dirty ? O_RDWR : O_RDONLY, 
+
+		mode = dirty ? O_RDWR : O_RDONLY;
+		if(initialize)
+ 			mode |= O_CREAT;
+
+		Stream = SimpleFileOpen(&used_dev, dev, name, mode, 
 					errmsg, open2flags, 1, 0);
 
 		if (!Stream) {
@@ -460,7 +466,7 @@ void mpartition(int argc, char **argv, int dummy)
 #endif
 
 		/* read the partition table */
-		if (READS(Stream, (char *) buf, 0, 512) != 512) {
+		if (READS(Stream, (char *) buf, 0, 512) != 512 && !initialize){
 #ifdef HAVE_SNPRINTF
 			snprintf(errmsg, 199,
 				"Error reading from '%s', wrong parameters?",

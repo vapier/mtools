@@ -1,4 +1,5 @@
 021105	Added PACKED to unicode_char declaration (Arm)
+	Mpartition can now create the image if -I is specified.
 021104	Support for geometry-less Atari disks
 	Support for byte-swapping disks
 021102b	Avoid .(l and .)l in generated man pages
