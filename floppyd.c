@@ -1114,8 +1114,8 @@ void serve_client(int sockhandle, char* device_name) {
 #endif
 				read_packet(parm, devFd, get_dword(parm, 0));
 				send_reply(devFd, sock, get_length(parm));
-				send_packet(parm, sock);
-				
+				if(get_length(parm) >= 0)
+					send_packet(parm, sock);
 				break;
 			case OP_WRITE:
 #if DEBUG
