@@ -15,7 +15,7 @@
 
 #define DEBUG 0
 
-#include "config.h"
+#include "sysincludes.h"
 
 #ifdef USE_FLOPPYD
 
@@ -96,7 +96,7 @@ typedef unsigned long Dword;
 #define BUFFERED_IO_SIZE         16348
 
 
-void serve_client(int sock, char* device_name);
+void serve_client(int sock, char **device_name, int n_dev);
 
 
 #ifdef USE_FLOPPYD_BUFFERED_IO
@@ -382,6 +382,8 @@ int eat(char **ptr, int *len, unsigned char c) {
     return 0;
 }
 
+static char *dispName;
+
 
 char do_auth(io_buffer sock, int *version) 
 {
@@ -392,6 +394,7 @@ char do_auth(io_buffer sock, int *version)
 	char *ptr;
 	int len;
 
+	char authFile[41]="/tmp/floppyd.XXXXXX";
 	char template[4096];
 
 	Packet reply = newPacket();
@@ -438,12 +441,10 @@ char do_auth(io_buffer sock, int *version)
 		return 0;
 	}
 
-	/* CPhipps 2000/02/11 - Do the open and test in one call, to avoid
-	 * race condition. Open with safe permissions. */
-	fd = open(XauFileName(), O_WRONLY | O_CREAT | O_EXCL, 0600);
-	
-	/* Locked! */
-	if (fd == -1) {
+	umask(077);
+	fd = mkstemp(authFile);
+	if(fd == -1) {
+		/* Different error than file exists */
 		put_dword(reply, 0, AUTH_DEVLOCKED);
 		send_packet(reply, sock);
 		close(fd);
@@ -451,6 +452,7 @@ char do_auth(io_buffer sock, int *version)
 		destroyPacket(mit_cookie);
 		return 0;
 	}
+	setenv("XAUTHORITY", authFile, 1);
 
 	ptr = template;
 	ptr[4095] = 0;
@@ -486,7 +488,7 @@ char do_auth(io_buffer sock, int *version)
 
 	destroyPacket(mit_cookie);
 
-	displ = XOpenDisplay(":0");
+	displ = XOpenDisplay(dispName);
 	if (!displ) {
 		unlink(XauFileName());
 		put_dword(reply, 0, AUTH_AUTHFAILED);
@@ -499,6 +501,7 @@ char do_auth(io_buffer sock, int *version)
 	put_dword(reply, 0, AUTH_SUCCESS);
 	send_packet(reply, sock);
 	destroyPacket(reply);
+	unlink(XauFileName());
 	return 1;
 }
 
@@ -691,7 +694,7 @@ static void alarm_signal(int a)
 /*
  * This is the main loop when running as a server.
  */
-static void server_main_loop(int sock, char* device_name)
+static void server_main_loop(int sock, char **device_name, int n_dev)
 {
 	struct sockaddr_in	addr;
 	unsigned int		len;
@@ -725,7 +728,7 @@ static void server_main_loop(int sock, char* device_name)
 				 * Start the proxy work in the new socket.
 				 */
 #endif
-				serve_client(new_sock,device_name);
+				serve_client(new_sock,device_name, n_dev);
 				exit(0);
 #if DEBUG == 0
 		}
@@ -786,19 +789,17 @@ int main (int argc, char** argv)
 	char*			username = strdup("nobody");
 	int			sock;
 	int			port_is_supplied = 0;
-	int			no_local = 0;
 
 	char *server_hostname=NULL;
-	char* device_name = NULL; 
-	char *authFile=0;
-	char *p, *q;
-	const char *authKey = "XAUTHORITY";
+	char **device_name = NULL; 
+	char *floppy0 = "/dev/fd0";
+	int n_dev;
 
 
 	/*
 	 * Parse the command line arguments.
 	 */
-	while ((arg = getopt(argc, argv, "lds:r:b:")) != EOF)
+	while ((arg = getopt(argc, argv, "ds:r:b:x:")) != EOF)
 		{
 			switch (arg)
 				{
@@ -822,9 +823,8 @@ int main (int argc, char** argv)
 						bind_ip = getipaddress(optarg);
 						server_hostname=optarg;
 						break;
-
-					case 'l':
-						no_local = 1;
+					case 'x':
+						dispName = strdup(optarg);
 						break;
 
 					case '?':
@@ -834,12 +834,17 @@ int main (int argc, char** argv)
 		}
 
 	if(optind < argc) {
-		device_name = argv[optind++];
+		device_name = argv + optind;
+		n_dev = argc - optind;
+	} else {
+		device_name = &floppy0;
+		n_dev = 1;
 	}
 
-	if(optind < argc) {
-		fprintf(stderr, "Ignoring extra argument %s\n", argv[optind]);
-	}
+	if(dispName == NULL)
+		dispName = getenv("DISPLAY");
+	if(dispName==NULL)
+		dispName=":0";
 
 	if(!run_as_server) {
 		struct sockaddr_in	addr;
@@ -865,109 +870,81 @@ int main (int argc, char** argv)
 	if (run_as_server && (bind_port == -1))	{
 		usage(argv[0], "No server port was specified (or it was invalid).");
 	}
-	
-	if(!device_name) {
-		device_name = "/dev/fd0";
-	}
 
-	if (!device_name || !*device_name) {
-		usage(argv[0], "No device name specified.");
-	}
-
-	authFile = malloc(strlen(authKey) + 1+ strlen(device_name)*2+7);
-	strcpy(authFile, authKey);
-	strcat(authFile, "=/tmp/");
-	for(p=device_name, q = strlen(authKey) + authFile+6; *p; p++) {
-		switch(*p) {
-			case '/':
-				*q++ = '-';
-				*q++ = '+';
-				break;
-			case '-':
-				*q++ = '-';
-				*q++ = '-';
-				break;
-			default:
-				*q++ = *p;
-		}
-	}
-	*q = *p;
-	putenv(authFile);
 
 	/*
 	 * See if we should run as a server.
 	 */
-	if (run_as_server)
-		{
-			/*
-			 * Start by binding to the port, the child inherits this socket.
-			 */
-			sock = bind_to_port(bind_ip, bind_port);
-
-			/*
-			 * Start a server process. When DEBUG is defined, just run
-			 * in the foreground.
-			 */
+	if (run_as_server) {
+		/*
+		 * Start by binding to the port, the child inherits this socket.
+		 */
+		sock = bind_to_port(bind_ip, bind_port);
+		
+		/*
+		 * Start a server process. When DEBUG is defined, just run
+		 * in the foreground.
+		 */
 #if DEBUG
-			switch (0)
+		switch (0)
 #else
-				switch (fork())
+			switch (fork())
 #endif
-					{
-						case -1:
-							perror("fork()");
-							exit(1);
-
-						case 0:
-							/*
-							 * Ignore some signals.
-							 */
-							signal(SIGHUP, SIG_IGN);
+				{
+				case -1:
+					perror("fork()");
+					exit(1);
+					
+				case 0:
+					/*
+					 * Ignore some signals.
+					 */
+					signal(SIGHUP, SIG_IGN);
 #if DEBUG
-							signal(SIGINT, SIG_IGN);
+					signal(SIGINT, SIG_IGN);
 #endif
-							signal(SIGQUIT, SIG_IGN);
-							signal(SIGTSTP, SIG_IGN);
-							signal(SIGCONT, SIG_IGN);
-							signal(SIGPIPE, alarm_signal);
-							/*signal(SIGALRM, alarm_signal);*/
-
-							/*
-							 * Drop back to an untrusted user.
-							 */
-							setgid(run_gid);
-							initgroups(username, -1);
-							setuid(run_uid);
-
-							/*
-							 * Start a new session and group.
-							 */
-							setsid();
+					signal(SIGQUIT, SIG_IGN);
+					signal(SIGTSTP, SIG_IGN);
+					signal(SIGCONT, SIG_IGN);
+					signal(SIGPIPE, alarm_signal);
+					/*signal(SIGALRM, alarm_signal);*/
+					
+					/*
+					 * Drop back to an untrusted user.
+					 */
+					setgid(run_gid);
+					initgroups(username, -1);
+					setuid(run_uid);
+					
+					/*
+					 * Start a new session and group.
+					 */
+					setsid();
 #ifdef SETPGRP_VOID
-							setpgrp();
+					setpgrp();
 #else
-							setpgrp(0,0);
+					setpgrp(0,0);
 #endif
 #if DEBUG
-							close(2);
-							open("/dev/null", O_WRONLY);
+					close(2);
+					open("/dev/null", O_WRONLY);
 #endif
-							/*
-							 * Handle the server main loop.
-							 */
-							server_main_loop(sock, device_name);
-
-							/*
-							 * Should never exit.
-							 */
-							exit(1);
-					}
-
-			/*
-			 * Parent exits at this stage.
-			 */
-			exit(0);
-		}
+					/*
+					 * Handle the server main loop.
+					 */
+					server_main_loop(sock, device_name, n_dev);
+					
+					/*
+					 * Should never exit.
+					 */
+					exit(1);
+				}
+		
+		/*
+		 * Parent exits at this stage.
+		 */
+		exit(0);
+	}
 
 	signal(SIGHUP, alarm_signal);
 #if DEBUG == 0
@@ -986,7 +963,7 @@ int main (int argc, char** argv)
 #endif
 	/* Starting from inetd */
 
-	serve_client(sockfd, device_name);
+	serve_client(sockfd, device_name, n_dev);
 	return 0;
 }
 
@@ -1009,7 +986,9 @@ void cleanup(int x) {
 	exit(-1);
 }
 
-void serve_client(int sockhandle, char* device_name) {
+#include "lockdev.h"
+
+void serve_client(int sockhandle, char **device_name, int n_dev) {
 	Packet opcode;
 	Packet parm;
 
@@ -1063,21 +1042,23 @@ void serve_client(int sockhandle, char* device_name) {
 	if(version == FLOPPYD_PROTOCOL_VERSION_OLD) {
 				/* old protocol */
 		readOnly = 0;
-		devFd = open(device_name, O_RDWR);
+		devFd = open(device_name[0], O_RDWR);
 		
 		if (devFd < 0) {
 			readOnly = 1;
-			devFd = open(device_name, 
+			devFd = open(device_name[0], 
 				     O_RDONLY);
 		}
 		if(devFd < 0) {
 			send_reply(0, sock, devFd);
 			stopLoop = 1;
 		}
+		lock_dev(devFd, !readOnly, NULL);
 	}
 
 
 	while(!stopLoop) {
+		int dev_nr = 0;
 		int rval = 0;
 		/*
 		 * Allow 60 seconds for any activity.
@@ -1090,17 +1071,43 @@ void serve_client(int sockhandle, char* device_name) {
 /*		if(opcode->data[0] != OP_CLOSE)*/
 		    recv_packet(parm, sock, MAX_DATA_REQUEST);
 
+
 		switch(opcode->data[0]) {
 			case OP_OPRO:
-				devFd = open(device_name, O_RDONLY);
+				if(get_length(parm) >= 4)
+					dev_nr = get_dword(parm,0);
+				else
+					dev_nr = 0;
+				if(dev_nr >= n_dev) {
+					send_reply(0, sock, -1);
+					break;
+				}
+
+				devFd = open(device_name[dev_nr], O_RDONLY);
 #if DEBUG
 				fprintf(stderr, "Device opened\n");
 #endif
+				if(devFd >= 0 && lock_dev(devFd, 0, NULL)) {
+					send_reply(0, sock, -1);
+					break;
+				}
 				send_reply(0, sock, devFd);
 				readOnly = 1;
 				break;
 			case OP_OPRW:
-				devFd = open(device_name, O_RDWR);
+				if(get_length(parm) >= 4)
+					dev_nr = get_dword(parm,0);
+				else
+					dev_nr = 0;
+				if(dev_nr >= n_dev) {
+					send_reply(0, sock, -1);
+					break;
+				}
+				devFd = open(device_name[dev_nr], O_RDWR);
+				if(devFd >= 0 && lock_dev(devFd, 1, NULL)) {
+					send_reply(0, sock, -1);
+					break;
+				}
 				send_reply(0, sock, devFd);
 				readOnly = 0;
 				break;
