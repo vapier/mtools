@@ -180,7 +180,7 @@ int scsi_cmd(int fd, unsigned char *cdb, int cmdlen, scsi_io_mode_t mode,
 
 	return 0;  /* where to get scsi status? */
 
-#elif defined _SCO_DS
+#elif (defined _SCO_DS) && (defined SCSIUSERCMD)
 	struct scsicmd scsi_cmd;
 
 	memset(scsi_cmd.cdb, 0, SCSICMDLEN);	/* ensure zero pad */
@@ -190,8 +190,11 @@ int scsi_cmd(int fd, unsigned char *cdb, int cmdlen, scsi_io_mode_t mode,
 	scsi_cmd.data_ptr = data;
 	scsi_cmd.is_write = mode == SCSI_IO_WRITE;
 	if (ioctl(fd,SCSIUSERCMD,&scsi_cmd) == -1) {
-		perror("scsi_io");
-		printf("scsi status: host=%x; target=%x\n",
+		perror("scsi_io: SCSIUSERCMD");
+		return -1;
+	}
+	if (scsi_cmd.host_sts != 0 || scsi_cmd.target_sts != 0) {
+		fprintf(stderr, "scsi_io: scsi status: host=%x; target=%x\n",
 		(unsigned)scsi_cmd.host_sts,(unsigned)scsi_cmd.target_sts);
 		return -1;
 	}
