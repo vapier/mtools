@@ -73,6 +73,7 @@ static void _fprintPwd(FILE *f, direntry_t *entry, int recurs, int escape)
 	} else {
 		_fprintPwd(f, getDirentry(entry->Dir), 1, escape);
 		if (escape && strpbrk(entry->name, NEED_ESCAPE)) {
+			putc('/', f);
 			char *ptr;
 			for(ptr = entry->name; *ptr; ptr++) {
 				if (strchr(NEED_ESCAPE, *ptr))
