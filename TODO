@@ -1,6 +1,0 @@
-*	per drive mcwd (like in real Dos)
-*	per parent process mcwd
-*	more intuitive option letters
-*	access control list for drives
-*	support for extended partitions
-*	rewrite in an OO language (such as Java or C++)

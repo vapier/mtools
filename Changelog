@@ -1,3 +1,11 @@
+021102	-i flag
+	Fix mformat for 2m
+	Fix [] wildcard off-by-one error
+	Avoid overwriting (Unix) file by itself in mcopy
+	Avoid cloberring any file if implicit target is used (the
+	one-argument syntax of mcopy)
+	Added Zip 750 entry to mzip.c
+	SCO Scsi fix
 020125	Fixes for cygwin
 	Fixes in buffer.c for oddly sized image files
 	Mformat.c fixes to avoid makeing images which would not be
