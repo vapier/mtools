@@ -712,6 +712,8 @@ APIRET rc;
 			drop_privs();
 	}
 
+	This->swap = DO_SWAP( dev );
+
 	if(!(mode2 & NO_OFFSET) &&
 	   dev && (dev->partition > 4 || dev->partition < 0))
 	    fprintf(stderr, 
@@ -786,8 +788,6 @@ APIRET rc;
 	This->lastwhere = -This->offset;
 	/* provoke a seek on those devices that don't start on a partition
 	 * boundary */
-
-	This->swap = DO_SWAP( dev );
 
 	return (Stream_t *) This;
 }
