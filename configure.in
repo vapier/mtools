@@ -1,0 +1,203 @@
+dnl Process this file with autoconf to produce a configure script.
+AC_INIT(buffer.c)
+
+AC_CONFIG_HEADER(config.h)
+
+dnl Checks for compiler
+AC_PROG_CC
+AC_PROG_GCC_TRADITIONAL
+AC_PROG_INSTALL
+AC_PROG_LN_S
+
+dnl Check for Systems
+AC_AIX
+AC_ISC_POSIX
+AC_MINIX
+AC_CANONICAL_SYSTEM
+
+AC_C_CONST
+AC_C_INLINE
+
+
+dnl Check for configuration options
+dnl Enable OS/2 extended density format disks
+undefine([xdf])dnl
+AC_ARG_ENABLE(xdf,
+[  --enable-xdf           support for OS/2 extended density format disks],
+[if test x$enableval = xyes; then
+  AC_DEFINE(USE_XDF)
+fi],AC_DEFINE(USE_XDF))
+
+
+dnl Check for configuration options
+dnl Enable usage of vold on Solaris
+undefine([vold])dnl
+AC_ARG_ENABLE(vold,
+[  --enable-vold          compatibility with Solaris' vold],
+[if test x$enableval = xyes; then
+  AC_DEFINE(USING_VOLD)
+fi])
+
+
+dnl Check for configuration options
+dnl Enable usage of vold on Solaris
+undefine([new-vold])dnl
+AC_ARG_ENABLE(new-vold,
+[  --enable-new-vold          compatibility with Solaris' vold, new version],
+[newVold=x$enableval
+if test x$enableval = xyes; then
+  AC_DEFINE(USING_NEW_VOLD)
+fi])
+
+
+dnl Check for configuration options
+dnl Debugging
+undefine([debug])dnl
+AC_ARG_ENABLE(debug,
+[  --enable-debug         debuging messages],
+[if test x$enableval = xyes; then
+  AC_DEFINE(DEBUG)
+fi])
+
+
+dnl Check for configuration options
+dnl Raw terminal code (enabled by default)
+undefine([raw_term])dnl
+AC_ARG_ENABLE(raw_term,
+[  --enable-raw-term      raw terminal (readkey behaviour, default)],
+[if test x$enableval = xyes; then
+  AC_DEFINE(USE_RAWTERM)
+fi],
+AC_DEFINE(USE_RAWTERM))
+
+
+dnl Checks for libraries.
+
+dnl AC_IRIX_SUN
+AC_CHECK_LIB(sun, getpwnam)
+
+dnl Checks for header files.
+AC_HEADER_STDC
+AC_HEADER_SYS_WAIT
+AC_CHECK_HEADERS(getopt.h sys/stat.h stdlib.h unistd.h libc.h \
+fcntl.h limits.h sys/file.h sys/ioctl.h sys/time.h strings.h string.h \
+sys/param.h memory.h malloc.h signal.h sys/signal.h utime.h sgtty.h \
+sys/floppy.h mntent.h)
+AC_CHECK_HEADERS(termio.h sys/termio.h, [break])
+AC_CHECK_HEADERS(termios.h sys/termios.h, [break])
+dnl Apparently termio before termios is preferred by A/UX, AIX and SCO
+
+dnl Checks for typedefs, structures, and compiler characteristics.
+AC_C_CONST
+AC_C_INLINE
+AC_TYPE_SIZE_T
+AC_HEADER_TIME
+AC_STRUCT_TM
+
+dnl Checks for library functions.
+AC_TYPE_SIGNAL
+AC_CHECK_FUNCS(strerror random srandom strchr strrchr lockf flock \
+strcasecmp strncasecmp atexit on_exit getpass memmove \
+strdup strcspn strspn strtoul memcpy strpbrk memset seteuid setresuid \
+tcsetattr tcflush basename fchdir)
+
+
+AC_CHECK_FUNCS(utimes utime, [break])
+AC_CHECK_FUNCS(tzset gettimeofday)
+
+CF_SYS_ERRLIST
+
+[
+host_os0=`echo $host_os | sed 's/-/_/g'`
+host_os1=`echo $host_os0 | sed 's/\./_/g'`
+host_os2=`echo $host_os0 | sed 's/^\([^.]*\)\..*$/\1/g'`
+host_os3=`echo $host_os2 | sed 's/^\([^0-9]*\)[0-9]*$/\1/g'`
+host_cpu1=`echo $host_cpu | sed 's/\./_/g'`
+host_vendor1=`echo $host_vendor | sed 's/\./_/g'`
+HOST_ID="-DCPU_$host_cpu1 -DVENDOR_$host_vendor1 -DOS_$host_os1"
+if [ $host_os1 != $host_os2 ] ; then
+	HOST_ID="$HOST_ID -DOS_$host_os2"
+fi
+if [ $host_os1 != $host_os3 ] && [ $host_os2 != $host_os3 ] ; then
+	HOST_ID="$HOST_ID -DOS_$host_os3"
+fi
+
+my_host_os=`echo $host_os1 $host_os2 $host_os3 | sort -u`
+objs=`echo $srcdir/*.c | sed 's/\.c$/.o/' `
+if [ "X$GCC" = "Xyes" ] ; then
+    if [ "$host_cpu" = i486 ] ; then
+	    CFLAGS="$CFLAGS -m486"
+    fi
+    Wall=-Wall
+    if [ "$host_os3" = sunos ] ; then
+	    Wall=""
+    fi
+    if [ "$host_os3" = ultrix ] ; then
+	    Wall=""
+    fi
+    if [ "$host_os3" = linux ] ; then
+	    CFLAGS="$CFLAGS -fno-strength-reduce"
+    fi
+    if [ "$host_os3" = aux ] ; then
+	    CFLAGS="$CFLAGS -ZP"
+	    MACHDEPLIBS="-lposix -UTIL"
+    fi	
+    CFLAGS="$CFLAGS -O4 $Wall"
+else
+    if [ $host_os3 = hpux ] ; then
+	    CPPFLAGS="$CPPFLAGS -Ae"
+    fi
+
+    if [ $host_os3 = xenix ] ; then
+	    CFLAGS="$CFLAGS -M2e"
+    fi
+fi
+
+if [ $host_os3 = hpux ] ; then
+	    LDFLAGS="$LDFLAGS -z"
+fi
+
+
+if [ $host_vendor = linux ] ; then
+    LDFLAGS="$LDFLAGS -z"
+fi
+
+if [ $host_os3 = xenix ] ; then
+    LDFLAGS="$LDFLAGS -M2e -i -f 5000"
+fi
+
+if [ $host_os2 = sysv4 ] ; then
+    SHLIB="-lc -L/usr/ucblib -lucb"
+else
+    SHLIB=""
+fi
+
+if [ $host_os3 = isc ] ; then
+    CFLAGS="$CFLAGS -D_SYSV3"
+    SHLIB="-lc_s"
+fi
+
+if [ $host_os3 = solaris -a x$newVold = xxyes ] ; then
+    SHLIB="$SHLIB -s -lvolmgt"
+fi
+
+if [ $host_os3 = nextstep ] ; then
+    CFLAGS="$CFLAGS -DBSD"
+    SHLIB=""
+fi
+
+if [ -d /usr/5lib ] ; then
+	extralibdir=-L/usr/5lib
+fi
+
+if [ -d /usr/5include ] ; then
+	extraincludedir=-I/usr/5include
+fi
+]
+AC_SUBST(extraincludedir)
+AC_SUBST(extralibdir)
+AC_SUBST(MACHDEPLIBS)
+AC_SUBST(SHLIB)
+AC_SUBST(host_cpu)
+AC_SUBST(HOST_ID)
+AC_OUTPUT(Makefile)

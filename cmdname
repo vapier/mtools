@@ -1,0 +1,18 @@
+mattrib - change MSDOS file attribute flags
+mbadblocks - tests a floppy disk, and marks the bad blocks in the FAT
+mcd - change MSDOS directory
+mcopy - copy MSDOS files to/from Unix
+mdel - delete an MSDOS file
+mdir - display an MSDOS directory
+mdu - display the amount of space occupied by an MSDOS directory
+mformat - add an MSDOS filesystem to a low-level formatted floppy disk
+mlabel - make an MSDOS volume label
+mmd - make an MSDOS subdirectory
+mmount - mount an MSDOS disk
+mpartition - partition an MSDOS hard disk
+mrd - remove an MSDOS subdirectory
+mmove - move or rename an MSDOS file or subdirectory
+mren - rename an existing MSDOS file
+mtype - display contents of an MSDOS file
+mtoolstest - tests and displays the configuration
+mzip - change protection mode and eject disk on Zip/Jaz drive

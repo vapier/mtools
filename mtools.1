@@ -1,0 +1,2432 @@
+'\" t
+.TH mtools.1 3 14mar1997 MTOOLS MTOOLS
+'\" t
+.de TQ
+.br
+.ns
+.TP \\$1
+..
+
+.tr \(is'
+.tr \(if`
+.tr \(pd"
+
+.ds St Mtools
+.oh '\\*(St''%'
+.eh '%''\\*(St'
+.PP
+.SH Name
+mtools - utilities to access DOS disks in Unix.
+.PP
+.SH Introduction
+Mtools is a public domain collection of tools to allow Unix systems to
+manipulate MS-DOS files: read, write, and move around files on an MS-DOS
+filesystem (typically a floppy disk).  Where reasonable, each program
+attempts to emulate the MS-DOS equivalent command. However, unnecessary
+restrictions and oddities of DOS are not emulated. For instance, it is
+possible to move subdirectories from one subdirectory to another.
+.PP
+Mtools is sufficient to give access to MS-DOS filesystems.  For
+instance, commands such as \fR\&\f(CWmdir a:\fR work on the \fR\&\f(CWa:\fR floppy
+without any preliminary mounting or initialization (assuming the default
+\&\fR\&\f(CW\(if/etc/mtools.conf\(is\fR works on your machine).  With mtools, one can
+change floppies too without unmounting and mounting.
+.PP
+.SH Where\ to\ get\ mtools
+.iX "c bugs"
+.iX "c ALPHA patches"
+.iX "c patches"
+.iX "c diffs"
+.iX "c mailing list"
+.PP
+Mtools can be found at the following places (and their mirrors):
+ 
+.nf
+.ft 3
+.in +0.3i
+ftp://www.tux.org/pub/knaff/mtools/mtools-3.9.tar.gz
+ftp://sunsite.unc.edu/pub/Linux/utils/disk-management/mtools-3.9.tar.gz
+.fi
+.in -0.3i
+.ft R
+.lp
+ 
+\&\fR
+.PP
+Before reporting a bug, make sure that it has not yet been fixed in the
+Alpha patches which can be found at:
+ 
+.nf
+.ft 3
+.in +0.3i
+http://www.poboxes.com/Alain.Knaff/mtools
+ftp://www.tux.org/pub/knaff/mtools
+.fi
+.in -0.3i
+.ft R
+.lp
+ 
+\&\fR
+.PP
+Note: It is highly probable that the innet address will cease to exist after
+November 1997.  The wauug address is permanent.
+.PP
+These patches are named
+\&\fR\&\f(CWmtools-\fR\fIversion\fR\fR\&\f(CW-\fR\fIddmm\fR\fR\&\f(CW.taz\fR, where version
+stands for the base version, \fIdd\fR for the day and \fImm\fR for the
+month. Due to a lack of space, I usually leave only the most recent
+patch.
+.PP
+There is an mtools mailing list at mtools @ tux.org .  Please
+send all bug reports to this list.  You may subscribe to the list by
+sending a message with 'subscribe mtools @ tux.org' in its
+body to majordomo @ tux.org . (N.B. Please remove the spaces
+around the "@" both times. I left them there in order to fool
+spambots.)  Announcements of new mtools versions will also be sent to
+the list, in addition to the linux announce newsgroups.  The mailing
+list is archived at http://www.tux.org/hypermail/mtools/latest
+.PP
+.SH Common\ features\ of\ all\ mtools\ commands
+.PP
+.SS Options\ and\ filenames
+.iX "c Filenames"
+.iX "c Options"
+MS-DOS filenames are composed of a drive letter followed by a colon, a
+subdirectory, and a filename. Only the filename part is mandatory, the
+drive letter and the subdirectory are optional. Filenames without a
+drive letter refer to Unix files. Subdirectory names can use either the
+\&'\fR\&\f(CW/\fR' or '\fR\&\f(CW\e\fR' separator.  The use of the '\fR\&\f(CW\e\fR' separator
+or wildcards requires the names to be enclosed in quotes to protect them
+from the shell. However, wildcards in Unix filenames should not be
+enclosed in quotes, because here we \fBwant\fR the shell to expand
+them.
+.PP
+The regular expression "pattern matching" routines follow the Unix-style
+rules.  For example, `\fR\&\f(CW*\fR' matches all MS-DOS files in lieu of
+`\fR\&\f(CW*.*\fR'.  The archive, hidden, read-only and system attribute bits
+are ignored during pattern matching.
+.PP
+All options use the \fR\&\f(CW-\fR (minus) as their first character, not
+\&\fR\&\f(CW/\fR as you'd expect in MS-DOS.
+.PP
+Most mtools commands allow multiple filename parameters, which
+doesn't follow MS-DOS conventions, but which is more user-friendly.
+.PP
+Most mtools commands allow options that instruct them how to handle file
+name clashes. See section name clashes, for more details on these. All
+commands accept the \fR\&\f(CW-V\fR flags which prints the version, and most
+accept the \fR\&\f(CW-v\fR flag, which switches on verbose mode. In verbose
+mode, these commands print out the name of the MS-DOS files upon which
+they act, unless stated otherwise. See section Commands, for a description of
+the options which are specific to each command.
+.PP
+.SS Drive\ letters
+.PP
+The meaning of the drive letters depends on the target architectures.
+However, on most target architectures, drive A is the first floppy
+drive, drive B is the second floppy drive (if available), drive J is a
+Jaz drive (if available), and drive Z is a Zip drive (if available).  On
+those systems where the device name is derived from the SCSI id, the Jaz
+drive is assumed to be at Scsi target 4, and the Zip at Scsi target 5
+(factory default settings).  On Linux, both drives are assumed to be the
+second drive on the Scsi bus (/dev/sdb). The default settings can be
+changes using a configuration file (See section Configuration).
+.PP
+.SS Current\ working\ directory
+.iX "p mcd (introduction)"
+.iX "c Directory"
+.iX "c Working directory"
+.iX "c Current working directory"
+.iX "c Default directory"
+.PP
+The \fR\&\f(CWmcd\fR command (\(ifmcd\(is) is used to establish the device and
+the current working directory (relative to the MS-DOS filesystem),
+otherwise the default is assumed to be \fR\&\f(CWA:/\fR. However, unlike
+MS-DOS, there is only one working directory for all drives, and not one
+per drive.
+.PP
+.SS VFAT-style\ long\ file\ names
+.iX "c Long file name"
+.iX "c Windows 95-style file names"
+.iX "c VFAT-style file names"
+.iX "c Primary file name (long names)"
+.iX "c Secondary file name (long names)"
+.PP
+This version of mtools supports VFAT style long filenames. If a Unix
+filename is too long to fit in a short DOS name, it is stored as a
+VFAT long name, and a companion short name is generated. This short
+name is what you see when you examine the disk with a pre-7.0 version
+of DOS.
+ The following table shows some examples of short names:
+.PP
+ 
+.nf
+.ft 3
+.in +0.3i
+Long name       MS-DOS name      Reason for the change
+---------       ----------      ---------------------
+thisisatest     THISIS~1        filename too long
+alain.knaff     ALAIN~1.KNA     extension too long
+prn.txt         PRN~1.TXT       PRN is a device name
+\&\&.abc            ABC~1           null filename
+hot+cold        HOT_CO~1        illegal character
+.fi
+.in -0.3i
+.ft R
+.lp
+ 
+\&\fR
+.PP
+ As you see, the following transformations happen to derive a short
+name:
+.TP
+* \ \ 
+Illegal characters are replaced by underscores. The illegal characters
+are \fR\&\f(CW;+=[]',\e"*\e\e<>/?:|\fR.
+.TP
+* \ \ 
+Extra dots, which cannot be interpreted as a main name/extension
+separator are removed
+.TP
+* \ \ 
+A \fR\&\f(CW~\fR\fIn\fR number is generated,
+.TP
+* \ \ 
+The name is shortened so as to fit in the 8+3 limitation
+.PP
+ The initial Unix-style file name (whether long or short) is also called
+the \fIprimary\fR name, and the derived short name is also called the
+\&\fIsecondary\fR name.
+.PP
+ Example:
+ 
+.nf
+.ft 3
+.in +0.3i
+ mcopy /etc/motd a:Reallylongname
+.fi
+.in -0.3i
+.ft R
+.lp
+ 
+\&\fR Mtools creates a VFAT entry for Reallylongname, and uses REALLYLO as
+a short name. Reallylongname is the primary name, and REALLYLO is the
+secondary name.
+ 
+.nf
+.ft 3
+.in +0.3i
+ mcopy /etc/motd a:motd
+.fi
+.in -0.3i
+.ft R
+.lp
+ 
+\&\fR Motd fits into the DOS filename limits. Mtools doesn't need to
+derivate another name. Motd is the primary name, and there is no
+secondary name.
+.PP
+ In a nutshell: The primary name is the long name, if one exists, or
+the short name if there is no long name.
+.PP
+ Although VFAT is much more flexible than FAT, there are still names
+that are not acceptable, even in VFAT. There are still some illegal
+characters left (\fR\&\f(CW\e"*\e\e<>/?:|\fR), and device names are still
+reserved.
+.PP
+ 
+.nf
+.ft 3
+.in +0.3i
+Unix name       Long name      Reason for the change
+---------       ----------      ---------------------
+prn             prn-1           PRN is a device name
+ab:c            ab_c-1          illegal character
+.fi
+.in -0.3i
+.ft R
+.lp
+ 
+\&\fR
+.PP
+ As you see, the following transformations happen if a long name is
+illegal:
+.TP
+* \ \ 
+Illegal characters are replaces by underscores,
+.TP
+* \ \ 
+A \fR\&\f(CW-\fR\fIn\fR number is generated,
+.PP
+.SS Name\ clashes
+.iX "c Name clashes"
+.iX "c Duplicate file names"
+.iX "c Overwriting files"
+.iX "c Primary file name (name clashes)"
+.iX "c Secondary file name (name clashes)"
+.PP
+When writing a file to disk, its long name or short name may collide
+with an already existing file or directory. This may happen for all
+commands which create new directory entries, such as \fR\&\f(CWmcopy\fR,
+\&\fR\&\f(CWmmd\fR, \fR\&\f(CWmren\fR, \fR\&\f(CWmmove\fR, \fR\&\f(CWmwrite\fR and
+\&\fR\&\f(CWmread\fR. When a name clash happens, mtools asks you what it should
+do. It offers several choices:
+.TP
+\&\fR\&\f(CWoverwrite\fR\ 
+Overwrites the existing file. It is not possible to overwrite a
+directory with a file.
+.TP
+\&\fR\&\f(CWrename\fR\ 
+Renames the newly created file. Mtools prompts for the new filename
+.TP
+\&\fR\&\f(CWautorename\fR\ 
+Renames the newly created file. Mtools chooses a name by itself, without
+prompting
+.TP
+\&\fR\&\f(CWskip\fR\ 
+Gives up on this file, and moves on to the next (if any)
+.PP
+To chose one of these actions, type its first letter at the prompt. If
+you use a lower case letter, the action only applies for this file only,
+if you use an upper case letter, the action applies to all files, and
+you won't be prompted again.
+.PP
+You may also chose actions (for all files) on the command line, when
+invoking mtools:
+.TP
+\&\fR\&\f(CW-o\fR\ 
+Overwrites primary names by default.
+.TP
+\&\fR\&\f(CW-O\fR\ 
+Overwrites secondary names by default.
+.TP
+\&\fR\&\f(CW-r\fR\ 
+Renames primary name by default.
+.TP
+\&\fR\&\f(CW-R\fR\ 
+Renames secondary name by default.
+.TP
+\&\fR\&\f(CW-a\fR\ 
+Autorenames primary name by default.
+.TP
+\&\fR\&\f(CW-A\fR\ 
+Autorenames secondary name by default.
+.TP
+\&\fR\&\f(CW-s\fR\ 
+Skip primary name by default.
+.TP
+\&\fR\&\f(CW-S\fR\ 
+Skip secondary name by default.
+.TP
+\&\fR\&\f(CW-m\fR\ 
+Ask user what to do with primary name.
+.TP
+\&\fR\&\f(CW-M\fR\ 
+Ask user what to do with secondary name.
+.PP
+Note that for command line switches lower/upper differentiates between
+primary/secondary name whereas for interactive choices, lower/upper
+differentiates between just-this-time/always.
+.PP
+The primary name is the name as displayed in Windows 95 or Windows NT:
+i.e. the long name if it exists, and the short name otherwise.  The
+secondary name is the "hidden" name, i.e. the short name if a long name
+exists.
+.PP
+By default, the user is prompted if the primary name clashes, and the
+secondary name is autorenamed.
+.PP
+If a name clash occurs in a Unix directory, mtools only asks whether
+to overwrite the file, or to skip it.
+.PP
+.SS Case\ sensitivity\ of\ the\ VFAT\ filesystem
+.iX "c Case sensitivity"
+.PP
+The VFAT filesystem is able to remember the case of the
+filenames. However, filenames which differ only in case are not allowed
+to coexist in the same directory. For example if you store a file called
+LongFileName on a VFAT filesystem, mdir shows this file as LongFileName,
+and not as Longfilename. However, if you then try to add LongFilename to
+the same directory, it is refused, because case is ignored for clash
+checks.
+.PP
+The VFAT filesystem allows to store the case of a filename in the
+attribute byte, if all letters of the filename are the same case, and if
+all letters of the extension are the same case too. Mtools uses this
+information when displaying the files, and also to generate the Unix
+filename when mcopying to a Unix directory. This may have unexpected
+results when applied to files written using an pre-7.0 version of DOS:
+Indeed, the old style filenames map to all upper case. This is different
+from the behavior of the old version of mtools which used to generate
+lower case Unix filenames.
+.PP
+.SS high\ capacity\ formats
+.iX "c Special formats"
+.iX "c High capacity formats"
+.iX "c Odd formats"
+.iX "c Weird formats"
+.iX "c Formats, high capacity"
+.iX "c Linux enhancements (High Capacity Formats)"
+.PP
+Mtools supports a number of formats which allow to store more data on
+disk as usual. Due to different operating system abilities, these
+formats are not supported on all OS'es. Mtools recognizes these formats
+transparently where supported.
+.PP
+In order to format these disks, you need to use an operating system
+specific tool. For Linux, suitable floppy tools can be found in the
+\&\fR\&\f(CWfdutils\fR package at the following locations~:
+ 
+.nf
+.ft 3
+.in +0.3i
+\&\fR\&\f(CWftp://www.tux.org/pub/knaff/fdutils/.
+\&\fR\&\f(CWftp://sunsite.unc.edu/pub/Linux/utils/disk-management/fdutils-*
+.fi
+.in -0.3i
+.ft R
+.lp
+ 
+\&\fR
+.PP
+See the manpages included in that package for further detail: Use
+\&\fR\&\f(CWsuperformat\fR to format all formats except XDF, and use
+\&\fR\&\f(CWxdfcopy\fR to format XDF.
+.PP
+.SS \ \ More\ sectors
+.iX "c fdformat"
+.iX "c vgacopy"
+.iX "c DMF disks"
+.iX "c Windows 95 (DMF disks)"
+.PP
+The oldest method of fitting more data on a disk is to use more sectors
+and more cylinders. Although the standard format uses 80 cylinders and
+18 sectors (on a 3 1/2 high density disk), it is possible to use up to
+83 cylinders (on most drives) and up to 21 sectors. This method allows
+to store up to 1743K on a 3 1/2 HD disk. However, 21 sector disks are
+twice as slow as the standard 18 sector disks because the sectors are
+packed so close together that we need to interleave them. This problem
+doesn't exist for 20 sector formats.
+.PP
+These formats are supported by numerous DOS shareware utilities such as
+\&\fR\&\f(CWfdformat\fR and \fR\&\f(CWvgacopy\fR. In his infinite hybris, Bill Gate$
+believed that he invented this, and called it \fR\&\f(CW\(ifDMF disks\(is\fR, or
+\&\fR\&\f(CW\(ifWindows formatted disks\(is\fR. But in reality, it has already existed
+years before! Mtools supports these formats on Linux, on SunOs and on
+the DELL Unix PC.
+.PP
+.SS \ \ Bigger\ sectors
+.iX "c 2m"
+By using bigger sectors it is possible to go beyond the capacity which
+can be obtained by the standard 512-byte sectors. This is because of the
+sector header. The sector header has the same size, regardless of how
+many data bytes are in the sector. Thus, we save some space by using
+\&\fIfewer\fR, but bigger sectors. For example, 1 sector of 4K only takes
+up header space once, whereas 8 sectors of 512 bytes have also 8
+headers, for the same amount of useful data.
+.PP
+This method allows to store up to 1992K on a 3 1/2 HD disk.
+.PP
+Mtools supports these formats only on Linux.
+.PP
+.SS \ \ 2m
+.iX "c 2m"
+.PP
+The 2m format was originally invented by Ciriaco Garcia de Celis. It
+also uses bigger sectors than usual in order to fit more data on the
+disk.  However, it uses the standard format (18 sectors of 512 bytes
+each) on the first cylinder, in order to make these disks easyer to
+handle by DOS. Indeed this method allows to have a standard sized
+bootsector, which contains a description of how the rest of the disk
+should be read.
+.PP
+However, the drawback of this is that the first cylinder can hold less
+data than the others. Unfortunately, DOS can only handle disks where
+each track contains the same amount of data. Thus 2m hides the fact that
+the first track contains less data by using a \fIshadow
+FAT\fR. (Usually, DOS stores the FAT in two identical copies, for
+additional safety.  XDF stores only one copy, and it tells DOS that it
+stores two. Thus the same that would be taken up by the second FAT copy
+is saved.) This also means that your should \fBnever use a 2m disk
+to store anything else than a DOS fs\fR.
+.PP
+Mtools supports these format only on Linux.
+.PP
+.SS \ \ XDF
+.iX "c XDF disks"
+.iX "c OS/2 (XDF disks)"
+.PP
+XDF is a high capacity format used by OS/2. It can hold 1840 K per
+disk. That's lower than the best 2m formats, but its main advantage is
+that it is fast: 600 milliseconds per track. That's faster than the 21
+sector format, and almost as fast as the standard 18 sector format. In
+order to access these disks, make sure mtools has been compiled with XDF
+support, and set the \fR\&\f(CWuse_xdf\fR variable for the drive in the
+configuration file. See section Compiling mtools and \(ifmisc variables\(is,
+for details on how to do this. Fast XDF access is only available for
+Linux kernels which are more recent than 1.1.34.
+.PP
+Mtools supports this format only on Linux.
+.PP
+\&\fBCaution / Attention distributors\fR: If mtools is compiled on a
+Linux kernel more recent than 1.3.34, it won't run on an older
+kernel. However, if it has been compiled on an older kernel, it still
+runs on a newer kernel, except that XDF access is slower. It is
+recommended that distribution authors only include mtools binaries
+compiled on kernels older than 1.3.34 until 2.0 comes out. When 2.0 will
+be out, mtools binaries compiled on newer kernels may (and should) be
+distributed. Mtools binaries compiled on kernels older than 1.3.34 won't
+run on any 2.1 kernel or later.
+.PP
+.SS Exit\ codes
+All the Mtools commands return 0 on success, 1 on utter failure, or 2
+on partial failure.  All the Mtools commands perform a few sanity
+checks before going ahead, to make sure that the disk is indeed an
+MS-DOS disk (as opposed to, say an ext2 or minix disk). These checks
+may reject partially corrupted disks, which might otherwise still be
+readable. To avoid these checks, set the MTOOLS_SKIP_CHECK
+environmental variable or the corresponding configuration file variable
+(see section  global variables)
+.SS Bugs
+An unfortunate side effect of not guessing the proper device (when
+multiple disk capacities are supported) is an occasional error message
+from the device driver.  These can be safely ignored.  
+.PP
+The fat checking code chokes on 1.72 Mb disks mformatted with pre-2.0.7
+mtools. Set the environmental variable MTOOLS_FAT_COMPATIBILITY (or the
+corresponding configuration file variable, \(ifglobal variables\(is) to
+bypass the fat checking.
+.PP
+.SH How\ to\ configure\ mtools\ for\ your\ environment
+.SS Description
+.iX "c Configuration files"
+.iX "v MTOOLSRC"
+.PP
+ This sections explains the syntax of the configurations files for
+mtools. The configuration files are called
+\&\fR\&\f(CW\(if/usr/local/etc/mtools.conf\(is\fR and \fR\&\f(CW\(if~/.mtoolsrc\(is\fR. If the
+environmental variable \fR\&\f(CWMTOOLSRC\fR is set, its contents is used as
+the filename for a third configuration file. These configuration files
+describe the following items:
+.TP
+* \ Global\ configuration\ flags\ and\ variables\ 
+.TP
+* \ Per\ drive\ flags\ and\ variables\ 
+.TP
+* \ Character\ translation\ tables\ 
+.PP
+.SS Location\ of\ the\ configuration\ files
+.PP
+.iX "c Configuration file name"
+.iX "c Name of configuration files"
+.iX "c Location of configuration files"
+.PP
+\&\fR\&\f(CW\(if/usr/local/etc/mtools.conf\(is\fR is the system-wide configuration file,
+and \fR\&\f(CW\(if~/.mtoolsrc\(is\fR is the user's private configuration file.
+.PP
+On some systems, the system-wide configuration file is called
+\&\fR\&\f(CW\(if/etc/defaults/mtools.conf\(is\fR instead.
+.PP
+.SS \ \ General\ configuration\ file\ syntax
+.iX "c Syntax of the configuration file"
+.iX "c Configuration file syntax"
+.PP
+The configuration files is made up of sections. Each section starts
+with a keyword identifying the section followed by a colon.
+Then follow variable assignments and flags. Variable assignments take
+the following form:
+.(l I
+name=value
+.)l
+ 
+Flags are lone keywords without an equal sign and value following
+them.  A section either ends at the end of the file or where the next
+section begins.
+.PP
+Lines starting with a hash (\fR\&\f(CW#\fR) are comments. Newline characters
+are equivalent to whitespace (except where ending a comment). The
+configuration file is case insensitive, except for item enclosed in
+quotes (such as filenames).
+.PP
+.SS Default\ values
+.iX "c Default values"
+.iX "c Default configuration"
+.iX "c Configuration file"
+For most platforms, mtools contains reasonable compiled-in defaults for
+physical floppy drives.  Thus, you usually don't need to bother with the
+configuration file, if all you want to do with mtools is to access your
+floppy drives. On the other hand, the configuration file is needed if
+you also want to use mtools to access your hard disk partitions and
+dosemu image files.
+.PP
+.SS Global\ variables
+.iX "c Global configuration variables"
+.iX "c Drive independent configuration variables"
+.iX "c Environmental variables"
+.iX "v MTOOLS_SKIP_CHECK"
+.iX "v MTOOLS_FAT_COMPATIBILITY"
+.iX "v MTOOLS_LOWER_CASE"
+.iX "v MTOOLS_NO_VFAT"
+.iX "c FreeDos"
+.PP
+Global flags may be set to 1 or to 0.
+.PP
+The following global flags are recognized:
+.TP
+\&\fR\&\f(CWMTOOLS_SKIP_CHECK\fR\ 
+If this is set to 1, mtools skips most of its sanity checks. This is
+needed to read some Atari disks which have been made with the earlier
+ROMs, and which would not be recognized otherwise.
+.TP
+\&\fR\&\f(CWMTOOLS_FAT_COMPATIBILITY\fR\ 
+If this is set to 1, mtools skips the fat size checks. Some disks have
+a bigger FAT than they really need to. These are rejected if this
+option is not set.
+.TP
+\&\fR\&\f(CWMTOOLS_LOWER_CASE\fR\ 
+If this is set to 1, mtools displays all-upper-case short filenames as
+lowercase. This has been done to allow a behavior which is consistent
+with older versions of mtools which didn't know about the case bits.
+.TP
+\&\fR\&\f(CWMTOOLS_NO_VFAT\fR\ 
+If this is set to 1, mtools won't generate VFAT entries for filenames
+which are mixed-case, but otherwise legal dos filenames.  This is useful
+when working with DOS versions which can't grok VFAT longnames, such as
+FreeDos.
+.TP
+\&\fR\&\f(CWMTOOLS_DOTTED_DIR\fR\ 
+In a wide directory, prints the short name with a dot instead of spaces
+separating the basename and the extension.
+.TP
+\&\fR\&\f(CWMTOOLS_NAME_NUMERIC_TAIL\fR\ 
+If this is set to one (default), generate numeric tails for all long
+names (~1).  If set to zero, only generate numeric tails if otherwise a
+clash would have happened.
+.TP
+\&\fR\&\f(CWMTOOLS_TWENTY_FOUR_HOUR_CLOCK\fR\ 
+If 1, uses the European notation for times (twenty four hour clock),
+else uses the UK/US notation (am/pm)
+.PP
+Example:
+Inserting the following line into your configuration file instructs
+mtools to skip the sanity checks:
+ 
+.nf
+.ft 3
+.in +0.3i
+  MTOOLS_SKIP_CHECK=1
+.fi
+.in -0.3i
+.ft R
+.lp
+ 
+\&\fR
+.PP
+Global variables may also be set via the environment:
+ 
+.nf
+.ft 3
+.in +0.3i
+  export MTOOLS_SKIP_CHECK=1
+.fi
+.in -0.3i
+.ft R
+.lp
+ 
+\&\fR
+.PP
+Global string variables may be set to any value:
+.TP
+\&\fR\&\f(CWMTOOLS_DATE_STRING\fR\ 
+The format used for printing dates of files.  By default, is dd-mm-yyyy.
+.PP
+.SS Per\ drive\ flags\ and\ variables
+.iX "c Drive description"
+.iX "c Drive configuration"
+.PP
+.SS \ \ General\ information
+.iX "c Drive description, example"
+.iX "c Drive configuration, example"
+.iX "v drive"
+.PP
+Per drive flags and values may be described in a drive section. A
+drive section starts with
+\&\fR\&\f(CWdrive\fR "\fIdriveletter\fR" :
+.PP
+Then follow variable-value pairs and flags.
+.PP
+This is a sample drive description:
+ 
+.nf
+.ft 3
+.in +0.3i
+  drive a:
+    file="/dev/fd0" use_xdf=1
+.fi
+.in -0.3i
+.ft R
+.lp
+ 
+\&\fR
+.PP
+.SS \ \ Disk\ Geometry\ Configuration
+.iX "c Disk Geometry"
+.iX "c Configuration of disk geometry"
+.iX "c Description of disk geometry"
+.iX "c Format of disk"
+.iX "c High density disk"
+.iX "c Low density disk"
+.iX "p mformat (geometry used for)"
+.PP
+Geometry information describes the physical characteristics about the
+disk. Its has three purposes:
+.TP
+formatting\ 
+The geometry information is written into the boot sector of the newly
+made disk. However, you may also describe the geometry information on
+the command line. See section mformat for details.
+.TP
+filtering\ 
+On some Unices there are device nodes which only support one physical
+geometry. For instance, you might need a different node to access a disk
+as high density or as low density. The geometry is compared to the
+actual geometry stored on the boot sector to make sure that this device
+node is able to correctly read the disk. If the geometry doesn't match,
+this drive entry fails, and the next drive entry bearing the same drive
+letter is tried. See section multiple descriptions for more details on
+supplying several descriptions for one drive letter.
+.IP
+If no geometry information is supplied in the configuration file, all
+disks are accepted. On Linux (and on Sparc) there exist device nodes
+with configurable geometry (\fR\&\f(CW\(if/dev/fd0\(is\fR, \fR\&\f(CW\(if/dev/fd1\(is\fR etc),
+and thus filtering is not needed (and ignored) for disk drives.  (Mtools
+still does do filtering on plain files (disk images) in Linux: this is
+mainly intended for test purposes, as I don't have access to a Unix
+which would actually need filtering).
+.IP
+If you do not need filtering, but want still a default geometry for
+mformatting, you may switch off filtering using the \fR\&\f(CWmformat_only\fR
+flag.
+.TP
+initial\ geometry\ 
+On devices that support it (usually floppy devices), the geometry
+information is also used to set the initial geometry. This initial
+geometry is applied while reading the boot sector, which contains the
+real geometry.  If no geometry information is supplied in the
+configuration file, or if the \fR\&\f(CWmformat_only\fR flag is supplied, no
+initial configuration is done.
+.IP
+On Linux, initial geometry is not really needed, as the configurable
+devices are able to auto-detect the disk type accurately enough (for
+most common formats) to read the boot sector.
+.PP
+Wrong geometry information may lead to very bizarre errors. That's why I
+strongly recommend that you add the \fR\&\f(CWmformat_only\fR flag to your
+drive description, unless you really need filtering or initial geometry.
+.PP
+The following geometry related variables are available:
+.TP
+\&\fR\&\f(CWcylinders\fR\ 
+.TQ
+\&\fR\&\f(CWtracks\fR
+.iX "v cylinders"
+.iX "v tracks"
+The number of cylinders. (\fR\&\f(CWcylinders\fR is the preferred form,
+\&\fR\&\f(CWtracks\fR is considered obsolete)
+.TP
+\&\fR\&\f(CWheads\fR\ 
+.iX "v heads"
+The number of heads (sides).
+.TP
+\&\fR\&\f(CWsectors\fR\ 
+.iX "v sectors"
+The number of sectors per track.
+.PP
+Example: the following drive section describes a 1.44M drive:
+.PP
+ 
+.nf
+.ft 3
+.in +0.3i
+  drive a:
+      file="/dev/fd0H1440"
+      fat_bits=12
+      cylinders=80 heads=2 sectors=18
+.fi
+.in -0.3i
+.ft R
+.lp
+ 
+\&\fR
+.PP
+The following shorthand geometry descriptions are available:
+.TP
+\&\fR\&\f(CW1.44m\fR\ 
+high density 3 1/2 disk. Equivalent to:
+\&\fR\&\f(CWfat_bits=12 cylinders=80 heads=2 sectors=18\fR
+.TP
+\&\fR\&\f(CW1.2m\fR\ 
+high density 5 1/4 disk. Equivalent to:
+\&\fR\&\f(CWfat_bits=12 cylinders=80 heads=2 sectors=15\fR
+.TP
+\&\fR\&\f(CW720k\fR\ 
+double density 3 1/2 disk. Equivalent to:
+\&\fR\&\f(CWfat_bits=12 cylinders=80 heads=2 sectors=9\fR
+.TP
+\&\fR\&\f(CW360k\fR\ 
+double density 5 1/4 disk. Equivalent to:
+\&\fR\&\f(CWfat_bits=12 cylinders=40 heads=2 sectors=9\fR
+.PP
+The shorthand format descriptions may be amended. For example,
+\&\fR\&\f(CW360k sectors=8\fR
+describes a 320k disk and is equivalent to:
+\&\fR\&\f(CWfat_bits=12 cylinders=40 heads=2 sectors=8\fR
+.PP
+.SS \ \ Open\ Flags
+.iX "v sync"
+.iX "v nodelay"
+.iX "v exclusive"
+.iX "c open flags"
+.iX "c synchronous writing"
+.iX "c exclusive access to a drive"
+.PP
+Moreover, the following flags are available:
+.TP
+\&\fR\&\f(CWsync\fR\ 
+All i/o operations are done synchronously
+.TP
+\&\fR\&\f(CWnodelay\fR\ 
+The device or file is opened with the O_NDELAY flag. This is needed on
+some non-Linux architectures.
+.TP
+\&\fR\&\f(CWexclusive\fR\ 
+The device or file is opened with the O_EXCL flag. On Linux, this
+ensures exclusive access to the floppy drive. On most other
+architectures, and for plain files it has no effect at all.
+.PP
+.SS General\ Purpose\ Drive\ Variables
+.iX "c Hdimage"
+.PP
+The following general purpose drive variables are available.  Depending
+to their type, these variables can be set to a string (file, precmd) or
+an integer (all others)
+.TP
+\&\fR\&\f(CWfile\fR\ 
+.iX "c Image file"
+.iX "c Name of device node"
+.iX "c File name of device node"
+.iX "v file"
+The name of the file or device holding the disk image. This is
+mandatory. The file name should be enclosed in quotes.
+.TP
+\&\fR\&\f(CWpartition\fR\ 
+.iX "c Dosemu hard disk image"
+.iX "c Zip disks (partitions)"
+.iX "c Jaz disks (partitions)"
+.iX "c Syquest disks"
+.iX "c Magneto-optical disks"
+.iX "c OS/2 (layout of removable media)"
+.iX "c Windows NT (layout of removable media)"
+.iX "c Removable media"
+.iX "c Partitioned image file"
+Tells mtools to treat the drive as a partitioned device, and to use the
+given partition. Only primary partitions are accessible using this
+method, and they are numbered from 1 to 4. For logical partitions, use
+the more general \fR\&\f(CWoffset\fR variable. The \fR\&\f(CWpartition\fR variable
+is intended for removable media such as Syquests, ZIP drives, and
+magneto-optical disks. Although traditional DOS sees Syquests and
+magneto-optical disks as \fR\&\f(CW\(ifgiant floppy disks\(is\fR which are
+unpartitioned, OS/2 and Windows NT treat them like hard disks,
+i.e. partioned devices. The \fR\&\f(CWpartition\fR flag is also useful DOSEMU
+hdimages. It is not recommended for hard disks for which direct access
+to partitions is available through mounting.
+.TP
+\&\fR\&\f(CWoffset\fR\ 
+.iX "c Ram disk"
+.iX "c Atari Ram disk"
+Describes where in the file the MS-DOS filesystem starts. This is useful
+for logical partitions in DOSEMU hdimages, and for ATARI ram disks. By
+default, this is zero, meaning that the filesystem starts right at the
+beginning of the device or file.
+.TP
+\&\fR\&\f(CWfat_bits\fR\ 
+.iX "v fat_bits"
+The number of FAT bits. This may be 12 or 16. This is very rarely
+needed, as it can almost always be deduced from information in the
+boot sector. On the contrary, describing the number of fat bits may
+actually be harmful if you get it wrong. You should only use it if
+mtools gets the autodetected number of fat bits wrong, or if you want
+to mformat a disk with a weird number of fat bits.
+.TP
+\&\fR\&\f(CWprecmd\fR\ 
+.iX "c Solaris (volcheck)"
+.iX "c Executing commands before opening the device"
+.IP
+On some variants of Solaris, it is necessary to call 'volcheck -v'
+before opening a floppy device, in order for the system to notice that
+there is indeed a disk in the drive. \fR\&\f(CWprecmd="volcheck -v"\fR in the
+drive clause establishes the desired behavior.
+.TP
+\&\fR\&\f(CWblocksize\fR\ 
+.iX "c raw device"
+.iX "c character devices"
+.iX "c blocksize"
+.IP
+This parameter represents a default block size to be always used on this
+device.  All I/O is done with multiples of this block size,
+independantly of the sector size registered in the filesystem's boot
+sector.  This is useful for character devices whose sector size is not
+512, such as for example CD Rom drives on Solaris.
+.PP
+Only the \fR\&\f(CWfile\fR variable is mandatory. The other parameters may
+be left out. In that case a default value or an autodetected value is
+used.
+.PP
+.SS General\ Purpose\ Drive\ Flags
+.PP
+A flag can either be set to 1 (enabled) or 0 (disabled). If the value is
+ommitted, it is enabled.  For example, \fR\&\f(CWscsi\fR is equivalent to
+\&\fR\&\f(CWscsi=1\fR
+.TP
+\&\fR\&\f(CWnolock\fR\ 
+.iX "c disable locking"
+.iX "c locking (disabling it)"
+.iX "c plain floppy: device xxx busy"
+Instruct mtools to not use locking on this drive.  This is needed on
+systems with buggy locking semantics.  However, enabling this makes
+operation less safe in cases where several users may access the same
+drive at the same time.
+.TP
+\&\fR\&\f(CWscsi\fR\ 
+.iX "c setuid installation (needed for raw SCSI I/O)"
+.iX "c Solaris (Raw access to SCSI devices such as Zip & Jaz)"
+.iX "c SunOS (Raw access to SCSI devices such as Zip & Jaz)"
+.iX "c Zip disks (raw Scsi access)"
+.iX "c Jaz disks (raw Scsi access)"
+.iX "c Syquests (raw Scsi access)"
+.iX "c SCSI devices"
+When set to 1, this option tells mtools to use raw SCSI I/O instead of
+the standard read/write calls to access the device. Currently, this is
+supported on HP/UX, Solaris and SunOs.  This is needed because on some
+architectures, such as SunOs or Solaris, PC media can't be accessed
+using the \fR\&\f(CWread\fR and \fR\&\f(CWwrite\fR syscalls, because the OS expects
+them to contain a Sun specific "disk label".
+.IP
+As raw Scsi access always uses the whole device, you need to specify the
+"partition" flag in addition
+.IP
+On some architectures, such as Solaris, mtools needs root privileges to
+be able to use the \fR\&\f(CWscsi\fR option.  Thus mtools should be installed
+set uid root on Solaris if you want to access Zip/Jaz drives.  Thus, if
+the \fR\&\f(CWscsi\fR flag is given, \fR\&\f(CWprivileged\fR is automatically
+implied, unless explicitly disabled by \fR\&\f(CWprivileged=0\fR
+.IP
+Mtools uses its root privileges to open the device, and to issue the
+actual SCSI I/O calls.  Moreover, root privileges are only used for
+drives described in a system-wide configuration file such as
+\&\fR\&\f(CW\(if/usr/local/etc/mtools.conf\(is\fR, and not for those described in
+\&\fR\&\f(CW\(if~/.mtoolsrc\(is\fR or \fR\&\f(CW\(if$MTOOLSRC\(is\fR.  
+.TP
+\&\fR\&\f(CWprivileged\fR\ 
+.iX "c setuid installation"
+.iX "c setgid installation"
+When set to 1, this instructs mtools to use its set-uid and set-gid
+privileges for opening the given drive.  This option is only valid for
+drives described in the system-wide configuration files (such as
+\&\fR\&\f(CW\(if/usr/local/etc/mtools.conf\(is\fR, not \fR\&\f(CW\(if~/.mtoolsrc\(is\fR or
+\&\fR\&\f(CW\(if$MTOOLSRC\(is\fR).  Obviously, this option is also a no op if mtools is
+not installed setuid or setgid.  This option is implied by 'scsi=1', but
+again only for drives defined in system-wide configuration files.
+Privileged may also be set explicitely to 0, in order to tell mtools not
+to use its privileges for a given drive even if \fR\&\f(CWscsi=1\fR is set.
+.IP
+Mtools only needs to be installed setuid if you use the
+\&\fR\&\f(CWprivileged\fR or \fR\&\f(CWscsi\fR drive variables.  If you do not use
+these options, mtools works perfectly well even when not installed
+setuid root.
+.TP
+\&\fR\&\f(CWvold\fR\ 
+.iX "c Solaris (vold)"
+.iX "c Vold (mediamgr)"
+.IP
+Instructs mtools to interpret the device name as a vold identifier
+rather than as a filename.  The vold identifier is translated into a
+real filename using the \fR\&\f(CWmedia_findname()\fR and
+\&\fR\&\f(CWmedia_oldaliases()\fR functions of the \fR\&\f(CWvolmgt\fR library.  This
+flag is only available if you configured mtools with the
+\&\fR\&\f(CW--enable-new-vold\fR option before compilation.
+.TP
+\&\fR\&\f(CWuse_xdf\fR\ 
+.iX "c XDF disks (how to configure)"
+.iX "v use_xdf"
+If this is set to a non-zero value, mtools also tries to access this
+disk as an XDF disk. XDF is a high capacity format used by OS/2. This
+is off by default. See section XDF for more details.
+.TP
+\&\fR\&\f(CWmformat_only\fR\ 
+.iX "v mformat_only"
+Tells mtools to use the geometry for this drive only for mformatting and 
+not for filtering.
+.PP
+.SS \ \ Supplying\ multiple\ descriptions\ for\ a\ drive
+.PP
+It is possible to supply multiple descriptions for a drive. In that
+case, the descriptions are tried in order until one is found that
+fits. Descriptions may fail for several reasons:
+.TP
+1.\ 
+because the geometry is not appropriate,
+.TP
+2.\ 
+because there is no disk in the drive,
+.TP
+3.\ 
+or because of other problems.
+.PP
+Multiple definitions are useful when using physical devices which are
+only able to support one single disk geometry.
+Example:
+ 
+.nf
+.ft 3
+.in +0.3i
+  drive a: file="/dev/fd0H1440" 1.44m
+  drive a: file="/dev/fd0H720" 720k
+.fi
+.in -0.3i
+.ft R
+.lp
+ 
+\&\fR
+.PP
+This instructs mtools to use /dev/fd0H1440 for 1.44m (high density)
+disks and /dev/fd0H720 for 720k (double density) disks. On Linux, this
+feature is not really needed, as the /dev/fd0 device is able to handle
+any geometry.
+.PP
+You may also use multiple drive descriptions to access both of your
+physical drives through one drive letter:
+.PP
+ 
+.nf
+.ft 3
+.in +0.3i
+  drive z: file="/dev/fd0"
+  drive z: file="/dev/fd1"
+.fi
+.in -0.3i
+.ft R
+.lp
+ 
+\&\fR
+.PP
+With this description, \fR\&\f(CWmdir z:\fR accesses your first physical
+drive if it contains a disk. If the first drive doesn't contain a disk,
+mtools checks the second drive.
+.PP
+When using multiple configuration files, drive descriptions in the files
+parsed last override descriptions for the same drive in earlier
+files. In order to avoid this, use the \fR\&\f(CWdrive+\fR or \fR\&\f(CW+drive\fR
+keywords instead of \fR\&\f(CWdrive\fR. The first adds a description to the
+end of the list (i.e. it will be tried last), and the first adds it to
+the start of the list.
+.PP
+.SS Character\ set\ translation\ tables
+.iX "c Internationalization"
+.iX "c Accented characters"
+.iX "c National character set"
+.PP
+If you live in the USA, in Western Europe or in Australia, you may
+skip this section.
+.PP
+.SS \ \ Why\ character\ set\ translation\ tables\ are\ needed
+.PP
+DOS uses a different character code mapping than Unix. 7-bit
+characters still have the same meaning, only characters with the eight
+bit set are affected. To make matters worse, there are several
+translation tables available depending on the country where you
+are. The appearance of the characters is defined using
+code pages. These code pages aren't the same for all countries. For
+instance, some code pages don't contain upper case accented
+characters. On the other hand, some code pages contain characters which
+don't exist in Unix, such as certain line-drawing characters or
+accented consonants used by some Eastern European countries. This
+affects two things, relating to filenames:
+.TP
+upper\ case\ characters\ 
+In short names, only upper case characters are allowed. This also
+holds for accented characters. For instance, in a code page which
+doesn't contain accented uppercase characters, the accented lowercase
+characters get transformed into their unaccented counterparts.
+.TP
+long\ file\ names\ 
+Micro$oft has finally come to their senses and uses a more standard
+mapping for the long file names. They use Unicode, which is basically
+a 32 bit version of ASCII. Its first 256 characters are identical to
+Unix ASCII. Thus, the code page also affects the correspondence
+between the codes used in long names and those used in short names
+.PP
+Mtools considers the filenames entered on the command line as having the
+Unix mapping, and translates the characters to get short names.  By
+default, code page 850 is used with the Swiss uppercase/lowercase
+mapping. I chose this code page, because its set of existing characters
+most closely matches Unix's. Moreover, this code page covers most
+characters in use in the USA, Australia and Western Europe. However, it
+is still possible to chose a different mapping. There are two methods:
+the \fR\&\f(CWcountry\fR variable and explicit tables.
+.PP
+.SS \ \ Configuration\ using\ Country
+.PP
+The \fR\&\f(CWCOUNTRY\fR variable is recommended for people which also have
+access to MS-DOS system files and documentation. If you don't have access
+to these, I'd suggest you'd rather use explicit tables instead.
+.PP
+Syntax:
+.PP
+\&\fR\&\f(CWCOUNTRY="\fR\fIcountry\fR\fR\&\f(CW[,[\fR\fIcodepage\fR\fR\&\f(CW],\fR
+\&\fIcountry-file\fR\fR\&\f(CW]"\fR
+.PP
+This tells mtools to use a Unix-to-DOS translation table which matches
+\&\fIcodepage\fR and an lowercase-to-uppercase table for \fIcountry\fR and
+to use the \fIcountry-file\fR file to get the lowercase-to-uppercase
+table. The country code is most often the telephone prefix of the
+country. Refer to the DOS help page on "country" for more details. The
+\&\fIcodepage\fR and the \fIcountry-file\fR parameters are
+optional. Please don't type in the square brackets, they are only there
+to say which parameters are optional. The \fIcountry-file\fR file is
+supplied with MS-DOS, and is usually called \fR\&\f(CW\(ifCOUNTRY.SYS\(is\fR, and
+stored in the \fR\&\f(CW\(ifC:\eDOS\(is\fR directory. In most cases you don't need it,
+as the most common translation tables are compiled into mtools. So,
+don't worry if you run a Unix-only box which lacks this file.
+.PP
+If \fIcodepage\fR is not given, a per country default code page is
+used. If the \fIcountry-file\fR parameter isn't given, compiled-in
+defaults are used for the lowercase-to-uppercase table. This is useful
+for other Unices than Linux, which may have no \fR\&\f(CW\(ifCOUNTRY.SYS\(is\fR file
+available online.
+.PP
+The Unix-to-DOS are not contained in the \fR\&\f(CW\(ifCOUNTRY.SYS\(is\fR file, and
+thus mtools always uses compiled-in defaults for those. Thus, only a
+limited amount of code pages are supported. If your preferred code page
+is missing, or if you know the name of the Windows 95 file which
+contains this mapping, could you please drop me a line at
+\&\fR\&\f(CWAlain.Knaff@poboxes.com\fR.
+.PP
+The \fR\&\f(CWCOUNTRY\fR variable can also be set using the environment.
+.PP
+.SS \ \ Configuration\ using\ explicit\ translation\ tables
+.PP
+Translation tables may be described in line in the configuration
+file. Two tables are needed: first the DOS-to-Unix table, and then the
+Lowercase-to-Uppercase table. A DOS-to-Unix table starts with the
+\&\fR\&\f(CWtounix\fR
+keyword, followed by a colon, and 128 hexadecimal numbers.
+A lower-to-upper table starts with the
+\&\fR\&\f(CWfucase\fR
+keyword, followed by a colon, and 128 hexadecimal numbers.
+.PP
+The tables only show the translations for characters whose codes is
+greater than 128, because translation for lower codes is trivial.
+.PP
+Example:
+.iX "v tounix"
+.iX "v fucase"
+.PP
+ 
+.nf
+.ft 3
+.in +0.3i
+ tounix:
+   0xc7 0xfc 0xe9 0xe2 0xe4 0xe0 0xe5 0xe7 
+   0xea 0xeb 0xe8 0xef 0xee 0xec 0xc4 0xc5 
+   0xc9 0xe6 0xc6 0xf4 0xf6 0xf2 0xfb 0xf9 
+   0xff 0xd6 0xdc 0xf8 0xa3 0xd8 0xd7 0x5f 
+   0xe1 0xed 0xf3 0xfa 0xf1 0xd1 0xaa 0xba 
+   0xbf 0xae 0xac 0xbd 0xbc 0xa1 0xab 0xbb 
+   0x5f 0x5f 0x5f 0x5f 0x5f 0xc1 0xc2 0xc0 
+   0xa9 0x5f 0x5f 0x5f 0x5f 0xa2 0xa5 0xac 
+   0x5f 0x5f 0x5f 0x5f 0x5f 0x5f 0xe3 0xc3 
+   0x5f 0x5f 0x5f 0x5f 0x5f 0x5f 0x5f 0xa4 
+   0xf0 0xd0 0xc9 0xcb 0xc8 0x69 0xcd 0xce 
+   0xcf 0x5f 0x5f 0x5f 0x5f 0x7c 0x49 0x5f 
+   0xd3 0xdf 0xd4 0xd2 0xf5 0xd5 0xb5 0xfe 
+   0xde 0xda 0xd9 0xfd 0xdd 0xde 0xaf 0xb4 
+   0xad 0xb1 0x5f 0xbe 0xb6 0xa7 0xf7 0xb8 
+   0xb0 0xa8 0xb7 0xb9 0xb3 0xb2 0x5f 0x5f 
+\&\&
+ fucase:
+   0x80 0x9a 0x90 0xb6 0x8e 0xb7 0x8f 0x80 
+   0xd2 0xd3 0xd4 0xd8 0xd7 0xde 0x8e 0x8f 
+   0x90 0x92 0x92 0xe2 0x99 0xe3 0xea 0xeb 
+   0x59 0x99 0x9a 0x9d 0x9c 0x9d 0x9e 0x9f 
+   0xb5 0xd6 0xe0 0xe9 0xa5 0xa5 0xa6 0xa7 
+   0xa8 0xa9 0xaa 0xab 0xac 0xad 0xae 0xaf 
+   0xb0 0xb1 0xb2 0xb3 0xb4 0xb5 0xb6 0xb7 
+   0xb8 0xb9 0xba 0xbb 0xbc 0xbd 0xbe 0xbf 
+   0xc0 0xc1 0xc2 0xc3 0xc4 0xc5 0xc7 0xc7 
+   0xc8 0xc9 0xca 0xcb 0xcc 0xcd 0xce 0xcf 
+   0xd1 0xd1 0xd2 0xd3 0xd4 0x49 0xd6 0xd7 
+   0xd8 0xd9 0xda 0xdb 0xdc 0xdd 0xde 0xdf 
+   0xe0 0xe1 0xe2 0xe3 0xe5 0xe5 0xe6 0xe8 
+   0xe8 0xe9 0xea 0xeb 0xed 0xed 0xee 0xef 
+   0xf0 0xf1 0xf2 0xf3 0xf4 0xf5 0xf6 0xf7 
+   0xf8 0xf9 0xfa 0xfb 0xfc 0xfd 0xfe 0xff 
+.fi
+.in -0.3i
+.ft R
+.lp
+ 
+\&\fR
+.PP
+The first table maps DOS character codes to Unix character codes. For
+example, the DOS character number 129. This is a u with to dots on top
+of it. To translate it into Unix, we look at the character number 1 in
+the first table (1 = 129 - 128). This is 0xfc. (Beware, numbering
+starts at 0).
+The second table maps lower case DOS characters to upper case DOS
+characters. The same lower case u with dots maps to character 0x9a,
+which is an uppercase U with dots in DOS.
+.PP
+.SS \ \ Unicode\ characters\ greater\ than\ 256
+If an existing MS-DOS name contains Unicode character greater than 256,
+these are translated to underscores or to characters which are close
+in visual appearance. For example, accented consonants are translated
+into their unaccented counterparts. This translation is used for mdir
+and for the Unix filenames generated by mcopy. Linux does support
+Unicode too, but unfortunately too few applications support it yet to bother
+with it in mtools. Most importantly, xterm can't display Unicode
+yet. If there is sufficient demand, I might include support for
+Unicode in the Unix filenames as well.
+.PP
+\&\fBCaution:\fR
+When deleting files with mtools, the underscore matches all characters
+which can't be represented in Unix. Be careful with mdel!
+.PP
+.SS Location\ of\ configuration\ files\ and\ parsing\ order
+.iX "c Parsing order"
+.iX "c Configuration file parsing order"
+.iX "c Configuration file name (parsing order)"
+.iX "c Name of configuration files (parsing order)"
+.iX "c Location of configuration files (parsing order)"
+.PP
+The configuration files are parsed in the following order:
+.TP
+1.\ 
+compiled-in defaults
+.TP
+2.\ 
+\&\fR\&\f(CW\(if/usr/local/etc/mtools.conf\(is\fR
+.TP
+3.\ 
+\&\fR\&\f(CW\(if/etc/mtools\(is\fR
+This is for backwards compatibility only, and is only parsed if
+\&\fR\&\f(CW\(ifmtools.conf\(is\fR
+doesn't exist.
+.TP
+4.\ 
+\&\fR\&\f(CW\(if~/.mtoolsrc\(is\fR.
+.TP
+5.\ 
+\&\fR\&\f(CW\(if$MTOOLSRC\(is\fR (file pointed by the \fR\&\f(CWMTOOLSRC\fR environmental
+variable)
+.PP
+Options described in the later files override those described in the
+earlier files. Drives defined in earlier files persist if they are not
+overridden in the later files. For instance, drives A and B may be
+defined in \fR\&\f(CW\(if/usr/local/etc/mtools.conf\(is\fR and drives C and D may be
+defined in \fR\&\f(CW\(if~/.mtoolsrc\(is\fR However, if \fR\&\f(CW\(if~/.mtoolsrc\(is\fR also
+defines drive A, this new description would override the description of
+drive A in \fR\&\f(CW\(if/usr/local/etc/mtools.conf\(is\fR instead of adding to it. If
+you want to add a new description to a drive already described in an
+earlier file, you need to use either the \fR\&\f(CW+drive\fR or \fR\&\f(CWdrive+\fR
+keyword.
+.PP
+.SS Backwards\ compatibility\ with\ old\ configuration\ file\ syntax
+.iX "c Backwards compatibility"
+.iX "c Old configuration file syntax"
+.iX "c Configuration file, old syntax"
+.PP
+The syntax described herein is new for version \fR\&\f(CWmtools-3.0\fR. The
+old line-oriented syntax is still supported. Each line beginning with a
+single letter is considered to be a drive description using the old
+syntax. Old style and new style drive sections may be mixed within the
+same configuration file, in order to make upgrading easier. Support for
+the old syntax will be phased out eventually, and in order to discourage
+its use, I purposefully omit its description here.
+.PP
+.SH Command\ list
+.iX "c Command list"
+.iX "c List of available commands"
+.PP
+ This section describes the available mtools commands, and the command
+line parameters that each of them accepts. Options which are common to
+all mtools commands are not described here, \(ifarguments\(is for a
+description of those.
+.PP
+.SS Mattrib
+.iX "p mattrib"
+.iX "c Changing file attributes"
+.iX "c Hidden files"
+.iX "c Read-only files (changing the attribute)"
+.iX "c System files"
+.iX "c Archive bit"
+.PP
+\&\fR\&\f(CWMattrib\fR is used to change MS-DOS file attribute flags. It has the
+following syntax:
+.PP
+\&\fR\&\f(CWmattrib\fR [\fR\&\f(CW-a|+a\fR] [\fR\&\f(CW-h|+h\fR] [\fR\&\f(CW-r|+r\fR]
+[\fR\&\f(CW-s|+s\fR] [\fR\&\f(CW-/\fR]  [\fR\&\f(CW-X\fR] \fImsdosfile\fR [ \fImsdosfiles\fR \&... ]
+.PP
+\&\fR\&\f(CWMattrib\fR adds attribute flags to an MS-DOS file (with the
+`\fR\&\f(CW+\fR' operator) or remove attribute flags (with the `\fR\&\f(CW-\fR'
+operator).
+.PP
+\&\fR\&\f(CWMattrib\fR supports the following attribute bits:
+.TP
+\&\fR\&\f(CWa\fR\ 
+Archive bit.  Used by some backup programs to indicate a new file.
+.TP
+\&\fR\&\f(CWr\fR\ 
+Read-only bit.  Used to indicate a read-only file.  Files with this bit
+set cannot be erased by \fR\&\f(CWDEL\fR nor modified.
+.TP
+\&\fR\&\f(CWs\fR\ 
+System bit.  Used by MS-DOS to indicate a operating system file.
+.TP
+\&\fR\&\f(CWh\fR\ 
+Hidden bit.  Used to make files hidden from \fR\&\f(CWDIR\fR.
+.PP
+\&\fR\&\f(CWMattrib\fR supports the following command line flags:
+.TP
+\&\fR\&\f(CW/\fR\ 
+Recursive.  Recursively list the attributes of the files in the subdirectories.
+.TP
+\&\fR\&\f(CWX\fR\ 
+Concise. Prints the attributes whithout any whitespace padding.  This is 
+convenient for script.  If neither the "/" option is given, nor the
+\&\fImsdosfile\fR contains a wildcard, and there is only one Msdos file
+parameter on the command line, only the attribute is printed, and not
+the filename.
+This option is convenient for scripts
+.PP
+.SS Mbadblocks
+.PP
+The \fR\&\f(CWmbadblocks\fR command is used to scan an MS-DOS floppy and mark
+its unused bad blocks as bad. It uses the following syntax:
+.PP
+\&\fR\&\f(CWmbadblocks\fR \fIdrive\fR\fR\&\f(CW:\fR
+.iX "p mbadblocks"
+.iX "c Marking blocks as bad"
+.iX "c Bad blocks"
+.iX "c Read errors"
+.PP
+\&\fR\&\f(CWMbadblocks\fR scans an MS-DOS floppy for bad blocks. All unused bad
+blocks are marked as such in the FAT. This is intended to be used right
+after \fR\&\f(CWmformat\fR.  It is not intended to salvage bad disks.
+.SS \ \ Bugs
+\&\fR\&\f(CWMbadblocks\fR should (but doesn't yet :-( ) also try to salvage bad
+blocks which are in use by reading them repeatedly, and then mark them
+bad.
+.PP
+.SS Mcd
+.iX "p mcd"
+.iX "c Directory (changing)"
+.iX "c Working directory"
+.iX "c Current working directory (changing the)"
+.iX "c Default directory (changing the)"
+.iX "c Mcwd file"
+.PP
+The \fR\&\f(CWmcd\fR command is used to change the mtools working directory
+on the MS-DOS disk. It uses the following syntax:
+.PP
+ 
+.nf
+.ft 3
+.in +0.3i
+\&\fR\&\f(CWmcd [\fImsdosdirectory\fR\&\f(CW]
+.fi
+.in -0.3i
+.ft R
+.lp
+ 
+\&\fR
+.PP
+Without arguments, \fR\&\f(CWmcd\fR reports the current device and working
+directory.  Otherwise, \fR\&\f(CWmcd\fR changes the current device and current
+working directory relative to an MS-DOS filesystem.
+.PP
+The environmental variable \fR\&\f(CWMCWD\fR may be used to locate the file
+where the device and current working directory information is stored.
+The default is \fR\&\f(CW\(if$HOME/.mcwd\(is\fR.  Information in this file is ignored
+if the file is more than 6 hours old.
+.PP
+\&\fR\&\f(CWMcd\fR returns 0 on success or 1 on failure.
+.PP
+Unlike MS-DOS versions of \fR\&\f(CWCD\fR, \fR\&\f(CWmcd\fR can be used to change to
+another device. It may be wise to remove old \fR\&\f(CW\(if.mcwd\(is\fR files at logout.
+.PP
+.SS Mcopy
+.iX "p mcopy"
+.iX "c Reading MS-DOS files"
+.iX "c Writing MS-DOS files"
+.iX "c Copying MS-DOS files"
+.iX "c Concatenating MS-DOS files"
+.iX "c Text files"
+.iX "c CR/LF conversions"
+.PP
+The \fR\&\f(CWmcopy\fR command is used to copy MS-DOS files to and from
+Unix. It uses the following syntax:
+.PP
+ 
+.nf
+.ft 3
+.in +0.3i
+\&\fR\&\f(CWmcopy [\fR\&\f(CW-b/ptnvmoQOsSrRA] \fIsourcefile\fR\&\f(CW \fItargetfile\fR\&\f(CW
+\&\fR\&\f(CWmcopy [\fR\&\f(CW-b/ptnvmoQOsSrRA] \fIsourcefile\fR\&\f(CW [ \fIsourcefiles\fR\&\f(CW\&... ] \fItargetdirectory\fR\&\f(CW
+\&\fR\&\f(CWmcopy [\fR\&\f(CW-tnvm] \fIMSDOSsourcefile\fR\&\f(CW
+.fi
+.in -0.3i
+.ft R
+.lp
+ 
+\&\fR
+.PP
+\&\fR\&\f(CWMcopy\fR copies the specified file to the named file, or copies
+multiple files to the named directory.  The source and target can be
+either MS-DOS or Unix files.
+.PP
+The use of a drive letter designation on the MS-DOS files, 'a:' for
+example, determines the direction of the transfer.  A missing drive
+designation implies a Unix file whose path starts in the current
+directory.  If a source drive letter is specified with no attached file
+name (e.g. \fR\&\f(CWmcopy a: .\fR), all files are copied from that drive.
+.PP
+If only a single, MS-DOS source parameter is provided (e.g. "mcopy
+a:foo.exe"), an implied destination of the current directory
+(`\fR\&\f(CW.\fR') is assumed.
+.PP
+A filename of `\fR\&\f(CW-\fR' means standard input or standard output, depending
+on its position on the command line.
+.PP
+\&\fR\&\f(CWMcopy\fR accepts the following command line options:
+.TP
+\&\fR\&\f(CWb\fR\ 
+Batch mode. Optimized for huge recursive copies, but less secure if a
+crash happens during the copy.
+.TP
+\&\fR\&\f(CW/\fR\ 
+Recursive copy.  Also copies directories and their contents
+.TP
+\&\fR\&\f(CWp\fR\ 
+Preserves the attributes of the copied files
+.TP
+\&\fR\&\f(CWQ\fR\ 
+When mcopying multiple files, quits as soon as one copy fails (for
+example due to lacking storage space on the target disk)
+.TP
+\&\fR\&\f(CWt\fR\ 
+Text file transfer.  \fR\&\f(CWMcopy\fR translates incoming carriage
+return/line feeds to line feeds.
+.TP
+\&\fR\&\f(CWn\fR\ 
+No confirmation when overwriting Unix files.  \fR\&\f(CWMcopy\fR doesn't warn
+the user when overwriting an existing Unix file.  In order to switch off
+confirmation for DOS files, use \fR\&\f(CW-o\fR.
+.TP
+\&\fR\&\f(CWm\fR\ 
+Preserve the file modification time. If the target file already exists,
+and the \fR\&\f(CW-n\fR option is not in effect, \fR\&\f(CWmcopy\fR asks whether to
+overwrite the file or to rename the new file (\(ifname clashes\(is) for
+details).
+.PP
+.SS \ \ Bugs
+Unlike MS-DOS, the '+' operator (append) from MS-DOS is not
+supported. However, you may use \fR\&\f(CWmtype\fR to produce the same effect:
+ 
+.nf
+.ft 3
+.in +0.3i
+mtype a:file1 a:file2 a:file3 >unixfile
+mtype a:file1 a:file2 a:file3 | mcopy - a:msdosfile
+.fi
+.in -0.3i
+.ft R
+.lp
+ 
+\&\fR
+.PP
+.SS Mdel
+.iX "p mdel"
+.iX "c removing MS-DOS files"
+.iX "c erasing MS-DOS files"
+.iX "c deleting MS-DOS files"
+.PP
+The \fR\&\f(CWmdel\fR command is used to delete an MS-DOS file. Its syntax
+is:
+.PP
+.(l I
+\&\fR\&\f(CWmdel\fR [\fR\&\f(CW-v\fR] \fImsdosfile\fR [ \fImsdosfiles\fR \&...  ]
+.)l
+ 
+.PP
+\&\fR\&\f(CWMdel\fR deletes files on an MS-DOS filesystem.
+.PP
+\&\fR\&\f(CWMdel\fR asks for verification prior to removing a read-only file.
+.PP
+.SS Mdeltree
+.iX "p mdeltree"
+.iX "c removing an MS-DOS directory recursively"
+.iX "c erasing an MS-DOS directory recursively"
+.iX "c deleting an MS-DOS directory recursively"
+.iX "c recursively removing an MS-DOS directory"
+.PP
+The \fR\&\f(CWmdeltree\fR command is used to delete an MS-DOS file. Its syntax
+is:
+.PP
+.(l I
+\&\fR\&\f(CWmdeltree\fR [\fR\&\f(CW-v\fR] \fImsdosdirectory\fR [\fImsdosdirectories\fR\&...]
+.)l
+ 
+.PP
+\&\fR\&\f(CWMdeltree\fR removes a directory and all the files and subdirectories
+it contains from an MS-DOS filesystem. An error occurs if the directory
+to be removed does not exist.
+.PP
+.SS Mdir
+.iX "p mdir"
+.iX "c Read-only files (listing them)"
+.iX "c Listing a directory"
+.iX "c Directory listing"
+.PP
+The \fR\&\f(CWmdir\fR command is used to display an MS-DOS directory. Its
+syntax is:
+.PP
+\&\fR\&\f(CWmdir\fR [\fR\&\f(CW-/\fR] [\fR\&\f(CW-f\fR] [\fR\&\f(CW-w\fR] [\fR\&\f(CW-a\fR] [\fR\&\f(CW-X\fR] \fImsdosfile\fR [ \fImsdosfiles\fR\&...] 
+.PP
+\&\fR\&\f(CWMdir\fR
+displays the contents of MS-DOS directories, or the entries for some
+MS-DOS files.
+.PP
+\&\fR\&\f(CWMdir\fR supports the following command line options:
+.TP
+\&\fR\&\f(CW/\fR\ 
+Recursive output, just like Dos' \fR\&\f(CW-s\fR option
+.TP
+\&\fR\&\f(CWw\fR\ 
+Wide output.  With this option, \fR\&\f(CWmdir\fR prints the filenames across
+the page without displaying the file size or creation date.
+.TP
+\&\fR\&\f(CWa\fR\ 
+Also list hidden files.
+.TP
+\&\fR\&\f(CWf\fR\ 
+Fast.  Do not try to find out free space.  On larger disks, finding out
+the amount of free space takes up some non trivial amount of time, as
+the whole FAT must be read in and scanned.  The \fR\&\f(CW-f\fR flag bypasses
+this step.  This flag is not needed on FAT32 filesystems, which store
+the size explicitely.
+.TP
+\&\fR\&\f(CWX\fR\ 
+Concise listing.  List only a newline separated list of pathnames
+without any decoration nor additional information
+.PP
+An error occurs if a component of the path is not a directory.
+.PP
+.SS Mdu
+.iX "p mdu"
+.iX "c Space occupied by directories and files"
+.iX "c du"
+.iX "c Listing space occupied by directories and files"
+.iX "c Occupation of space by directories and files"
+.PP
+\&\fR\&\f(CWMdu\fR is used to list the space occupied by a directory, its
+subdirectories and its files. It is similar to the \fR\&\f(CWdu\fR command on
+Unix.  The unit used are clusters.  Use the minfo command to find out
+the cluster size.
+.PP
+\&\fR\&\f(CWmdu\fR [\fR\&\f(CW-a\fR] [ \fImsdosfiles\fR \&... ]
+.TP
+\&\fR\&\f(CWa\fR\ 
+All files.  List also the space occupied for individual files.
+.TP
+\&\fR\&\f(CWs\fR\ 
+Only list the total space, don't give details for each subdirectory.
+.PP
+.SS Mformat
+.iX "p mformat"
+.iX "c Initializing disks"
+.iX "c Formatting disks"
+.iX "c Filesystem creation"
+.PP
+The \fR\&\f(CWmformat\fR command is used to add an MS-DOS filesystem to a
+low-level formatted diskette. Its syntax is:
+.PP
+.(l I
+\&\fR\&\f(CWmformat\fR [\fR\&\f(CW-t\fR \fIcylinders\fR] [\fR\&\f(CW-h\fR \fIheads\fR]
+[\fR\&\f(CW-s\fR \fIsectors\fR] [\fR\&\f(CW-l\fR \fIvolume_label\fR] [\fR\&\f(CW-F\fR]
+[\fR\&\f(CW-I\fR \fIfsVersion\fR] [\fR\&\f(CW-S\fR \fIsizecode\fR] [\fR\&\f(CW-2\fR
+\&\fIsectors_on_track_0\fR] [\fR\&\f(CW-M\fR \fIsoftware_sector_size\fR]
+[\fR\&\f(CW-a\fR] [\fR\&\f(CW-X\fR] [\fR\&\f(CW-C\fR] [\fR\&\f(CW-H\fR \fIhidden_sectors\fR]
+[\fR\&\f(CW-r\fR \fIroot_sectors\fR] [\fR\&\f(CW-B\fR \fIboot_sector\fR]
+[\fR\&\f(CW-k\fR] \fIdrive:\fR
+.)l
+ 
+.PP
+\&\fR\&\f(CWMformat\fR adds a minimal MS-DOS filesystem (boot sector, FAT, and
+root directory) to a diskette that has already been formatted by a Unix
+low-level format.
+.PP
+The following options are supported: (The S, 2, 1 and M options may not
+exist if this copy of mtools has been compiled without the USE_2M
+option)
+.TP
+\&\fR\&\f(CWt\fR\ 
+The number of cylinders.
+.TP
+\&\fR\&\f(CWh\fR\ 
+The number of heads (sides).
+.TP
+\&\fR\&\f(CWs\fR\ 
+The number of sectors per track. If the 2m option is given, number of
+512-byte sector equivalents on generic tracks (i.e. not head 0 track 0).
+If the 2m option is not given, number of physical sectors per track
+(which may be bigger than 512 bytes).
+.TP
+\&\fR\&\f(CWl\fR\ 
+An optional volume label.
+.TP
+\&\fR\&\f(CWS\fR\ 
+The sizecode. The size of the sector is 2 ^ (sizecode + 7).
+.TP
+\&\fR\&\f(CW2\fR\ 
+2m format. The parameter to this option describes the number of
+sectors on track 0, head 0. This option is recommended for sectors
+bigger than normal.
+.TP
+\&\fR\&\f(CW1\fR\ 
+don't use a 2m format, even if the current geometry of the disk is a 2m 
+geometry.
+.TP
+\&\fR\&\f(CWM\fR\ 
+software sector size. This parameter describes the sector size in bytes used
+by the MS-DOS filesystem. By default it is the physical sector size.
+.TP
+\&\fR\&\f(CWa\fR\ 
+If this option is given, an Atari style serial number is generated.
+Ataris store their serial number in the OEM label.
+.TP
+\&\fR\&\f(CWX\fR\ 
+formats the disk as an XDF disk. See section XDF for more details. The
+disk has first to be low-level formatted using the xdfcopy utility
+included in the fdutils package.
+.TP
+\&\fR\&\f(CWC\fR\ 
+creates the disk image file to install the MS-DOS filesystem on
+it. Obviously, this is useless on physical devices such as floppies
+and hard disk partitions.
+.TP
+\&\fR\&\f(CWH\fR\ 
+number of hidden sectors. This parameter is useful for formatting hard
+disk partition, which are not aligned on track boundaries (i.e. first
+head of first track doesn't belong to the partition, but contains a
+partition table). In that case the number of hidden sectors is in
+general the number of sectors per cylinder. This is untested.
+.TP
+\&\fR\&\f(CWn\fR\ 
+serial number
+.TP
+\&\fR\&\f(CWF\fR\ 
+Format the partition as FAT32 (experimental).
+.TP
+\&\fR\&\f(CWI\fR\ 
+Sets the fsVersion id when formatting a FAT32 drive.  In order to find
+this out, run minfo on an existing FAT32 drive, and mail me about it, so
+I can include the correct value in future versions of mtools.
+.TP
+\&\fR\&\f(CWc\fR\ 
+Sets the size of a cluster (in sectors).  If this cluster size would
+generate a FAT that too big for its number of bits, mtools automatically
+increases the cluster size, until the FAT is small enough.
+.TP
+\&\fR\&\f(CWr\fR\ 
+Sets the size of the root directory (in sectors).  Only applicable to 12
+and 16 bit FATs.
+.TP
+\&\fR\&\f(CWB\fR\ 
+Use the bootsector stored in the given file or device, instead of using
+its own.  Only the geometry fields are updated to match the target disks
+parameters.
+.TP
+\&\fR\&\f(CWk\fR\ 
+Keep the existing boot sector as much as possible.  Only the geometry
+fields are updated to match the target disks parameters.
+.PP
+To format a diskette at a density other than the default, you must supply
+(at least) those command line parameters that are different from the
+default.
+.PP
+\&\fR\&\f(CWMformat\fR returns 0 on success or 1 on failure.
+.PP
+It doesn't record bad block information to the Fat, use
+\&\fR\&\f(CWmkmanifest\fR for that.
+.PP
+.SS Mkmanifest
+.iX "p mkmanifest"
+.iX "c packing list"
+.PP
+The \fR\&\f(CWmkmanifest\fR command is used to create a shell script (packing
+list) to restore Unix filenames. Its syntax is:
+.PP
+\&\fR\&\f(CWmkmanifest\fR [ \fIfiles\fR ]
+.PP
+\&\fR\&\f(CWMkmanifest\fR creates a shell script that aids in the restoration of
+Unix filenames that got clobbered by the MS-DOS filename restrictions.
+MS-DOS filenames are restricted to 8 character names, 3 character
+extensions, upper case only, no device names, and no illegal characters.
+.PP
+The mkmanifest program is compatible with the methods used in
+\&\fR\&\f(CWpcomm, arc,\fR and \fR\&\f(CWmtools\fR to change perfectly good Unix
+filenames to fit the MS-DOS restrictions. This command is only useful if
+the target system which will read the diskette cannot handle vfat long
+names.
+.PP
+.SS \ \ Example
+You want to copy the following Unix files to a MS-DOS diskette (using the
+\&\fR\&\f(CWmcopy\fR command).
+.PP
+ 
+.nf
+.ft 3
+.in +0.3i
+  very_long_name
+  2.many.dots
+  illegal:
+  good.c
+  prn.dev
+  Capital
+.fi
+.in -0.3i
+.ft R
+.lp
+ 
+\&\fR
+.PP
+\&\fR\&\f(CWMcopy\fR
+converts the names to:
+.PP
+ 
+.nf
+.ft 3
+.in +0.3i
+  very_lon
+  2xmany.dot
+  illegalx
+  good.c
+  xprn.dev
+  capital
+.fi
+.in -0.3i
+.ft R
+.lp
+ 
+\&\fR
+.PP
+The command:
+ 
+.nf
+.ft 3
+.in +0.3i
+mkmanifest very_long_name 2.many.dots illegal: good.c prn.dev Capital >manifest
+.fi
+.in -0.3i
+.ft R
+.lp
+ 
+\&\fRwould produce the following:
+ 
+.nf
+.ft 3
+.in +0.3i
+  mv very_lon very_long_name
+  mv 2xmany.dot 2.many.dots
+  mv illegalx illegal:
+  mv xprn.dev prn.dev
+  mv capital Capital
+.fi
+.in -0.3i
+.ft R
+.lp
+ 
+\&\fR
+.PP
+Notice that "good.c" did not require any conversion, so it did not
+appear in the output.
+.PP
+Suppose I've copied these files from the diskette to another Unix
+system, and I now want the files back to their original names.  If the
+file "manifest" (the output captured above) was sent along with those
+files, it could be used to convert the filenames.
+.PP
+.SS \ \ Bugs
+.PP
+The short names generated by \fR\&\f(CWmkmanifest\fR follow the old convention
+(from mtools-2.0.7) and not the one from Windows 95 and mtools-3.0.
+.PP
+.SS Minfo
+.iX "p mlabel"
+.iX "c mformat parameters"
+.iX "c getting parameters of a Dos fs"
+.PP
+The \fR\&\f(CWminfo\fR command prints the parameters of a Dos filesystem, such
+as number of sectors, heads and cylinders.  It also prints an mformat
+command line which can be used to create a similar Dos filesystem on
+another media.  However, this doesn't work with 2m or Xdf media, and
+with Dos 1.0 filesystems
+.(l I
+\&\fR\&\f(CWminfo\fR \fIdrive\fR:
+.)l
+ 
+.PP
+Mlabel supports the following option:
+.TP
+\&\fR\&\f(CWv\fR\ 
+Prints a hexdump of the bootsector, in addition to the other information
+.PP
+.SS Mlabel
+.iX "p mlabel"
+.iX "c Labeling a disk"
+.iX "c Disk label"
+.PP
+The \fR\&\f(CWmlabel\fR command adds a volume label to a disk. Its syntax is:
+.(l I
+\&\fR\&\f(CWmlabel\fR [\fR\&\f(CW-vcs\fR] \fIdrive\fR:[\fInew_label\fR]
+.)l
+ 
+.PP
+\&\fR\&\f(CWMlabel\fR displays the current volume label, if present. If
+\&\fInew_label\fR is not given, and if neither the \fR\&\f(CWc\fR nor the
+\&\fR\&\f(CWs\fR options are set, it prompts the user for a new volume label.
+To delete an existing volume label, press return at the prompt.
+.PP
+Reasonable care is taken to create a valid MS-DOS volume label.  If an
+invalid label is specified, \fR\&\f(CWmlabel\fR changes the label (and
+displays the new label if the verbose mode is set). \fR\&\f(CWMlabel\fR
+returns 0 on success or 1 on failure.
+.PP
+Mlabel supports the following options:
+.TP
+\&\fR\&\f(CWc\fR\ 
+Clears an existing label, without prompting the user
+.TP
+\&\fR\&\f(CWs\fR\ 
+Shows the existing label, without prompting the user.
+.PP
+.SS Mmd
+.iX "p mmd"
+.iX "c Making a directory"
+.iX "c Creating a directory"
+.iX "c Directory creation"
+.iX "c Subdirectory creation"
+.PP
+The \fR\&\f(CWmmd\fR command is used to make an MS-DOS subdirectory. Its
+syntax is:
+.PP
+\&\fR\&\f(CWmmd\fR [\fR\&\f(CW-voOsSrRA\fR] \fImsdosdirectory\fR [
+\&\fImsdosdirectories\fR\&... ]
+.PP
+\&\fR\&\f(CWMmd\fR makes a new directory on an MS-DOS filesystem. An error occurs
+if the directory already exists.
+.PP
+.SS Mmount
+.iX "p mmount"
+.iX "c Linux enhancements (mmount)"
+.iX "c Mounting a disk"
+.iX "c High capacity formats, mounting"
+.PP
+The \fR\&\f(CWmmount\fR command is used to mount an MS-DOS disk. It is only
+available on Linux, as it is only useful if the OS kernel allows to
+configure the disk geometry. Its syntax is:
+.PP
+\&\fR\&\f(CWmmount\fR \fImsdosdrive\fR [\fImountargs\fR]
+.PP
+\&\fR\&\f(CWMmount\fR
+reads the boot sector of an MS-DOS disk, configures the drive geometry,
+and finally mounts it passing
+\&\fR\&\f(CWmountargs\fR to \fR\&\f(CWmount. \fR
+If no mount arguments are specified, the name of the device is
+used. If the disk is write protected, it is automatically mounted read
+only.
+.PP
+.SS Mmove
+.iX "p mmove"
+.iX "c Moving files (mmove)"
+.iX "c Renaming files (mmove)"
+.PP
+The \fR\&\f(CWmmove\fR command is used to moves or renames an existing MS-DOS
+file or subdirectory.
+.(l I
+\&\fR\&\f(CWmmove\fR [\fR\&\f(CW-voOsSrRA\fR] \fIsourcefile\fR \fItargetfile\fR
+\&\fR\&\f(CWmmove\fR [\fR\&\f(CW-voOsSrRA\fR] \fIsourcefile\fR [ \fIsourcefiles\fR\&... ] \fItargetdirectory\fR
+.)l
+ 
+\&\fR\&\f(CWMmove\fR moves or renames an existing MS-DOS file or
+subdirectory. Unlike the MS-DOS version of \fR\&\f(CWMOVE\fR, \fR\&\f(CWmmove\fR is
+able to move subdirectories.
+.PP
+.SS Mpartition
+.iX "p mpartition"
+.iX "c partitions (creating)"
+.iX "c Zip disks (partitioning them)"
+.iX "c Jaz disks (partitioning them)"
+.PP
+The \fR\&\f(CWmpartition\fR command is used to create MS-DOS filesystems as
+partitions.  This is intended to be used on non-Linux systems,
+i.e. systems where fdisk and easy access to Scsi devices are not
+available.  This command only works on drives whose partition variable
+is set.
+.PP
+.(l I
+\&\fR\&\f(CWmpartition\fR \fR\&\f(CW-p\fR \fIdrive\fR
+\&\fR\&\f(CWmpartition\fR \fR\&\f(CW-r\fR \fIdrive\fR
+\&\fR\&\f(CWmpartition\fR \fR\&\f(CW-I\fR \fIdrive\fR
+\&\fR\&\f(CWmpartition\fR \fR\&\f(CW-a\fR \fIdrive\fR
+\&\fR\&\f(CWmpartition\fR \fR\&\f(CW-d\fR \fIdrive\fR
+\&\fR\&\f(CWmpartition\fR \fR\&\f(CW-c\fR [\fR\&\f(CW-s\fR \fIsectors\fR] [\fR\&\f(CW-h\fR \fIheads\fR]
+[\fR\&\f(CW-t\fR \fIcylinders\fR] [\fR\&\f(CW-v\fR [\fR\&\f(CW-T\fR \fItype\fR] [\fR\&\f(CW-b\fR
+\&\fIbegin\fR] [\fR\&\f(CW-l\fR length] [\fR\&\f(CW-f\fR]
+\&\&
+.)l
+ 
+.PP
+Mpartition supports the following operations:
+.TP
+\&\fR\&\f(CWp\fR\ 
+Prints a command line to recreate the partition for the drive.  Nothing
+is printed if the partition for the drive is not defined, or an
+inconsistency has been detected.  If verbose (\fR\&\f(CW-v\fR) is also set,
+prints the current partition table.
+.TP
+\&\fR\&\f(CWr\fR\ 
+Removes the partition described by \fIdrive\fR.
+.TP
+\&\fR\&\f(CWI\fR\ 
+Initializes the partition table, and removes all partitions.
+.TP
+\&\fR\&\f(CWc\fR\ 
+Creates the partition described by \fIdrive\fR.
+.TP
+\&\fR\&\f(CWa\fR\ 
+"Activates" the partition, i.e. makes it bootable.  Only one partition
+can be bootable at a time.
+.TP
+\&\fR\&\f(CWd\fR\ 
+"Desactivates" the partition, i.e. makes it unbootable.
+.PP
+If no operation is given, the current settings are printed.
+.PP
+For partition creations, the following options are available:
+.TP
+\&\fR\&\f(CWs\ \fIsectors\fR\&\f(CW\fR\ 
+The number of sectors per track of the partition (which is also the
+number of sectors per track for the whole drive).
+.TP
+\&\fR\&\f(CWh\ \fIheads\fR\&\f(CW\fR\ 
+The number of heads of the partition (which is also the number of heads
+for the whole drive).  By default, the geometry information (number of
+sectors and heads) is figured out from neighbouring partition table
+entries, or guessed from the size.
+.TP
+\&\fR\&\f(CWt\ \fIcylinders\fR\&\f(CW\fR\ 
+The number of cylinders of the partition (not the number of cylinders of
+the whole drive.
+.TP
+\&\fR\&\f(CWb\ \fIbegin\fR\&\f(CW\fR\ 
+The starting offset of the partition, expressed in sectors. If begin is
+not given, mpartition lets the partition begin at the start of the disk
+(partition number 1), or immediately after the end of the previous
+partition.
+.TP
+\&\fR\&\f(CWl\ \fIlength\fR\&\f(CW\fR\ 
+The size (length) of the partition, expressed in sectors.  If end is not
+given, mpartition figures out the size from the number of sectors, heads
+and cylinders.  If these are not given either, it gives the partition
+the biggest possible size, considering disk size and start of the next
+partition.
+.PP
+The following option is available for all operation which modify the
+partition table:
+.TP
+\&\fR\&\f(CWf\fR\ 
+Usually, before writing back any changes to the partition, mpartition
+performs certain consistenct checks, such as checking for overlaps and
+proper alignment of the partitions.  If any of these checks fails, the
+partition table is not changes.  The \fR\&\f(CW-f\fR allows you to override
+these safeguards.
+.PP
+The following option is available for all operations:
+.TP
+\&\fR\&\f(CWv\fR\ 
+Together with \fR\&\f(CW-p\fR prints the partition table as it is now (no
+change operation), or as it is after it is modified.
+.TP
+\&\fR\&\f(CWvv\fR\ 
+If the verbosity flag is given twice, mpartition will print out a
+hexdump of the partition table when reading it from and writing it to
+the device.
+.PP
+.SS Mrd
+.iX "p mrd"
+.iX "c Removing a directory"
+.iX "c Erasing a directory"
+.iX "c Deleting a directory"
+.iX "c Directory removing"
+.iX "c Subdirectory removing"
+.PP
+The \fR\&\f(CWmrd\fR command is used to remove an MS-DOS subdirectory. Its
+syntax is:
+.PP
+.(l I
+\&\fR\&\f(CWmrd\fR [\fR\&\f(CW-v\fR] \fImsdosdirectory\fR [ \fImsdosdirectories\fR\&... ]
+.)l
+ 
+.PP
+\&\fR\&\f(CWMrd\fR removes a directory from an MS-DOS filesystem. An error occurs
+if the directory does not exist or is not empty.
+.PP
+.SS Mren
+.iX "p mren"
+.iX "c Renaming files (mren)"
+.iX "c Moving files (mren)"
+.PP
+The \fR\&\f(CWmren\fR command is used to rename or move an existing MS-DOS
+file or subdirectory. Its syntax is:
+.PP
+.(l I
+\&\fR\&\f(CWmren\fR [\fR\&\f(CW-voOsSrRA\fR] \fIsourcefile\fR \fItargetfile\fR
+.)l
+ 
+.PP
+\&\fR\&\f(CWMren\fR
+renames an existing file on an MS-DOS filesystem.
+.PP
+In verbose mode, \fR\&\f(CWMren\fR displays the new filename if the name
+supplied is invalid.
+.PP
+If the first syntax is used (only one sourcefile), and if the target
+name doesn't contain any slashes or colons, the file (or subdirectory)
+is renamed in the same directory, instead of being moved to the current
+\&\fR\&\f(CWmcd\fR directory as would be the case with \fR\&\f(CWmmove\fR. Unlike the
+MS-DOS version of \fR\&\f(CWREN\fR, \fR\&\f(CWmren\fR can be used to rename
+directories.
+.PP
+.SS Mshowfat
+.iX "p mshowfat"
+.iX "c Clusters of a file"
+.iX "c Fat"
+.PP
+The \fR\&\f(CWmshowfat\fR command is used to display the FAT entries for a
+file.  Syntax:
+.PP
+.(l I
+\&\fR\&\f(CW$ mshowfat files\fR
+.)l
+ 
+.PP
+.SS Mtoolstest
+.iX "p mtoolstest"
+.iX "c Testing configuration file for correctness"
+.iX "c Checking configuration file"
+.iX "c Verifying configuration file"
+.PP
+The \fR\&\f(CWmtoolstest\fR command is used to tests the mtools configuration
+files. To invoke it, just type \fR\&\f(CWmtoolstest\fR without any arguments.
+\&\fR\&\f(CWMtoolstest\fR reads the mtools configuration files, and prints the
+cumulative configuration to \fR\&\f(CWstdout\fR. The output can be used as a
+configuration file itself (although you might want to remove redundant
+clauses).  You may use this program to convert old-style configuration
+files into new style configuration files.
+.PP
+.SS Mtype
+.PP
+The \fR\&\f(CWmtype\fR command is used to display contents of an MS-DOS
+file. Its syntax is:
+.PP
+.(l I
+\&\fR\&\f(CWmtype\fR [\fR\&\f(CW-ts\fR] \fImsdosfile\fR [ \fImsdosfiles\fR\&... ]
+.)l
+ 
+.PP
+\&\fR\&\f(CWMtype\fR displays the specified MS-DOS file on the screen.
+.PP
+In addition to the standard options, \fR\&\f(CWMtype\fR allows the following
+command line options:
+.TP
+\&\fR\&\f(CWt\fR\ 
+Text file viewing.  \fR\&\f(CWMtype\fR translates incoming carriage
+return/line feeds to line feeds.
+.TP
+\&\fR\&\f(CWs\fR\ 
+\&\fR\&\f(CWMtype\fR strips the high bit from the data.
+.PP
+The \fR\&\f(CWmcd\fR command may be used to establish the device and the
+current working directory (relative to MS-DOS), otherwise the default is
+\&\fR\&\f(CWA:/\fR.
+.PP
+\&\fR\&\f(CWMtype\fR returns 0 on success, 1 on utter failure, or 2 on partial
+failure.
+.PP
+Unlike the MS-DOS version of \fR\&\f(CWTYPE\fR, \fR\&\f(CWmtype\fR allows multiple
+arguments.
+.PP
+.SS Mzip
+.iX "c Zip disk (utilities)"
+.iX "c Jaz disk (utilities)"
+.iX "c Ejecting a Zip/Jaz disk"
+.iX "c Write protecting a Zip/Jaz disk"
+.iX "p mzip"
+.iX "c ZipTools disk"
+.iX "c Tools disk (Zip and Jaz drives)"
+.iX "c APlaceForYourStuff"
+.iX "c password protected Zip disks"
+.PP
+The \fR\&\f(CWmzip\fR command is used to issue ZIP disk specific commands on
+Solaris or HPUX. Its syntax is:
+.PP
+.(l I
+\&\fR\&\f(CWmzip\fR [\fR\&\f(CW-epqrwx\fR]
+.)l
+ 
+.PP
+\&\fR\&\f(CWMzip\fR allows the following
+command line options:
+.TP
+\&\fR\&\f(CWe\fR\ 
+Ejects the disk.
+.TP
+\&\fR\&\f(CWf\fR\ 
+Force eject even if the disk is mounted (must be given in addition to
+\&\fR\&\f(CW-e\fR).
+.TP
+\&\fR\&\f(CWr\fR\ 
+Write protect the disk.
+.TP
+\&\fR\&\f(CWw\fR\ 
+Remove write protection.
+.TP
+\&\fR\&\f(CWp\fR\ 
+Password write protect.
+.TP
+\&\fR\&\f(CWx\fR\ 
+Password protect
+.TP
+\&\fR\&\f(CWu\fR\ 
+Temporarily unprotect the disk until it is ejected.  The disk becomes
+writable, and reverts back to its old state when ejected.
+.TP
+\&\fR\&\f(CWq\fR\ 
+Queries the status
+.PP
+To remove the password, set it to one of the passwordless modes
+\&\fR\&\f(CW-r\fR or \fR\&\f(CW-w\fR: mzip will then ask you for the password, and
+unlock the disk.  If you have forgotten the password, you can get rid of
+it by low-level formatting the disk (using your SCSI adaptor's BIOS
+setup).
+.PP
+The ZipTools disk shipped with the drive is also password protected.  On
+Dos or on a Mac, this password is automatically removed once the
+ZipTools have been installed.  From various articles posted to Usenet, I
+learned that the password for the tools disk is
+\&\fR\&\f(CWAPlaceForYourStuff\fR\fR.  Mzip knows about this
+password, and tries it first, before prompting you for a password.  Thus
+\&\fR\&\f(CWmzip -w z:\fR unlocks the tools disk.  The tools disk is
+formatted in a special way so as to be usable both in a PC and in a Mac.
+On a PC, the Mac filesystem appears as a hidden file named
+\&\fR\&\f(CW\(ifpartishn.mac\(is\fR.  You may erase it to reclaim the 50 Megs of space
+taken up by the Mac filesystem.
+.PP
+.SS Xcopy
+.iX "c recursive copy"
+.iX "c xcopy"
+.iX "p xcopy"
+.PP
+The \fR\&\f(CWxcopy\fR script is used to recursively copy one directory to
+another. Its syntax is:
+.PP
+.(l I
+\&\fR\&\f(CWxcopy\fR \fIsourcedirectory\fR \fItargetdirectory\fR
+.)l
+ 
+.PP
+If targetdirectory does not exist, it is created.  If it does exist, the
+files of sourcedirectory are directly copied into it, and no
+subdirectory called \fIsourcedirectory\fR is created, unlike with
+\&\fR\&\f(CWcp -rf\fR.
+.PP
+.SS \ \ Bugs
+.PP
+This command is a big kludge.  A proper implementation would take a
+rework of significant parts of mtools, but unfortunately I don't have
+the time for this right now. The main downside of this implementation is
+that it is inefficient on some architectures (several successive calls
+to mtools, which defeats mtools' caching).
+.PP
+.SH Architecture\ specific\ compilation\ flags
+.iX "c XDF disks (compile time configuration)"
+.iX "c Solaris (compile time configuration of vold)"
+.iX "c Vold (compile time configuration)"
+.iX "c Compile time configuration"
+.PP
+To compile mtools, first invoke \fR\&\f(CW./configure\fR before
+\&\fR\&\f(CWmake\fR. In addition to the standard \fR\&\f(CWautoconfigure\fR flags,
+there are two architecture specific flags available.
+.TP
+\&\fR\&\f(CW./configure\ --enable-xdf\fR\ 
+.TQ
+\&\fR\&\f(CW./configure\ --disable-xdf\fR
+Enables support for XDF disks. This is on by default. See section XDF,
+for details.
+.TP
+\&\fR\&\f(CW./configure\ --enable-vold\fR\ 
+.TQ
+\&\fR\&\f(CW./configure\ --disable-vold\fR
+Enables support for vold on Solaris. When used in conjunction with vold,
+mtools should uses different device nodes as for direct access.
+.TP
+\&\fR\&\f(CW./configure\ --enable-new-vold\fR\ 
+.TQ
+\&\fR\&\f(CW./configure\ --disable-new-vold\fR
+Enables new support for vold on Solaris.  This is supposed to work more
+smoothly than the old support.
+.PP
+.SH Porting\ mtools\ to\ architectures\ which\ are\ not\ supported\ yet
+.iX "c Porting"
+.iX "c Compiled-in defaults"
+.PP
+ This chapter is only interesting for those who want to port mtools to
+an architecture which is not yet supported. For most common systems,
+default drives are already defined. If you want to add default drives
+for a still unsupported system, run config.guess, to see which
+identification autoconf uses for that system. This identification is
+of the form cpu-vendor-os (for example sparc-sun-sunos). The cpu and
+the os parts are passed to the compiler as preprocessor flags.
+ The OS part is passed to the compiler in three forms.
+.TP
+1.\ 
+The complete os name, with dots replaced by underscores.  sco3.2v2 would
+yield sco3_2v2
+.TP
+2.\ 
+The base os name. Sco3.2v2 would yield Sco
+.TP
+3.\ 
+The base os name plus its major version. Sco3.2v2 would yield Sco3
+.PP
+ All three versions are passed, if they are different.
+.PP
+ To define the devices, use the entries for the systems that are already
+present as templates. In general, they have the following form:
+.PP
+ 
+.nf
+.ft 3
+.in +0.3i
+#if (defined (my_cpu) && defined(my_os))
+#define predefined_devices
+struct device devices[] = {
+        { "/dev/first_drive", 'drive_letter', drive_description},
+        \&... 
+        { "/dev/last_drive", 'drive_letter', drive_description}
+}
+#define INIT_NOOP
+#endif
+.fi
+.in -0.3i
+.ft R
+.lp
+ 
+\&\fR
+.PP
+ "/dev/first_drive" is the name of the device or image file
+representing the drive. Drive_letter is a letter ranging from a to z
+giving access to the drive. Drive_description describes the type of the
+drive:
+.TP
+\&\fR\&\f(CWED312\fR\ 
+extra density (2.88M) 3 1/2 disk
+.TP
+\&\fR\&\f(CWHD312\fR\ 
+high density 3 1/2 disk
+.TP
+\&\fR\&\f(CWDD312\fR\ 
+double density 3 1/2 disk
+.TP
+\&\fR\&\f(CWHD514\fR\ 
+high density 5 1/4 disk
+.TP
+\&\fR\&\f(CWDD514\fR\ 
+double density 5 1/4 disk
+.TP
+\&\fR\&\f(CWDDsmall\fR\ 
+8 sector double density 5 1/4 disk
+.TP
+\&\fR\&\f(CWSS514\fR\ 
+single sided double density 5 1/4 disk
+.TP
+\&\fR\&\f(CWSSsmall\fR\ 
+single sided 8 sector double density 5 1/4 disk
+.TP
+\&\fR\&\f(CWGENFD\fR\ 
+generic floppy drive (12 bit FAT)
+.TP
+\&\fR\&\f(CWGENHD\fR\ 
+generic hard disk (16 bit FAT)
+.TP
+\&\fR\&\f(CWGEN\fR\ 
+generic device (all parameters match)
+.TP
+\&\fR\&\f(CWZIPJAZ(flags)\fR\ 
+generic ZIP drive using normal access. This uses partition 4.
+\&\fR\&\f(CWFlags\fR are any special flags to be passed to open.
+.TP
+\&\fR\&\f(CWRZIPJAZ(flags)\fR\ 
+generic ZIP drive using raw SCSI access. This uses partition 4.
+\&\fR\&\f(CWFlags\fR are any special flags to be passed to open.
+.PP
+ Entries may be described in more detail:
+ 
+.nf
+.ft 3
+.in +0.3i
+ fat_bits,open_flags,cylinders,heads,sectors,DEF_ARG
+.fi
+.in -0.3i
+.ft R
+.lp
+ 
+\&\fR or, if you need to describe an offset (filesystem doesn't start at
+beginning of filesystem)
+ 
+.nf
+.ft 3
+.in +0.3i
+ fat_bits, open_flags, cylinders, heads, sectors, offset, DEF_ARG0
+.fi
+.in -0.3i
+.ft R
+.lp
+ 
+\&\fR
+.TP
+\&\fR\&\f(CWfat_bits\fR\ 
+is either 12, 16 or 0. 0 means that the device accepts both types of
+FAT.
+.TP
+\&\fR\&\f(CWopen_flags\fR\ 
+may include flags such as O_NDELAY, or O_RDONLY, which might be
+necessary to open the device. 0 means no special flags are needed.
+.TP
+\&\fR\&\f(CWcylinders,heads,sectors\fR\ 
+describe the geometry of the disk. If cylinders is 0, the heads and sectors
+parameters are ignored, and the drive accepts any geometry.
+.TP
+\&\fR\&\f(CWoffset\ \fR\ 
+is used if the DOS filesystem doesn't begin at the start of the device
+or image file. This is mostly useful for Atari Ram disks (which contain
+their device driver at the beginning of the file) or for DOS emulator
+images (which may represent a partitioned device.
+.PP
+ Definition of defaults in the devices file should only be done if these
+same devices are found on a large number of hosts of this type. In that
+case, could you also let me know about your new definitions, so that I
+can include them into the next release.  For purely local file, I
+recommend that you use the \fR\&\f(CW/usr/local/etc/mtools.conf\fR and
+\&\fR\&\f(CW~/.mtoolsrc\fR configuration files.
+.PP
+ However, the devices files also allows to supply geometry setting
+routines. These are necessary if you want to access high capacity
+disks.
+.PP
+ Two routines should be supplied:
+.TP
+1.\ 
+Reading the current parameters
+ 
+.nf
+.ft 3
+.in +0.3i
+static inline int get_parameters(int fd, struct generic_floppy_struct *floppy)
+.fi
+.in -0.3i
+.ft R
+.lp
+ 
+\&\fR
+.IP
+ This probes the current configured geometry, and return it in
+the structure generic_floppy_struct (which must also be declared).
+ Fd is an open file descriptor for the device, and buf is an already
+filled in stat structure, which may be useful.
+ This routine should return 1 if the probing fails, and 0 otherwise.
+.TP
+2.\ 
+Setting new parameters
+ 
+.nf
+.ft 3
+.in +0.3i
+static inline int set_parameters(int fd, struct generic_floppy_struct *floppy)
+                                 struct stat *buf)
+.fi
+.in -0.3i
+.ft R
+.lp
+ 
+\&\fR This configures the geometry contained in floppy on the file descriptor
+fd. Buf is the result of a stat call (already filled in).  This should
+return 1 if the new geometry cannot be configured, and 0 otherwise.
+.PP
+ A certain number of preprocessor macros should also be supplied:
+.TP
+\&\fR\&\f(CWTRACKS(floppy)\fR\ 
+refers to the track field in the floppy structure
+.TP
+\&\fR\&\f(CWHEADS(floppy)\fR\ 
+refers to the heads field in the floppy structure
+.TP
+\&\fR\&\f(CWSECTORS(floppy)\fR\ 
+refers to the sectors per track field in the floppy structure
+.TP
+\&\fR\&\f(CWSECTORS_PER_DISK(floppy)\fR\ 
+refers to the sectors per disk field in the floppy structure (if
+applicable, otherwise leave undefined)
+.TP
+\&\fR\&\f(CWBLOCK_MAJOR\fR\ 
+major number of the floppy device, when viewed as a block device
+.TP
+\&\fR\&\f(CWCHAR_MAJOR\fR\ 
+major number of the floppy device, when viewed as a character device
+(a.k.a. "raw" device, used for fsck) (leave this undefined, if your OS
+doesn't have raw devices)
+.PP
+ For the truly high capacity formats (XDF, 2m, etc), there is no clean
+and documented interface yet.
+.SH See also
+mattrib
+mbadblocks
+mcd
+mcopy
+mdel
+mdeltree
+mdir
+mdu
+mformat
+mkmanifest
+mlabel
+mmd
+mmount
+mmove
+mrd
+mread
+mren
+mtoolstest
+mtype

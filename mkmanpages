@@ -1,0 +1,91 @@
+#!/bin/bash
+
+# extracts the manpage for a given command out of a texinfo doc
+
+date="13aug97"
+package="mtools-3.8"
+
+infile=/tmp/infile.$$
+
+extract()
+{
+command=$1
+outfile=`echo $command | tr '[A-Z]' '[a-z]'`.1
+
+echo \'\\\" t >>$outfile
+echo .TH\ $command\ 1\ \"$date\" $package >$outfile
+echo .SH Name >>$outfile
+grep -i $command cmdname >>$outfile
+#echo ".SH Description" >>$outfile
+
+cat man-warning.texi mtools.texi |
+	sed \
+		-e "/^@c skipskipskip/,/^@node $command/d" \
+		-e "/^@node [^,]*, [^,]*, $command, Commands$/,/^@bye/d" \
+		-e "/^@node [^,]*, [^,]*, Commands/,/^@bye/d" \
+		-e 's/^@section/@chapter/' \
+		-e 's/^@subs/@s/' \
+		-e 's/^@chapter.*$/@chapter Description/' \
+		-e 's/^@section/@chapter/' \
+		-e 's/^@subs/@s/' \
+		-e 's/^@c xMANoptions/@chapter Options/' \
+		-e "s/^@c MAN/@MAN/"  |
+	texi2roff -ma  |
+	sed -f strip-pp.sed >>$outfile
+echo ".SH See Also" >>$outfile
+echo "Mtools' texinfo doc" >>$outfile
+}
+
+extract mattrib
+extract mbadblocks
+extract mcd
+extract mcopy
+extract mdel
+extract mdeltree
+extract mdir
+extract mdu
+extract mformat
+extract mkmanifest
+extract mlabel
+extract mmd
+extract mmount
+extract mmove
+extract mpartition
+extract mrd
+extract mread
+extract mren
+extract mshowfat
+extract mtoolstest
+extract mtype
+extract mzip
+
+echo \'\\\" t >mtools.1
+echo .TH mtools.1 3 "14mar1997" "MTOOLS" "MTOOLS" >>mtools.1
+cat mtools.texi |
+	sed \
+		-e '/\\input/d' \
+		-e '/^@c MANskip/,/^@c MANend-skip/d' \
+		-e "s/^@c MAN/@MAN/"  |
+	texi2roff -ma  |
+	sed -f strip-pp.sed >>mtools.1
+
+echo .SH See also >>mtools.1
+echo mattrib >>mtools.1
+echo mbadblocks >>mtools.1
+echo mcd >>mtools.1
+echo mcopy >>mtools.1
+echo mdel >>mtools.1
+echo mdeltree >>mtools.1
+echo mdir >>mtools.1
+echo mdu >>mtools.1
+echo mformat >>mtools.1
+echo mkmanifest >>mtools.1
+echo mlabel >>mtools.1
+echo mmd >>mtools.1
+echo mmount >>mtools.1
+echo mmove >>mtools.1
+echo mrd >>mtools.1
+echo mread >>mtools.1
+echo mren >>mtools.1
+echo mtoolstest >>mtools.1
+echo mtype >>mtools.1
