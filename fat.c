@@ -21,7 +21,7 @@ typedef struct FatMap_t {
 #define SECT_PER_ENTRY (sizeof(fatBitMask)*8)
 #define ONE ((fatBitMask) 1)
 
-static inline int readSector(Fs_t *This, char *buf, unsigned int off,
+static __inline__ int readSector(Fs_t *This, char *buf, unsigned int off,
 					  size_t size)
 {
 	return READS(This->Next, buf, sectorsToBytes((Stream_t *)This, off), 
@@ -29,23 +29,23 @@ static inline int readSector(Fs_t *This, char *buf, unsigned int off,
 }
 
 
-static inline int forceReadSector(Fs_t *This, char *buf, unsigned int off,
-								  size_t size)
+static __inline__ int forceReadSector(Fs_t *This, char *buf, unsigned int off,
+				      size_t size)
 {
 	return force_read(This->Next, buf, sectorsToBytes((Stream_t *)This, off), 
 					  size << This->sectorShift);
 }
 
 
-static inline int writeSector(Fs_t *This, char *buf, unsigned int off,
-							  size_t size)
+static __inline__ int writeSector(Fs_t *This, char *buf, unsigned int off,
+				  size_t size)
 {
 	return WRITES(This->Next, buf, sectorsToBytes((Stream_t*)This, off), 
 				  size << This->sectorShift);
 }
 
-static inline int forceWriteSector(Fs_t *This, char *buf, unsigned int off,
-					  size_t size)
+static __inline__ int forceWriteSector(Fs_t *This, char *buf, unsigned int off,
+				       size_t size)
 {
 	return force_write(This->Next, buf, sectorsToBytes((Stream_t*)This, off), 
 					   size << This->sectorShift);
@@ -72,7 +72,7 @@ static FatMap_t *GetFatMap(Fs_t *Stream)
 	return map;
 }
 
-static inline int locate(Fs_t *Stream, int offset, int *slot, int *bit)
+static __inline__ int locate(Fs_t *Stream, int offset, int *slot, int *bit)
 {
 	if(offset >= Stream->fat_len)
 		return -1;
@@ -81,8 +81,8 @@ static inline int locate(Fs_t *Stream, int offset, int *slot, int *bit)
 	return 0;
 }
 
-static inline int fatReadSector(Fs_t *This, int sector, int slot, 
-				int bit, int dupe, fatBitMask bitmap)
+static __inline__ int fatReadSector(Fs_t *This, int sector, int slot, 
+				    int bit, int dupe, fatBitMask bitmap)
 {
 	int fat_start, ret;
 	int nr_sectors;

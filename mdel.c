@@ -33,8 +33,8 @@ static int del_entry(direntry_t *entry, MainParam_t *mp)
 
 	if (arg->verbose) {
 		fprintf(stderr,"Removing ");
-		fprintPwd(stdout, entry,0);
-		putchar('\n');
+		fprintPwd(stderr, entry,0);
+		fputc('\n', stderr);
 	}
 
 	if ((entry->dir.attr & (ATTR_READONLY | ATTR_SYSTEM)) &&

@@ -374,7 +374,7 @@ static int write_file(Stream_t *Stream, char *buf, mt_off_t iwhere, size_t len)
 
 static int month[] = {0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334,
 					  0, 0, 0 };
-static inline time_t conv_stamp(struct directory *dir)
+static __inline__ time_t conv_stamp(struct directory *dir)
 {
 	struct tm *tmbuf;
 	long tzone, dst;
@@ -407,7 +407,7 @@ static inline time_t conv_stamp(struct directory *dir)
 #else
 #ifdef HAVE_TZSET
 	{
-#ifndef OS_ultrix
+#if !defined OS_ultrix && !defined OS_cygwin
 		/* Ultrix defines this to be a different type */
 		extern long timezone;
 #endif

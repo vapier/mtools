@@ -34,7 +34,7 @@ int unix_loop(Stream_t *Stream, MainParam_t *mp, char *arg, int follow_dir_link)
 	mp->direntry = NULL;
 	unixNameLength = strlen(arg);
 	if(unixNameLength > 1 && arg[unixNameLength-1] == '/') {
-	    // names ending in slash, and having at least two characters
+	    /* names ending in slash, and having at least two characters */
 	    char *name = strdup(arg);
 	    name[unixNameLength-1]='\0';
 	    mp->unixSourceName = name;

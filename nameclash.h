@@ -13,7 +13,7 @@ typedef enum clash_action {
 	NAMEMATCH_OVERWRITE,
 	NAMEMATCH_ERROR,
 	NAMEMATCH_SUCCESS,
-	NAMEMATCH_GREW,
+	NAMEMATCH_GREW
 } clash_action;
 
 /* clash handling structure */

@@ -29,7 +29,7 @@
 (sector(x)-1+(head(x)+cyl(x)*used_dev->heads)*used_dev->sectors)
 
 
-static inline void print_hsc(hsc *h)
+static __inline__ void print_hsc(hsc *h)
 {
 	printf(" h=%d s=%d c=%d\n", 
 	       head(*h), sector(*h), cyl(*h));

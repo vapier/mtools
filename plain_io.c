@@ -668,6 +668,13 @@ APIRET rc;
 		if(This->privileged)
 			drop_privs();
 	}
+
+	if(!(mode2 & NO_OFFSET) &&
+	   dev && (dev->partition > 4 || dev->partition < 0))
+	    fprintf(stderr, 
+		    "Invalid partition %d (must be between 0 and 4), ignoring it\n", 
+		    dev->partition);
+
 	while(!(mode2 & NO_OFFSET) &&
 	      dev && dev->partition && dev->partition <= 4) {
 		int has_activated, last_end, j;

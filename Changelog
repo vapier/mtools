@@ -1,3 +1,8 @@
+020125	Fixes for cygwin
+	Fixes in buffer.c for oddly sized image files
+	Mformat.c fixes to avoid makeing images which would not be
+	readable in windows.
+010908	Warn for invalid partition numbers
 010526	Released pre6-3.9.8 : getting rid of linux-gnu references is
 	almost as difficult as exorcising the devil...
 010526	Released pre5-3.9.8 after fixing a couple of version numbers

@@ -508,4 +508,10 @@ struct utimbuf
 #define O_LARGEFILE 0
 #endif
 
+#ifndef __GNUC__
+#ifndef __inline__
+#define __inline__ inline
+#endif
+#endif
+
 #endif

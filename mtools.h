@@ -130,7 +130,7 @@ void setup_signal(void);
 if(source)target=source
 
 
-UNUSED(static inline int compare (long ref, long testee))
+UNUSED(static __inline__ int compare (long ref, long testee))
 {
 	return (ref && ref != testee);
 }

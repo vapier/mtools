@@ -165,7 +165,7 @@ Mtools can be found at the following places (and their mirrors):
 @example
 http://mtools.linux.lu/mtools-3.9.8.tar.gz
 ftp://www.tux.org/pub/knaff/mtools/mtools-3.9.8.tar.gz
-ftp://metalab.unc.edu/pub/Linux/utils/disk-management/mtools-3.9.8.tar.gz
+ftp://ibiblio.unc.edu/pub/Linux/utils/disk-management/mtools-3.9.8.tar.gz
 @end example
 
 Before reporting a bug, make sure that it has not yet been fixed in the
@@ -363,9 +363,8 @@ A @code{-}@var{n} number is generated,
 When writing a file to disk, its long name or short name may collide
 with an already existing file or directory. This may happen for all
 commands which create new directory entries, such as @code{mcopy},
-@code{mmd}, @code{mren}, @code{mmove}, @code{mwrite} and
-@code{mread}. When a name clash happens, mtools asks you what it should
-do. It offers several choices:
+@code{mmd}, @code{mren}, @code{mmove}. When a name clash happens, mtools
+asks you what it should do. It offers several choices:
 
 @table @code
 @item overwrite
@@ -467,7 +466,7 @@ specific tool. For Linux, suitable floppy tools can be found in the
 @code{fdutils} package at the following locations~:
 @example
 @code{ftp://www.tux.org/pub/knaff/fdutils/}.
-@code{ftp://metalab.unc.edu/pub/Linux/utils/disk-management/fdutils-*}
+@code{ftp://ibiblio.unc.edu/pub/Linux/utils/disk-management/fdutils-*}
 @end example
 
 See the manpages included in that package for further detail: Use

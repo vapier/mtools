@@ -582,7 +582,7 @@ const char *error_msg[22]={
 "Seek end" };
 
 
-static inline void print_message(RawRequest_t *raw_cmd,const char *message)
+static __inline__ void print_message(RawRequest_t *raw_cmd,const char *message)
 {
 	int i, code;
 	if(!message)
@@ -737,7 +737,7 @@ struct device devices[] = {
 #define USE_2M(floppy) ((floppy.rate & FD_2M) ? 0xff : 0x80 )
 #define SSIZE(floppy) ((((floppy.rate & 0x38) >> 3 ) + 2) % 8)
 
-static inline void set_2m(struct floppy_struct *floppy, int value)
+static __inline__ void set_2m(struct floppy_struct *floppy, int value)
 {
 	if (value & 0x7f)
 		value = FD_2M;
@@ -747,7 +747,7 @@ static inline void set_2m(struct floppy_struct *floppy, int value)
 }
 #define SET_2M set_2m
 
-static inline void set_ssize(struct floppy_struct *floppy, int value)
+static __inline__ void set_ssize(struct floppy_struct *floppy, int value)
 {
 	value = (( (value & 7) + 6 ) % 8) << 3;
 
@@ -756,8 +756,8 @@ static inline void set_ssize(struct floppy_struct *floppy, int value)
 
 #define SET_SSIZE set_ssize
 
-static inline int set_parameters(int fd, struct floppy_struct *floppy, 
-				 struct MT_STAT *buf)
+static __inline__ int set_parameters(int fd, struct floppy_struct *floppy, 
+				     struct MT_STAT *buf)
 {
 	if ( ( MINOR(buf->st_rdev ) & 0x7f ) > 3 )
 		return 1;
@@ -765,7 +765,7 @@ static inline int set_parameters(int fd, struct floppy_struct *floppy,
 	return ioctl(fd, FDSETPRM, floppy);
 }
 
-static inline int get_parameters(int fd, struct floppy_struct *floppy)
+static __inline__ int get_parameters(int fd, struct floppy_struct *floppy)
 {
 	return ioctl(fd, FDGETPRM, floppy);
 }
@@ -1077,5 +1077,5 @@ struct device devices[]={
 	{"/dev/fd0", 'A', 0, O_EXCL, 0,0, 0,0, MDEF_ARG},
 	/* to shut up Ultrix's native compiler, we can't make this empty :( */
 };
-const nr_const_devices = 0;
+const int nr_const_devices = 0;
 #endif

@@ -47,7 +47,7 @@ struct directory {
 #define STARTHI(dir) (_WORD((dir)->startHi))
 
 /* ASSUMPTION: long is at least 32 bits */
-UNUSED(static inline void set_dword(unsigned char *data, unsigned long value))
+UNUSED(static __inline__ void set_dword(unsigned char *data, unsigned long value))
 {
 	data[3] = (value >> 24) & 0xff;
 	data[2] = (value >> 16) & 0xff;
@@ -57,7 +57,7 @@ UNUSED(static inline void set_dword(unsigned char *data, unsigned long value))
 
 
 /* ASSUMPTION: short is at least 16 bits */
-UNUSED(static inline void set_word(unsigned char *data, unsigned short value))
+UNUSED(static __inline__ void set_word(unsigned char *data, unsigned short value))
 {
 	data[1] = (value >>  8) & 0xff;
 	data[0] = (value >>  0) & 0xff;

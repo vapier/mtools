@@ -60,7 +60,7 @@ INSTALL_INFO	= @INSTALL_INFO@
 MAN1 = floppyd.1 floppyd_installtest.1 mattrib.1 mbadblocks.1 mcat.1 mcd.1 \
 mcopy.1 mdel.1 mdeltree.1 mdir.1 mdu.1 mformat.1  minfo.1 mkmanifest.1 \
 mlabel.1 mmd.1 mmount.1 mmove.1 mpartition.1 \
-mrd.1 mread.1 mren.1 mshowfat.1 mtoolstest.1 mtools.1 mtype.1 mzip.1
+mrd.1 mren.1 mshowfat.1 mtoolstest.1 mtools.1 mtype.1 mzip.1
 MAN1EXT	= 1
 MAN1DIR	= $(mandir)/man${MAN1EXT}
 MAN5	= mtools.5
@@ -83,7 +83,7 @@ mformat.c minfo.c \
 misc.c tty.c scsi.c missFuncs.c mk_direntry.c mkmanifest.1 mkmanifest.c \
 mlabel.1 mlabel.c mmd.1 mmd.c mmount.1 mmount.c mmove.1 mmove.c \
 mpartition.1 mpartition.c mrd.1 \
-mread.1 mren.1 msdos.h mshowfat.1 mtoolstest.1 mtools.1 mtools.5 mtools.c \
+mren.1 msdos.h mshowfat.1 mtoolstest.1 mtools.1 mtools.5 mtools.c \
 mtools.conf mtools.h mtype.1 nameclash.h patchlevel.c \
 plain_io.c plain_io.h precmd.c privileges.c scripts signal.c stream.c stream.h \
 streamcache.c streamcache.h subdir.c sysincludes.h unixdir.c todo toupper.c \
@@ -119,7 +119,7 @@ xdf_io.c mkmanifest.c
 SCRIPTS = mcheck mxtar uz tgz mcomp
 
 LINKS=mattrib mcat mcd mcopy mdel mdeltree mdir mdu mformat minfo mlabel \
-mmd mmount mmove mpartition mrd mread mren mtype mtoolstest mshowfat \
+mmd mmount mmove mpartition mrd mren mtype mtoolstest mshowfat \
 mbadblocks mzip
 
 X_CFLAGS = @X_CFLAGS@

@@ -165,10 +165,6 @@ static int comp_fat_bits(Fs_t *Fs, int estimate,
 		exit(1);
 	}
 
-	if(needed_fat_bits == 32 && !fat32 && abs(estimate) !=32){
-		fprintf(stderr,"Warning: Using 32 bit FAT.  Drive will only be accessibly by Win95 OEM / Win98\n");
-	}
-
 	if(!estimate) {
 		int min_fat16_size;
 
@@ -230,7 +226,7 @@ static void calc_fat_bits2(Fs_t *Fs, unsigned int tot_sectors, int fat_bits)
 	}
 }
 
-static inline void format_root(Fs_t *Fs, char *label, struct bootsector *boot)
+static __inline__ void format_root(Fs_t *Fs, char *label, struct bootsector *boot)
 {
 	Stream_t *RootDir;
 	char *buf;
@@ -254,7 +250,7 @@ static inline void format_root(Fs_t *Fs, char *label, struct bootsector *boot)
 	if(Fs->fat_bits == 32) {
 		/* on a FAT32 system, we only write one sector,
 		 * as the directory can be extended at will...*/
-		dirlen = 1;
+		dirlen = Fs->cluster_size;
 		fatAllocate(Fs, Fs->rootCluster, Fs->end_fat);
 	} else
 		dirlen = Fs->dir_len; 
@@ -365,6 +361,25 @@ static void calc_fat_size(Fs_t *Fs, unsigned int tot_sectors)
 			" or .mtoolsrc file\n");
 		exit(1);
 	}
+
+	/*
+	 * According to Microsoft "Hardware White Paper", "Microsoft
+	 * Extensible Formware Initiative", "FAT32 File System Specification",
+	 * Version 1.03, December 6, 2000:
+	 * If (CountofClusters < 4085) { 
+	 *  // Volume is FAT12  
+	 * } else if (CountofClusters < 65525) { 
+	 *  // Volume is FAT16
+	 * } else { 
+	 *  //Volume is FAT32
+	 * }
+	 */
+	if ( Fs->num_clus <= FAT16 && Fs->fat_bits > 16 ){
+		fprintf(stderr,"Too few clusters for this fat size."
+			" Please choose a 16-bit fat in your /etc/mtools.conf"
+			" or .mtoolsrc file\n");
+		exit(1);
+	}
 }
 
 
@@ -375,7 +390,7 @@ static unsigned char bootprog[]=
  0xb9, 0x01, 0x00, 0xcd, 0x13, 0x72, 0x05, 0xea, 0x00, 0x7c, 0x00,
  0x00, 0xcd, 0x19};
 
-static inline void inst_boot_prg(struct bootsector *boot, int offset)
+static __inline__ void inst_boot_prg(struct bootsector *boot, int offset)
 {
 	memcpy((char *) boot->jump + offset, 
 	       (char *) bootprog, sizeof(bootprog) /sizeof(bootprog[0]));
@@ -411,7 +426,7 @@ static void calc_cluster_size(struct Fs_t *Fs, unsigned int tot_sectors,
 		case 32:		  
 			Fs->cluster_size = 8;
 			/* According to
-			 * http://www.microsoft.com/kb/articles/q154/9/97.htm,
+			 * http://support.microsoft.com/support/kb/articles/q154/9/97.asp
 			 * Micro$oft does not support FAT32 with less than 4K
 			 */
 			return;
@@ -634,7 +649,7 @@ void mformat(int argc, char **argv, int dummy)
 	/* get command line options */
 	while ((c = getopt(argc,argv,
 			   "148f:t:n:v:qub"
-			   "kB:r:L:IFCc:Xh:s:l:N:H:M:S:230:Aa"))!= EOF) {
+			   "kB:r:L:IFCc:Xh:s:l:N:H:M:S:2:30:Aa"))!= EOF) {
 		switch (c) {
 			/* standard DOS flags */
 			case '1':

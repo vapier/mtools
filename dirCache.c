@@ -14,7 +14,7 @@ void myfree(void *a)
 #define BITS_PER_INT (sizeof(unsigned int) * 8)
 
 
-static inline unsigned int rol(unsigned int arg, int shift)
+static __inline__ unsigned int rol(unsigned int arg, int shift)
 {
 	arg &= 0xffffffff; /* for 64 bit machines */
 	return (arg << shift) | (arg >> (32 - shift));

@@ -155,7 +155,7 @@ static int buf_read(Stream_t *Stream, char *buf, mt_off_t start, size_t len)
 			if (This->current+This->cur_size < start) {
 				fprintf(stderr, "Short buffer fill\n");
 				exit(1);
-			}														  
+			}
 			break;
 		case INSIDE:
 			/* nothing to do */
@@ -175,7 +175,7 @@ static int buf_write(Stream_t *Stream, char *buf, mt_off_t start, size_t len)
 {
 	char *disk_ptr;
 	DeclareThis(Buffer_t);	
-	int offset, ret;
+	int offset;
 
 	if(!len)
 		return 0;
@@ -199,6 +199,7 @@ static int buf_write(Stream_t *Stream, char *buf, mt_off_t start, size_t len)
 			if(start % This->cylinderSize || 
 			   len < This->sectorSize) {
 				size_t readSize;
+				int ret;
 
 				readSize = This->cylinderSize - 
 					This->current % This->cylinderSize;
@@ -207,6 +208,14 @@ static int buf_write(Stream_t *Stream, char *buf, mt_off_t start, size_t len)
 				/* read it! */
 				if ( ret < 0 )
 					return ret;
+				if(ret % This->sectorSize) {
+				    fprintf(stderr, "Weird: read size (%d) not a multiple of sector size (%d)\n", ret, This->sectorSize);
+				    ret -= ret % This->sectorSize;
+				    if(ret == 0) {
+					fprintf(stderr, "Nothing left\n");
+					exit(1);
+				    }
+				}
 				This->cur_size = ret;
 				/* for dosemu. Autoextend size */
 				if(!This->cur_size) {
@@ -262,7 +271,7 @@ static int buf_write(Stream_t *Stream, char *buf, mt_off_t start, size_t len)
 	
 	if(This->dirty_end > This->cur_size) {
 		fprintf(stderr, 
-			"Internal error, dirty end too big %x %x %x %d %x\n",
+			"Internal error, dirty end too big dirty_end=%x cur_size=%x len=%x offset=%d sectorSize=%x\n",
 			This->dirty_end, (unsigned int) This->cur_size, (unsigned int) len, 
 				(int) offset, (int) This->sectorSize);
 		fprintf(stderr, "offset + len + grain - 1 = %x\n",

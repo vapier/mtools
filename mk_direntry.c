@@ -17,7 +17,7 @@
 #include "stream.h"
 #include "mainloop.h"
 
-static inline int ask_rename(ClashHandling_t *ch,
+static __inline__ int ask_rename(ClashHandling_t *ch,
 			     char *longname, int isprimary, char *argname)
 {
 	char shortname[13];
@@ -54,9 +54,10 @@ static inline int ask_rename(ClashHandling_t *ch,
 #undef name
 }
 
-static inline clash_action ask_namematch(char *name, int isprimary, 
-					 ClashHandling_t *ch, int no_overwrite,
-					 int reason)
+static __inline__ clash_action ask_namematch(char *name, int isprimary, 
+					     ClashHandling_t *ch, 
+					     int no_overwrite,
+					     int reason)
 {
 	char ans[10];
 	clash_action a;
@@ -164,12 +165,12 @@ static inline clash_action ask_namematch(char *name, int isprimary,
  *
  * Also, immediately copy the original name so that messages can use it.
  */
-static inline clash_action process_namematch(char *name,
-					     char *longname,
-					     int isprimary,
-					     ClashHandling_t *ch,
-					     int no_overwrite,
-					     int reason)
+static __inline__ clash_action process_namematch(char *name,
+						 char *longname,
+						 int isprimary,
+						 ClashHandling_t *ch,
+						 int no_overwrite,
+						 int reason)
 {
 	clash_action action;
 
@@ -263,10 +264,10 @@ static int is_reserved(char *ans, int islong)
 	return 0;
 }
 
-static inline clash_action get_slots(Stream_t *Dir,
-				     char *dosname, char *longname,
-				     struct scan_state *ssp,
-				     ClashHandling_t *ch)
+static __inline__ clash_action get_slots(Stream_t *Dir,
+					 char *dosname, char *longname,
+					 struct scan_state *ssp,
+					 ClashHandling_t *ch)
 {
 	int error;
 	clash_action ret;
@@ -394,13 +395,13 @@ static inline clash_action get_slots(Stream_t *Dir,
 }
 
 
-static inline int write_slots(Stream_t *Dir,
-			      char *dosname, 
-			      char *longname,
-			      struct scan_state *ssp,
-			      write_data_callback *cb,
-			      void *arg,
-			      int Case)
+static __inline__ int write_slots(Stream_t *Dir,
+				  char *dosname, 
+				  char *longname,
+				  struct scan_state *ssp,
+				  write_data_callback *cb,
+				  void *arg,
+				  int Case)
 {
 	direntry_t entry;
 

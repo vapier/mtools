@@ -72,10 +72,14 @@ int test_mounted ( char *dev )
 	if (!S_ISBLK (st_dev.st_mode)) /* not a block device, cannot 
 					* be mounted */
 		return 0;
-	
-	if ((mtab = setmntent (MOUNTED, "r")) == NULL) {
+
+#ifndef _PATH_MOUNTED
+# define _PATH_MOUNTED "/etc/mtab"
+#endif
+
+	if ((mtab = setmntent (_PATH_MOUNTED, "r")) == NULL) {
 		fprintf (stderr, "%s: can't open %s.\n",
-			 progname, MOUNTED);
+			 progname, _PATH_MOUNTED);
 		exit(1);
 	}
 	

@@ -233,7 +233,7 @@ static void adjust_bounds(Xdf_t *This, off_t *begin, off_t *end)
 }
 
 
-static inline int try_flush_dirty(Xdf_t *This)
+static __inline__ int try_flush_dirty(Xdf_t *This)
 {
 	int ptr, nr, bytes;
 	RawRequest_t requests[100];
