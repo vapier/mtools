@@ -316,6 +316,8 @@ static void fat12_encode(Fs_t *Stream, unsigned int num, unsigned int code)
 static unsigned int fat16_decode(Fs_t *Stream, unsigned int num)
 {
 	unsigned char *address = getAddress(Stream, num << 1, FAT_ACCESS_READ);
+	if(!address)
+		return 1;
 	return _WORD(address);
 }
 
@@ -331,6 +333,8 @@ static unsigned int fast_fat16_decode(Fs_t *Stream, unsigned int num)
 	unsigned short *address = 
 		(unsigned short *) getAddress(Stream, num << 1, 
 					      FAT_ACCESS_READ);
+	if(!address)
+		return 1;
 	return *address;
 }
 
@@ -354,6 +358,8 @@ static void fast_fat16_encode(Fs_t *Stream, unsigned int num, unsigned int code)
 static unsigned int fat32_decode(Fs_t *Stream, unsigned int num)
 {
 	unsigned char *address = getAddress(Stream, num << 2, FAT_ACCESS_READ);
+	if(!address)
+		return 1;
 	return _DWORD(address) & FAT32_ADDR;
 }
 
@@ -369,6 +375,8 @@ static unsigned int fast_fat32_decode(Fs_t *Stream, unsigned int num)
 	unsigned int *address = 
 		(unsigned int *) getAddress(Stream, num << 2, 
 					    FAT_ACCESS_READ);
+	if(!address)
+		return 1;
 	return (*address) & FAT32_ADDR;
 }
 
@@ -429,9 +437,9 @@ void fat_write(Fs_t *This)
 				}
 				/* if last dupe, zero it out */
 				if(i==dups-1)
-					This->FatMap[slot].dirty &= ~(1<<bit);
+					This->FatMap[slot].dirty &= ~(ONE<<bit);
 			}
-		}	 
+		}
 	}
 	/* write the info sector, if any */
 	if(This->infoSectorLoc && This->infoSectorLoc != MAX32) {
@@ -791,14 +799,20 @@ unsigned int get_next_free_cluster(Fs_t *This, unsigned int last)
 		last = 1;
 
 	for (i=last+1; i< This->num_clus+2; i++) {
-		if (!fatDecode(This, i)) {
+		unsigned int r = fatDecode(This, i);
+		if(r == 1)
+			goto exit_0;
+		if (!r) {
 			This->last = i;
 			return i;
 		}
 	}
 
 	for(i=2; i < last+1; i++) {
-		if (!fatDecode(This, i)) {
+		unsigned int r = fatDecode(This, i);
+		if(r == 1)
+			goto exit_0;
+		if (!r) {
 			This->last = i;
 			return i;
 		}
@@ -807,6 +821,9 @@ unsigned int get_next_free_cluster(Fs_t *This, unsigned int last)
 
 	fprintf(stderr,"No free cluster %d %d\n", This->preallocatedClusters,
 		This->last);
+	return 1;
+ exit_0:
+	fprintf(stderr, "FAT error\n");
 	return 1;
 }
 
@@ -847,9 +864,14 @@ mt_size_t getfree(Stream_t *Dir)
 		size_t total;
 
 		total = 0L;
-		for (i = 2; i < This->num_clus + 2; i++)
-			if (!fatDecode(This,i))
+		for (i = 2; i < This->num_clus + 2; i++) {
+			unsigned int r = fatDecode(This,i);
+			if(r == 1) {
+				return -1;
+			}
+			if (!r)
 				total++;
+		}
 		This->freeSpace = total;
 	}
 	return sectorsToBytes((Stream_t*)This, 
@@ -891,19 +913,30 @@ int getfreeMinClusters(Stream_t *Dir, size_t size)
 	if ( last < 2 || last >= This->num_clus + 2)
 		last = 1;
 	for (i=last+1; i< This->num_clus+2; i++){
-		if (!fatDecode(This, i))
+		unsigned int r = fatDecode(This, i);
+		if(r == 1) {
+			goto exit_0;
+		}
+		if (!r)
 			total++;
 		if(total >= size)
 			return 1;				
 	}
 	for(i=2; i < last+1; i++){
-		if (!fatDecode(This, i))
+		unsigned int r = fatDecode(This, i);		
+		if(r == 1) {
+			goto exit_0;
+		}
+		if (!r)
 			total++;
 		if(total >= size)
 			return 1;
 	}
 	fprintf(stderr, "Disk full\n");
 	got_signal = 1;
+	return 0;
+ exit_0:
+	fprintf(stderr, "FAT error\n");
 	return 0;
 }
 
