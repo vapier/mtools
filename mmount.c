@@ -4,7 +4,7 @@
  * written by:
  *
  * Alain L. Knaff			
- * alain@linux.lu
+ * alain@knaff.lu
  *
  */
 
