@@ -394,9 +394,17 @@ static __inline__ void inst_boot_prg(struct bootsector *boot, int offset)
 {
 	memcpy((char *) boot->jump + offset, 
 	       (char *) bootprog, sizeof(bootprog) /sizeof(bootprog[0]));
-	boot->jump[0] = 0xeb;
-	boot->jump[1] = offset - 1;
-	boot->jump[2] = 0x90;
+	if(offset - 2 < 0x80) {
+	  // short jump
+	  boot->jump[0] = 0xeb;
+	  boot->jump[1] = offset -2;
+	  boot->jump[2] = 0x90;
+	} else {
+	  // long jump, if offset is too large
+	  boot->jump[0] = 0xe9;
+	  boot->jump[1] = offset -3;
+	  boot->jump[2] = 0x00;
+	}
 	set_word(boot->jump + offset + 20, offset + 24);
 }
 
@@ -967,7 +975,7 @@ void mformat(int argc, char **argv, int dummy)
 		read(fd, buf, blocksize);
 		keepBoot = 1;
 	}
-	if(!keepBoot) {
+	if(!keepBoot && !(used_dev.use_2m & 0x7f)) {
 		memset((char *)boot, '\0', Fs.sector_size);
 		if(Fs.sector_size == 512 && !used_dev.partition) {
 			/* install fake partition table pointing to itself */
@@ -994,12 +1002,12 @@ void mformat(int argc, char **argv, int dummy)
 	tot_sectors = used_dev.tracks * used_dev.heads * used_dev.sectors - 
 		DWORD(nhs);
 
-	set_word(boot->nsect, dev->sectors);
-	set_word(boot->nheads, dev->heads);
+	set_word(boot->nsect, used_dev.sectors);
+	set_word(boot->nheads, used_dev.heads);
 
-	dev->fat_bits = comp_fat_bits(&Fs,dev->fat_bits, tot_sectors, fat32);
+	used_dev.fat_bits = comp_fat_bits(&Fs,used_dev.fat_bits, tot_sectors, fat32);
 
-	if(dev->fat_bits == 32) {
+	if(used_dev.fat_bits == 32) {
 		Fs.primaryFat = 0;
 		Fs.writeAllFats = 1;
 		Fs.fat_start = 32;
@@ -1080,7 +1088,14 @@ void mformat(int argc, char **argv, int dummy)
 
 	if(!keepBoot)
 		inst_boot_prg(boot, bootOffset);
-	if(dev->use_2m & 0x7f)
+	// Mimic 3.8 behavior, else 2m disk do not work (???)
+	// luferbu@fluidsignal.com (Luis Bustamante), Fri, 14 Jun 2002
+	if(used_dev.use_2m & 0x7f) {
+	  boot->jump[0] = 0xeb;
+	  boot->jump[1] = 0x80;
+	  boot->jump[2] = 0x90;
+	}
+	if(used_dev.use_2m & 0x7f)
 		Fs.num_fat = 1;
 	Fs.lastFatSectorNr = 0;
 	Fs.lastFatSectorData = 0;
