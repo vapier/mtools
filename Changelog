@@ -1,3 +1,5 @@
+030609	Moved putc after variable description (anybody knows about a -W
+	flag so that gcc warns about these?)
 030606	Fixed mattrib -p (missing slash)
 030605	Added -m option to mformat to specify a non-standard mediabyte
 030524	Added -d options to mformat to specify number of FAT copies. Can
