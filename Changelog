@@ -1,3 +1,5 @@
+030831	Fix a couple of memory leaks in config file parsing. Fix llong.h
+	(redefined same symbol twice)
 030718	Fix rootskip and rate of XDF disks
 030705	Fix inverted IS_MFORMAT_ONLY conditon in plain_io.c
 030609	Moved putc after variable description (anybody knows about a -W

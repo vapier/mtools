@@ -8,7 +8,7 @@
 /* if off_t is already 64 bits, be happy, and don't worry about the
  * loff_t and llseek stuff */
 #define MT_OFF_T off_t
-#define MT_OFF_T size_t
+#define MT_SIZE_T size_t
 #endif
 
 #ifndef MT_OFF_T
