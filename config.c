@@ -490,6 +490,17 @@ static void get_toupper(void)
 	mstoupper[i] = get_number();
 }
 
+void set_cmd_line_image(char *img, int flags) {
+  prepend();
+  devices[cur_dev].drive = ':';
+  devices[cur_dev].name = strdup(img);
+  devices[cur_dev].fat_bits = 0;
+  devices[cur_dev].tracks = 0;
+  devices[cur_dev].heads = 0;
+  devices[cur_dev].sectors = 0;
+  devices[cur_dev].offset = 0;
+}
+
 static void parse_old_device_line(char drive)
 {
     char name[MAXPATHLEN];

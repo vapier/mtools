@@ -229,8 +229,11 @@ void mzip(int argc, char **argv, int type)
 	break;
 	
 	/* get command line options */
-	while ((c = getopt(argc, argv, "efpqrwxu")) != EOF) {
+	while ((c = getopt(argc, argv, "i:efpqrwxu")) != EOF) {
 		switch (c) {
+			case 'i':
+				set_cmd_line_image(optarg, SCSI_FLAG);
+				break;
 			case 'f':
 				if (get_real_uid()) {
 					fprintf(stderr, 
@@ -268,7 +271,7 @@ void mzip(int argc, char **argv, int type)
 	     (!argv[optind][0] || argv[optind][1] != ':')))
 		usage();
 	
-	drive = toupper(argc - optind == 1 ? argv[argc - 1][0] : 'a');
+	drive = toupper(argc - optind == 1 ? argv[argc - 1][0] : ':');
 	
 	for (dev = devices; dev->name; dev++) {
 		unsigned char cdb[6] = { 0, 0, 0, 0, 0, 0 };

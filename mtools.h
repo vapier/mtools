@@ -154,6 +154,7 @@ extern int mtools_raw_tty;
 
 extern int batchmode;
 
+void set_cmd_line_image(char *img, int flags);
 void read_config(void);
 extern struct device *devices;
 extern struct device const_devices[];

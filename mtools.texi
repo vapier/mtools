@@ -255,6 +255,17 @@ drive is assumed to be at Scsi target 4, and the Zip at Scsi target 5
 second drive on the Scsi bus (/dev/sdb). The default settings can be
 changes using a configuration file (@pxref{Configuration}).
 
+The drive letter : (colon) has a special meaning. It is used to access
+image files which are directly specified on the command line using the
+@code{-i} options.
+
+Example:
+@example
+ mcopy -i my-image-file.bin ::file1 ::file2 .
+@end example
+
+This copies @code{file1} and @code{file2} from the image file
+(@code{my-image-file.bin}) to the @code{/tmp} directory.
 
 @node directory, long names, drive letters, Common features
 @section Current working directory

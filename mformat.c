@@ -656,9 +656,13 @@ void mformat(int argc, char **argv, int dummy)
 
 	/* get command line options */
 	while ((c = getopt(argc,argv,
-			   "148f:t:n:v:qub"
+			   "i:148f:t:n:v:qub"
 			   "kB:r:L:IFCc:Xh:s:l:N:H:M:S:2:30:Aa"))!= EOF) {
 		switch (c) {
+			case 'i':
+				set_cmd_line_image(optarg, 0);
+				break;
+
 			/* standard DOS flags */
 			case '1':
 				argheads = 1;

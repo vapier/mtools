@@ -63,8 +63,11 @@ void mshowfat(int argc, char **argv, int mtype)
 	init_clash_handling(& arg.ch);
 
 	/* get command line options */
-	while ((c = getopt(argc, argv, "")) != EOF) {
+	while ((c = getopt(argc, argv, "i:")) != EOF) {
 		switch (c) {
+			case 'i':
+				set_cmd_line_image(optarg, 0);
+				break;
 			case '?':
 				usage();
 				break;

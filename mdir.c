@@ -500,8 +500,11 @@ void mdir(int argc, char **argv, int type)
 	recursive = 0;
 	wide = all = 0;
 					/* first argument */
-	while ((c = getopt(argc, argv, "waXbfds/")) != EOF) {
+	while ((c = getopt(argc, argv, "i:waXbfds/")) != EOF) {
 		switch(c) {
+			case 'i':
+				set_cmd_line_image(optarg, 0);
+				break;
 			case 'w':
 				wide = 1;
 				break;

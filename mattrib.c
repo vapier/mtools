@@ -163,10 +163,13 @@ void mattrib(int argc, char **argv, int type)
 	concise = 0;
 	replay = 0;
 	
-	while ((c = getopt(argc, argv, "/ahrsAHRSXp")) != EOF) {
+	while ((c = getopt(argc, argv, "i:/ahrsAHRSXp")) != EOF) {
 		switch (c) {
 			default:
 				arg.remove &= ~letterToCode(c);
+				break;
+			case 'i':
+				set_cmd_line_image(optarg, 0);
 				break;
 			case 'p':
 				replay = 1;

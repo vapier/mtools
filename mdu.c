@@ -85,8 +85,11 @@ void mdu(int argc, char **argv, int type)
 	arg.all = 0;
 	arg.inDir = 0;
 	arg.summary = 0;
-	while ((c = getopt(argc, argv, "as")) != EOF) {
+	while ((c = getopt(argc, argv, "i:as")) != EOF) {
 		switch (c) {
+			case 'i':
+				set_cmd_line_image(optarg, 0);
+				break;
 			case 'a':
 				arg.all = 1;
 				break;

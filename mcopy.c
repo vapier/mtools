@@ -114,7 +114,7 @@ static int unix_write(direntry_t *entry, MainParam_t *mp, int needfilter)
 				if((!MT_FSTAT(sFd, &srcStbuf)) &&
 				   stbuf.st_dev == srcStbuf.st_dev &&
 				   stbuf.st_ino == srcStbuf.st_ino) {
-					fprintf(stderr, "Attempt to copy file on itself\n", stbuf.st_ino, srcStbuf.st_ino);
+					fprintf(stderr, "Attempt to copy file on itself\n");
 					return ERROR_ONE;
 				}
 			}
@@ -495,8 +495,11 @@ void mcopy(int argc, char **argv, int mtype)
 	arg.convertCharset = 0;
 	arg.type = mtype;
 	fastquit = 0;
-	while ((c = getopt(argc, argv, "abB/sptTnmvQD:o")) != EOF) {
+	while ((c = getopt(argc, argv, "i:abB/sptTnmvQD:o")) != EOF) {
 		switch (c) {
+			case 'i':
+				set_cmd_line_image(optarg, 0);
+				break;
 			case 's':
 			case '/':
 				arg.recursive = 1;

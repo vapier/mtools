@@ -302,8 +302,11 @@ void mpartition(int argc, char **argv, int dummy)
 	argsectors = 0;
 
 	/* get command line options */
-	while ((c = getopt(argc, argv, "adprcIT:t:h:s:fvpb:l:S:B:")) != EOF) {
+	while ((c = getopt(argc, argv, "i:adprcIT:t:h:s:fvpb:l:S:B:")) != EOF) {
 		switch (c) {
+			case 'i':
+				set_cmd_line_image(optarg, 0);
+				break;
 			case 'B':
 				bootSector = optarg;
 				break;

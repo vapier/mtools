@@ -97,8 +97,11 @@ void mlabel(int argc, char **argv, int type)
 	clear = 0;
 	show = 0;
 
-	while ((c = getopt(argc, argv, "vcsnN:")) != EOF) {
+	while ((c = getopt(argc, argv, "i:vcsnN:")) != EOF) {
 		switch (c) {
+			case 'i':
+				set_cmd_line_image(optarg, 0);
+				break;
 			case 'v':
 				verbose = 1;
 				break;

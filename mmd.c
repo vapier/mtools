@@ -146,8 +146,11 @@ void mmd(int argc, char **argv, int type)
 	init_clash_handling(& arg.ch);
 
 	/* get command line options */
-	while ((c = getopt(argc, argv, "D:o")) != EOF) {
+	while ((c = getopt(argc, argv, "i:D:o")) != EOF) {
 		switch (c) {
+			case 'i':
+				set_cmd_line_image(optarg, 0);
+				break;
 			case '?':
 				usage();
 			case 'o':

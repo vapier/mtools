@@ -85,8 +85,11 @@ void mdoctorfat(int argc, char **argv, int mtype)
 	arg.setsize = 0;
 
 	/* get command line options */
-	while ((c = getopt(argc, argv, "bo:s:")) != EOF) {
+	while ((c = getopt(argc, argv, "i:bo:s:")) != EOF) {
 		switch (c) {
+			case 'i':
+				set_cmd_line_image(optarg, 0);
+				break;
 			case 'b':
 				arg.markbad = 1;
 				break;

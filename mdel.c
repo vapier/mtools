@@ -129,8 +129,11 @@ void mdel(int argc, char **argv, int deltype)
 	int c,i;
 
 	arg.verbose = 0;
-	while ((c = getopt(argc, argv, "v")) != EOF) {
+	while ((c = getopt(argc, argv, "i:v")) != EOF) {
 		switch (c) {
+			case 'i':
+				set_cmd_line_image(optarg, 0);
+				break;
 			case 'v':
 				arg.verbose = 1;
 				break;

@@ -230,8 +230,11 @@ void mmove(int argc, char **argv, int oldsyntax)
 
 	/* get command line options */
 	arg.verbose = 0;
-	while ((c = getopt(argc, argv, "vD:o")) != EOF) {
+	while ((c = getopt(argc, argv, "i:vD:o")) != EOF) {
 		switch (c) {
+			case 'i':
+				set_cmd_line_image(optarg, 0);
+				break;
 			case 'v':	/* dummy option for mcopy */
 				arg.verbose = 1;
 				break;
