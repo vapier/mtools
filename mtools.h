@@ -17,6 +17,7 @@ extern int lockf(int, int, off_t);  /* SCO has no proper include file for lockf 
 #define VOLD_FLAG 32
 #define FLOPPYD_FLAG 64
 #define FILTER_FLAG 128
+#define SWAP_FLAG 256 
 
 #define IS_SCSI(x)  ((x) && ((x)->misc_flags & SCSI_FLAG))
 #define IS_PRIVILEGED(x) ((x) && ((x)->misc_flags & PRIV_FLAG))
@@ -24,6 +25,7 @@ extern int lockf(int, int, off_t);  /* SCO has no proper include file for lockf 
 #define IS_MFORMAT_ONLY(x) ((x) && ((x)->misc_flags & MFORMAT_ONLY_FLAG))
 #define SHOULD_USE_VOLD(x) ((x)&& ((x)->misc_flags & VOLD_FLAG))
 #define SHOULD_USE_XDF(x) ((x)&& ((x)->misc_flags & USE_XDF_FLAG))
+#define DO_SWAP(x)  ((x) && ((x)->misc_flags & SWAP_FLAG))
 
 typedef struct device {
 	const char *name;       /* full path to device */

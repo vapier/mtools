@@ -101,7 +101,8 @@ static flags_t misc_flags[] = {
     { "filter",			FILTER_FLAG },
     { "privileged",		PRIV_FLAG },
     { "vold",			VOLD_FLAG },
-    { "remote",			FLOPPYD_FLAG }
+    { "remote",			FLOPPYD_FLAG },
+    { "swap",			SWAP_FLAG },
 };
 
 static struct {
@@ -724,6 +725,8 @@ void mtoolstest(int argc, char **argv, int type)
 	if(dev->misc_flags)
 	    printf("\t");
 
+	if(DO_SWAP(dev))
+	    printf("swap ");
 	if(IS_SCSI(dev))
 	    printf("scsi ");
 	if(IS_PRIVILEGED(dev))
