@@ -45,6 +45,7 @@ typedef struct RemoteFile_t {
 	mt_off_t size;
 	int version;
 	int capabilities;
+	int drive;
 } RemoteFile_t;
 
 
@@ -264,9 +265,10 @@ static int floppyd_open(RemoteFile_t *This, int mode)
 		buf[4] = OP_OPRO;
 	else
 		buf[4] = OP_OPRW;
-	dword2byte(1, buf+5);		
+	dword2byte(4, buf+5);
+	dword2byte(This->drive, buf+9);
 
-	write(This->fd, buf, 10);
+	write(This->fd, buf, 13);
        
 	if (read_dword(This->fd) != 8) {
 		errno = EIO;
@@ -442,8 +444,8 @@ static Class_t FloppydFileClass = {
 
 /* ######################################################################## */
 
-int get_host_and_port(const char* name, char** hostname, char **display,
-					  short* port)
+int get_host_and_port_and_drive(const char* name, char** hostname, char **display,
+				short* port, int *drive)
 {
 	char* newname = strdup(name);
 	char* p;
@@ -455,10 +457,14 @@ int get_host_and_port(const char* name, char** hostname, char **display,
 	if (*p) p++;
 	*p2 = 0;
 	
-	*port = atoi(p);
-	if (*port == 0) {
-		*port = FLOPPYD_DEFAULT_PORT;	
-	}
+	*port = FLOPPYD_DEFAULT_PORT;	
+	if(*p >= '0' && *p <= '9')
+	  *port = strtoul(p, &p, 0);
+	if(*p == '/')
+	  p++;
+	*drive = 0;
+	if(*p >= '0' && *p <= '9')
+	  *drive = strtoul(p, &p, 0);
 
 	*display = strdup(newname);
 
@@ -599,7 +605,8 @@ static int ConnectToFloppyd(RemoteFile_t *floppyd, const char* name,
 	char* hostname;
 	char* display;
 	short port;
-	int rval = get_host_and_port(name, &hostname, &display, &port);
+	int rval = get_host_and_port_and_drive(name, &hostname, &display, 
+					       &port, &floppyd->drive);
 	int sock;
 	int reply;
 	
