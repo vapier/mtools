@@ -34,6 +34,7 @@ typedef struct SimpleFile_t {
 #endif
     int scsi_sector_size;
     void *extra_data; /* extra system dependant information for scsi */
+    int swap; /* do the word swapping */
 } SimpleFile_t;
 
 
@@ -97,6 +98,16 @@ int lock_dev(int fd, int mode, struct device *dev)
 typedef int (*iofn) (int, char *, int);
 
 
+static void swap_buffer(char *buf, size_t len)
+{
+	int i;
+	for (i=0; i<len; i+=2) {
+		char temp = buf[i];
+		buf[i] = buf[i+1];
+		buf[i+1] = temp;
+	}
+}
+
 
 static int file_io(Stream_t *Stream, char *buf, mt_off_t where, int len,
 				   iofn io)
@@ -147,13 +158,33 @@ static int file_io(Stream_t *Stream, char *buf, mt_off_t where, int len,
 
 
 static int file_read(Stream_t *Stream, char *buf, mt_off_t where, size_t len)
-{	
-	return file_io(Stream, buf, where, len, (iofn) read);
+{
+	DeclareThis(SimpleFile_t);
+
+	int result = file_io(Stream, buf, where, len, (iofn) read);
+
+	if ( This->swap )
+		swap_buffer( buf, len );
+	return result;
 }
 
 static int file_write(Stream_t *Stream, char *buf, mt_off_t where, size_t len)
 {
-	return file_io(Stream, buf, where, len, (iofn) write);
+	DeclareThis(SimpleFile_t);
+
+	if ( !This->swap )
+		return file_io(Stream, buf, where, len, (iofn) write);
+	else {
+		int result;
+		char *swapping = malloc( len );
+		memcpy( swapping, buf, len );
+		swap_buffer( swapping, len );
+
+		result = file_io(Stream, swapping, where, len, (iofn) write);
+
+		free(swapping);
+		return result;
+	}
 }
 
 static int file_flush(Stream_t *Stream)
@@ -199,8 +230,20 @@ static int file_geom(Stream_t *Stream, struct device *dev,
 		SET_INT(tot_sectors, WORD(psect));
 		sect_per_track = dev->heads * dev->sectors;
 		if(sect_per_track == 0) {
-		    fprintf(stderr, "The devil is in the details: zero number of heads or sectors\n");
-		    exit(1);
+		    if(mtools_skip_check) {
+			/* add some fake values if sect_per_track is
+			 * zero. Indeed, some atari disks lack the
+			 * geometry values (i.e. have zeroes in their
+			 * place). In order to avoid division by zero
+			 * errors later on, plug 1 everywhere
+			 */
+			dev->heads = 1;
+			dev->sectors = 1;
+			sect_per_track = 1;
+		    } else {
+			fprintf(stderr, "The devil is in the details: zero number of heads or sectors\n");
+			exit(1);
+		    }
 		}
 		tot_sectors += sect_per_track - 1; /* round size up */
 		dev->tracks = tot_sectors / sect_per_track;
@@ -743,6 +786,8 @@ APIRET rc;
 	This->lastwhere = -This->offset;
 	/* provoke a seek on those devices that don't start on a partition
 	 * boundary */
+
+	This->swap = DO_SWAP( dev );
 
 	return (Stream_t *) This;
 }
