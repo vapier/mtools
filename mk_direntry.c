@@ -387,7 +387,6 @@ static __inline__ clash_action get_slots(Stream_t *Dir,
 		} else
 #endif
 			{
-			  fprintf(stderr, "Wipe! Wipe!\n");
 			wipeEntry(&entry);
 			return NAMEMATCH_RENAME;
 		}
