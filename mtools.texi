@@ -1085,6 +1085,12 @@ real filename using the @code{media_findname()} and
 flag is only available if you configured mtools with the
 @code{--enable-new-vold} option before compilation.
 
+@item swap
+@cindex Atari
+@cindex Wordswapped
+
+Consider the media as a word-swapped Atari disk.
+
 @item use_xdf
 @cindex XDF disks (how to configure)
 @vindex use_xdf
