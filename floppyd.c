@@ -384,6 +384,7 @@ int eat(char **ptr, int *len, unsigned char c) {
 
 static char *dispName;
 
+static char XAUTHORITY[]="XAUTHORITY";
 
 char do_auth(io_buffer sock, int *version) 
 {
@@ -452,7 +453,17 @@ char do_auth(io_buffer sock, int *version)
 		destroyPacket(mit_cookie);
 		return 0;
 	}
-	setenv("XAUTHORITY", authFile, 1);
+#ifdef HAVE_SETENV
+	setenv(XAUTHORITY, authFile, 1);
+#else
+	{
+	  char *buffer=malloc(strlen(XAUTHORITY)+strlen(authFile)+2);
+	  strcpy(buffer, XAUTHORITY);
+	  strcat(buffer, "=");
+	  strcat(buffer, authFile);
+	  putenv(buffer);
+	}
+#endif
 
 	ptr = template;
 	ptr[4095] = 0;
