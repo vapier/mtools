@@ -761,20 +761,11 @@ static void usage(char *prog, char *opt)
 }
 
 
-char *makeDisplayName(char *base, int port)
+char *makeDisplayName(int dispNr)
 {
-	char *result;
-	int displaynr = (port - FLOPPYD_DEFAULT_PORT) % 10;
-	int len=strlen(base);
-
-	result = malloc(len+5);
-	strcpy(result, base);
-	result[len++] = ':';
-	result[len++] = '0' + displaynr;
-	result[len++] = '.';
-	result[len++] = '0';
-	result[len]='\0';
-	return result;
+	char result[80];
+	sprintf(result, ":%d.0", dispNr);
+	return strdup(result);
 }
 
 int main (int argc, char** argv) 
@@ -783,7 +774,7 @@ int main (int argc, char** argv)
 	int			arg;
 	int			run_as_server = 0;
 	IPaddr_t		bind_ip = INADDR_ANY;
-	short			bind_port = FLOPPYD_DEFAULT_PORT;
+	unsigned short		bind_port = 0;
 	uid_t			run_uid = 65535;
 	gid_t			run_gid = 65535;
 	char*			username = strdup("nobody");
@@ -843,8 +834,17 @@ int main (int argc, char** argv)
 
 	if(dispName == NULL)
 		dispName = getenv("DISPLAY");
-	if(dispName==NULL)
+	if(dispName==NULL && bind_port != 0)
+		dispName=makeDisplayName((unsigned short)(bind_port - 5703));
+	if(dispName==NULL)		
 		dispName=":0";
+
+	if(bind_port == 0) {
+		char *p = strchr(dispName,':');
+		bind_port = FLOPPYD_DEFAULT_PORT;
+		if(p != NULL)
+			bind_port += atoi(p+1);
+	}
 
 	if(!run_as_server) {
 		struct sockaddr_in	addr;
@@ -867,7 +867,7 @@ int main (int argc, char** argv)
 	if (run_as_server && (bind_ip == INADDR_NONE)) {
 		usage(argv[0], "The server ipaddr is invalid.");
 	}
-	if (run_as_server && (bind_port == -1))	{
+	if (run_as_server && (bind_port == 0))	{
 		usage(argv[0], "No server port was specified (or it was invalid).");
 	}
 
