@@ -1,4 +1,4 @@
-030831	Fix a couple of memory leaks in config file parsing. Fix llong.h
+040228	Fix a couple of memory leaks in config file parsing. Fix llong.h
 	(redefined same symbol twice)
 030718	Fix rootskip and rate of XDF disks
 030705	Fix inverted IS_MFORMAT_ONLY conditon in plain_io.c
