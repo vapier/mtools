@@ -24,7 +24,6 @@ AC_C_INLINE
 
 dnl Check for configuration options
 dnl Enable OS/2 extended density format disks
-undefine([xdf])dnl
 AC_ARG_ENABLE(xdf,
 [  --enable-xdf           support for OS/2 extended density format disks],
 [if test x$enableval = xyes; then
@@ -34,7 +33,6 @@ fi],AC_DEFINE(USE_XDF))
 
 dnl Check for configuration options
 dnl Enable usage of vold on Solaris
-undefine([vold])dnl
 AC_ARG_ENABLE(vold,
 [  --enable-vold          compatibility with Solaris' vold],
 [if test x$enableval = xyes; then
@@ -44,7 +42,6 @@ fi])
 
 dnl Check for configuration options
 dnl Enable usage of vold on Solaris
-undefine([new-vold])dnl
 AC_ARG_ENABLE(new-vold,
 [  --enable-new-vold          compatibility with Solaris' vold, new version],
 [newVold=x$enableval
@@ -55,7 +52,6 @@ fi])
 
 dnl Check for configuration options
 dnl Debugging
-undefine([debug])dnl
 AC_ARG_ENABLE(debug,
 [  --enable-debug         debuging messages],
 [if test x$enableval = xyes; then
@@ -65,7 +61,6 @@ fi])
 
 dnl Check for configuration options
 dnl Raw terminal code (enabled by default)
-undefine([raw_term])dnl
 AC_ARG_ENABLE(raw_term,
 [  --enable-raw-term      raw terminal (readkey behaviour, default)],
 [if test x$enableval = xyes; then
@@ -348,7 +343,6 @@ AC_PATH_X
 AC_PATH_XTRA
 
 dnl Floppyd
-use_floppyd=undef
 AC_ARG_ENABLE(floppyd,
 [  --enable-floppyd       floppy daemon support],
 [if test x$enableval != x; then
@@ -360,12 +354,12 @@ AC_CHECK_LIB(nsl,main)
 AC_CHECK_LIB(bsd,main)
 AC_CHECK_HEADERS(sys/socket.h arpa/inet.h netdb.h)
 
-if test $use_floppyd = undef -a X$no_x = X ; then
+if test X$use_floppyd = X -a X$no_x = X ; then
     use_floppyd="yes"
 fi
 
-if test $use_floppyd = yes; then
-    if test no_x = yes ; then
+if test X$use_floppyd = Xyes; then
+    if test X$no_x = Xyes ; then
 	echo "Floppyd needs X support" >&2
 	echo "To compile without floppyd, use ./configure --disable-floppyd" >&2
 	exit 1
