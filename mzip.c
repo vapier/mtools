@@ -345,6 +345,8 @@ void mzip(int argc, char **argv, int type)
 				 inq_data.product, sizeof inq_data.product) &&
 		     strncasecmp("ZIP 250         ",
 				 inq_data.product, sizeof inq_data.product) &&
+		     strncasecmp("ZIP 750         ",
+				 inq_data.product, sizeof inq_data.product) &&
 		     strncasecmp("JAZ 1GB         ",
 				 inq_data.product, sizeof inq_data.product) &&
 		     strncasecmp("JAZ 2GB         ",
