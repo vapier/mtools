@@ -19,7 +19,7 @@ mtools - utilities to access DOS disks in Unix.
 
 @set EDITION 3.9.9
 @set VERSION 3.9.9
-@set UPDATED June 2003
+@set UPDATED February 2005
 
 @iftex
 @finalout
@@ -1438,7 +1438,7 @@ to clients running on a remote machine, just as an X server grants
 access to the display to remote clients.  It has the following syntax:
 
 @code{floppyd} [@code{-d}] [@code{-l}] [@code{-s} @var{port}] [@code{-r}
-@var{user}] [@code{-b} @var{ipaddr}] @var{devicename} [@var{displaynames}]
+@var{user}] [@code{-b} @var{ipaddr}] [@code{-x} @var{display}] @var{devicenames}
 
 
 @code{floppyd} is always associated with an X server.  It runs on the
@@ -1452,7 +1452,9 @@ associated with an X server.  When a remote client attempts to connect
 to floppyd, it sends floppyd the X authority record corresponding to
 floppyd's X server.  Floppyd in turn then tries to open up a connection
 to the X server in order to verify the authenticity of the xauth record.
-If the connection to the X server succeeds, the client is granted access
+If the connection to the X server succeeds, the client is granted
+access.
+@code{DISPLAY}.
 
 @strong{Caution}: In order to make authentication work correctly, the
 local host should @strong{not} be listed in the @code{xhost} list of
@@ -1480,36 +1482,16 @@ This flag implies daemon mode.  For example, for display
 Bind address (for multihomed hosts). This flag implies daemon mode
 @item r @var{user}
 Run the server under as the given user
-@item l
-Do not generate local default display names
+@item x @var{display}
+X display to use for authentication. By default, this is taken from the
+@code{DISPLAY} variable. If neither the @code{x} attribute is present
+nor @code{DISPLAY} is set, floppyd uses @code{:0.0}.
 @end table
 
-@var{devicename} is the name of the device node to be opened.  Default
-is @code{/dev/fd0}.
+@var{devicenames} is a list of device nodes to be opened.  Default
+is @code{/dev/fd0}. Multiple devices are only supported on mtools
+versions newer than February 28th 2005
 
-@var{displaynames} is a list of display names to connect to for
-authentication.  All displays in the list are tried until one is found
-that grants access or until the list is exhausted.  If no list is
-supplied, the a display name list based on the ip address supplied using
-the @code{-b} flag is constructed: 
-@itemize @bullet
-@code{@var{ipaddr}:@var{n}.0}.
-@item @code{:}@var{n}@code{.0}
-@end itemize
- If @code{floppyd} is started from inetd, the address of the socket used
-for stdin is used as a bind address.
-
- If no bind address is supplied, a list containing the following 3 items
-is constructed:
-@itemize @bullet
-@item @var{hostname}@code{:}@var{n}@code{.0}
-@item @code{localhost:}@var{n}@code{.0}
-@item @code{:}@var{n}@code{.0}
-@end itemize
-
- @var{n} is the display number derived from the port number (@var{port}
-- 5703 modulo 10). The local items (@code{localhost:0} and @code{:0})
-are not constructed if the @code{-l} flag is given.
 
 @subsection Connecting to floppyd
 
@@ -1517,10 +1499,12 @@ are not constructed if the @code{-l} flag is given.
 description in your @file{~/.mtoolsrc} file.  If the flag @code{remote}
 is given, the @code{file} parameter of the device description is taken
 to be a remote address.  It's format is the following:
-@var{hostname}@code{:}@var{displaynumber}[@code{/}@var{baseport}]. When
+@var{hostname}@code{:}@var{displaynumber}[@code{/}[@var{baseport}][@code{/}@var{drive}]]. When
 using this entry, mtools connects to port
 @var{baseport}+@var{displaynumber} at @var{hostname}. By default
-@var{baseport} is 5703.
+@var{baseport} is 5703. The drive parameter is to distinguish among
+multiple drives associated with a single display (only mtools versions
+more recent than February 28th 2005)
 
 @subsection Examples:
 
@@ -1536,8 +1520,8 @@ floppyd -d /dev/fd0
 5704. We assume that the local host is named @code{hitchhiker}.
 
 @example
-floppyd -d /dev/fd0 localhost:1 hitchhiker:1 :1
-floppyd -p 5704 /dev/fd0 
+floppyd -d /dev/fd0
+floppyd -d -x :1 -p 5704 /dev/fd0 
 @end example
 
  If you want to start floppyd by @code{inetd} instead of running it as a 
@@ -1553,8 +1537,8 @@ have defined a user named floppy in your @file{/etc/passwd}):
 
 @example
 # floppy daemon
-floppyd-0   stream  tcp  wait  floppy  /usr/sbin/floppyd floppyd /dev/fd0 
-floppyd-1   stream  tcp  wait  floppy  /usr/sbin/floppyd floppyd /dev/fd1
+floppyd-0 stream  tcp  wait  floppy  /usr/sbin/floppyd floppyd /dev/fd0 
+floppyd-1 stream  tcp  wait  floppy  /usr/sbin/floppyd floppyd -x :1 /dev/fd0 
 @end example
 
  Note that you need to supply the X display names for the second
@@ -1562,10 +1546,17 @@ floppyd.  This is because the port is opened by inetd.conf, and hence
 floppyd cannot know its number to interfere the display number.
 
 
- On the client side, insert the following into your @file{~/.mtoolsrc}
+On the client side, insert the following into your @file{~/.mtoolsrc}
 to define a drive letter accessing floppy drive in your X terminal:
 @example
 drive x: file="$DISPLAY" remote
+@end example
+
+If your X terminal has more than one drive, you may access the
+additional drives as follows:
+@example
+drive y: file="$DISPLAY//1" remote
+drive z: file="$DISPLAY//2" remote
 @end example
 
 @node floppyd_installtest, mattrib, floppyd, Commands
