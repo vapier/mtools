@@ -22,7 +22,11 @@ void usage()
 	exit(1);
 }
 
+#ifdef __CYGWIN__
+#define BUF_SIZE 512
+#else
 #define BUF_SIZE 16000
+#endif
 
 static size_t bufLen(size_t blocksize, mt_size_t totalSize, mt_off_t address)
 {

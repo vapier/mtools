@@ -73,6 +73,14 @@ static int compare_geom(struct device *dev, struct device *orig_dev)
 #define devices const_devices
 
 
+#ifdef __CYGWIN__
+#define predefined_devices
+struct device devices[] = {
+   {"\\\\\\\\.\\\\A:", 'A', GENFD },
+};
+#endif /* CYGWIN */
+
+
 #ifdef OS_aux
 #define predefined_devices
 struct device devices[] = {
