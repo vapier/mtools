@@ -169,7 +169,7 @@ static int comp_fat_bits(Fs_t *Fs, int estimate,
 	}
 
 	if(!estimate) {
-		int min_fat16_size;
+		unsigned int min_fat16_size;
 
 		if(needed_fat_bits > 12)
 			return needed_fat_bits;
@@ -343,7 +343,7 @@ static void calc_fat_size(Fs_t *Fs, unsigned long tot_sectors)
 	unsigned long numerator;
 	unsigned long denominator;
 	int fat_nybbles;
-	int slack;
+	unsigned int slack;
 	int printGrowMsg=1; /* Should we print "growing FAT" messages ?*/
 	
 #if DEBUG
@@ -430,6 +430,10 @@ static void calc_fat_size(Fs_t *Fs, unsigned long tot_sectors)
 	 * of sectors. This means that if we reduced the number of clusters
 	 * above, we will have to grow the FAT in order to take up any excess
 	 * sectors... */
+#ifdef HAVE_ASSERT_H
+	assert(rem_sect >= Fs->num_clus * Fs->cluster_size + 
+	       Fs->fat_len * Fs->num_fat);
+#endif
 	slack = rem_sect - 
 		Fs->num_clus * Fs->cluster_size - 
 		Fs->fat_len * Fs->num_fat;
@@ -557,9 +561,9 @@ struct OldDos_t old_dos[]={
 {    1,  8,  1, 1, 1, 1, 0xf0 },
 };
 
-static int old_dos_size_to_geom(int size, int *cyls, int *heads, int *sects)
+static int old_dos_size_to_geom(size_t size, int *cyls, int *heads, int *sects)
 {
-	int i;
+	unsigned int i;
 	size = size * 2;
 	for(i=0; i < sizeof(old_dos) / sizeof(old_dos[0]); i++){
 		if (old_dos[i].sectors * 
@@ -578,7 +582,7 @@ static int old_dos_size_to_geom(int size, int *cyls, int *heads, int *sects)
 static void calc_fs_parameters(struct device *dev, unsigned long tot_sectors,
 			       struct Fs_t *Fs, struct bootsector *boot)
 {
-	int i;
+	unsigned int i;
 
 	for(i=0; i < sizeof(old_dos) / sizeof(old_dos[0]); i++){
 		if (dev->sectors == old_dos[i].sectors &&
@@ -702,7 +706,7 @@ void mformat(int argc, char **argv, int dummy)
 	int bootOffset;
 
 #ifdef USE_XDF
-	int i;
+	unsigned int i;
 	int format_xdf = 0;
 	struct xdf_info info;
 #endif
@@ -743,7 +747,18 @@ void mformat(int argc, char **argv, int dummy)
 	Fs.cluster_size = 0;
 	Fs.refs = 1;
 	Fs.dir_len = 0;
+	if(getenv("MTOOLS_DIR_LEN")) {
+	  Fs.dir_len = atoi(getenv("MTOOLS_DIR_LEN"));
+	  if(Fs.dir_len <= 0)
+	    Fs.dir_len=0;
+	}
 	Fs.fat_len = 0;
+	Fs.num_fat = 2;
+	if(getenv("MTOOLS_NFATS")) {
+	  Fs.num_fat = atoi(getenv("MTOOLS_NFATS"));
+	  if(Fs.num_fat <= 0)
+	    Fs.num_fat=2;
+	}
 	Fs.Class = &FsClass;	
 	rate_0 = mtools_rate_0;
 	rate_any = mtools_rate_any;
@@ -751,7 +766,7 @@ void mformat(int argc, char **argv, int dummy)
 	/* get command line options */
 	while ((c = getopt(argc,argv,
 			   "i:148f:t:n:v:qub"
-			   "kB:r:L:IFCc:Xh:s:l:N:H:M:S:2:30:Aa"))!= EOF) {
+			   "kB:r:L:IFCc:Xh:s:l:N:H:M:S:2:30:Aad:"))!= EOF) {
 		switch (c) {
 			case 'i':
 				set_cmd_line_image(optarg, 0);
@@ -891,7 +906,9 @@ void mformat(int argc, char **argv, int dummy)
 			case 'h':
 				argheads = atoi(optarg);
 				break;
-
+			case 'd':
+				Fs.num_fat = atoi(optarg);
+				break;
 			default:
 				usage();
 		}
@@ -1027,9 +1044,9 @@ void mformat(int argc, char **argv, int dummy)
 
 		SET_INT(Fs.sector_size, msize);
 		{
-		    int i;
+		    unsigned int i;
 		    for(i = 0; i < 31; i++) {
-			if (Fs.sector_size == 1 << i) {
+			if (Fs.sector_size == (unsigned int) (1 << i)) {
 			    Fs.sectorShift = i;
 			    break;
 			}
@@ -1048,7 +1065,7 @@ void mformat(int argc, char **argv, int dummy)
 		/* do a "test" read */
 		if (!create &&
 		    READS(Fs.Direct, (char *) buf, 0, Fs.sector_size) != 
-		    Fs.sector_size) {
+		    (signed int) Fs.sector_size) {
 			sprintf(errmsg, 
 				"Error reading from '%s', wrong parameters?",
 				name);
@@ -1097,7 +1114,7 @@ void mformat(int argc, char **argv, int dummy)
 			   blocksize);
 	Fs.Buffer = 0;
 
-	boot->nfat = Fs.num_fat = 2;
+	boot->nfat = Fs.num_fat;
 	if(!keepBoot)
 		set_word(boot->jump + 510, 0xaa55);
 	
@@ -1217,7 +1234,7 @@ void mformat(int argc, char **argv, int dummy)
 
 	format_root(&Fs, label, boot);
 	WRITES((Stream_t *)&Fs, (char *) boot, (mt_off_t) 0, Fs.sector_size);
-	if(Fs.fat_bits == 32 && WORD(ext.fat32.backupBoot) != MAX32) {
+	if(Fs.fat_bits == 32 && WORD(ext.fat32.backupBoot) != MAX16) {
 		WRITES((Stream_t *)&Fs, (char *) boot, 
 		       sectorsToBytes((Stream_t*)&Fs, WORD(ext.fat32.backupBoot)),
 		       Fs.sector_size);
