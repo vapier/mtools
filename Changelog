@@ -1,3 +1,4 @@
+021116	Fixed vold support for mpartition
 021105	Added PACKED to unicode_char declaration (Arm)
 	Mpartition can now create the image if -I is specified.
 021104	Support for geometry-less Atari disks

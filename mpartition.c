@@ -425,6 +425,9 @@ void mpartition(int argc, char **argv, int dummy)
 		if(initialize)
  			mode |= O_CREAT;
 
+#ifdef USING_NEW_VOLD
+		strcpy(name, getVoldName(dev, name));
+#endif
 		Stream = SimpleFileOpen(&used_dev, dev, name, mode, 
 					errmsg, open2flags, 1, 0);
 
