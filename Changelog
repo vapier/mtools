@@ -1,3 +1,6 @@
+040505	Fixed duplicate FAT writing error. Fixed segfault on short images.
+	Mformat creates images of correct size.
+	CYGWIN compatibility (O_BINARY flag).
 040420	Cygwin patch for plain_io.c (no locking)
 040228	Fix a couple of memory leaks in config file parsing. Fix llong.h
 	(redefined same symbol twice)
