@@ -17,9 +17,9 @@ mtools - utilities to access DOS disks in Unix.
 @end ignore
 
 
-@set EDITION pre-3.9.9
-@set VERSION pre-3.9.9
-@set UPDATED February 2003
+@set EDITION 3.9.9
+@set VERSION 3.9.9
+@set UPDATED March 2003
 
 @iftex
 @finalout

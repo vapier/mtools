@@ -1,4 +1,5 @@
-030213	Released Pre-1
+030213	Released 3.9.9 : Identical to pre-3.9.9 except for the version number
+030213	Released 3.9.9 Pre-1
 	Fixed max numbers of sectors for FAT12 and FAT16 (was off by one...)
 	Improved fat_len calculation
 	Fixed plain_io.c bug (Swap byte applied after partition stuff,

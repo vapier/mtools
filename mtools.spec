@@ -1,7 +1,7 @@
 Summary: mtools, read/write/list/format DOS disks under Unix
 Name: mtools
 Version: 3.9.9
-Release: 1
+Release: 2
 #Icon: mtools-icon.gif
 Copyright: GPL/Lilux
 Group: Utilities/System
