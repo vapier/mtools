@@ -1085,7 +1085,6 @@ void serve_client(int sockhandle, char* device_name) {
 		/*alarm(60);*/
 
 		if (!recv_packet(opcode, sock, 1)) {
-		    fprintf(stderr, "No Recv packet\n");
 			break;
 		}
 /*		if(opcode->data[0] != OP_CLOSE)*/

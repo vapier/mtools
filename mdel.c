@@ -17,11 +17,30 @@ typedef struct Arg_t {
 	int verbose;
 } Arg_t;
 
+/**
+ * Wiped the given entry
+ */
+void wipeEntry(direntry_t *entry)
+{
+	direntry_t longNameEntry;
+	int i;
+	initializeDirentry(&longNameEntry, entry->Dir);
+	for(i=entry->beginSlot; i< entry->endSlot; i++) {
+	    int error;
+	    longNameEntry.entry=i;
+	    dir_read(&longNameEntry, &error);
+	    if(error)
+		break;
+	    longNameEntry.dir.name[0] = (char) DELMARK;
+	    dir_write(&longNameEntry);
+	}
+	entry->dir.name[0] = (char) DELMARK;
+	dir_write(entry);
+}
+
 static int del_entry(direntry_t *entry, MainParam_t *mp)
 {
 	Arg_t *arg=(Arg_t *) mp->arg;
-	direntry_t longNameEntry;
-	int i;
 
 	if(got_signal)
 		return ERROR_ONE;
@@ -44,19 +63,7 @@ static int del_entry(direntry_t *entry, MainParam_t *mp)
 	if (fatFreeWithDirentry(entry)) 
 		return ERROR_ONE;
 
-	initializeDirentry(&longNameEntry, entry->Dir);
-	for(i=entry->beginSlot; i< entry->endSlot; i++) {
-	    int error;
-	    longNameEntry.entry=i;
-	    dir_read(&longNameEntry, &error);
-	    if(error)
-		break;
-	    longNameEntry.dir.name[0] = (char) DELMARK;
-	    dir_write(&longNameEntry);
-	}
-
-	entry->dir.name[0] = (char) DELMARK;
-	dir_write(entry);
+	wipeEntry(entry);
 	return GOT_ONE;
 }
 

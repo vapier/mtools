@@ -191,10 +191,9 @@ void mlabel(int argc, char **argv, int type)
 			if(ask_confirmation("Delete volume label (y/n): ",0,0)){
 				FREE(&RootDir);
 				exit(0);
-			}		
-		entry.dir.name[0] = DELMARK;
+			}
 		entry.dir.attr = 0; /* for old mlabel */
-		dir_write(&entry);
+		wipeEntry(&entry);
 	}
 
 	if (newLabel[0] != '\0') {

@@ -645,6 +645,7 @@ static void accountFreeSlots(struct scan_state *ssp, dirCacheEntry_t *dce)
  * normal vfat_lookup
  */
 int lookupForInsert(Stream_t *Dir,
+		    struct direntry_t *direntry,
 		    char *dosname,
 		    char *longname,
 		    struct scan_state *ssp, 
@@ -715,6 +716,8 @@ int lookupForInsert(Stream_t *Dir,
 					ssp->longmatch = dce->endSlot - 1;
 					/* long match is a reason for
 					 * immediate stop */
+					direntry->beginSlot = dce->beginSlot;
+					direntry->endSlot = dce->endSlot-1;
 					return 1;
 				}
 

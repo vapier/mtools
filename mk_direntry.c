@@ -300,11 +300,13 @@ static __inline__ clash_action get_slots(Stream_t *Dir,
 	} else {
 		reason = EXISTS;
 		clear_scan(longname, ch->use_longname, ssp);
-		switch (lookupForInsert(Dir, dosname, longname, ssp,
-								ch->ignore_entry, 
-								ch->source_entry,
-								pessimisticShortRename && 
-								ch->use_longname)) {
+		switch (lookupForInsert(Dir,
+					&entry,
+					dosname, longname, ssp,
+					ch->ignore_entry, 
+					ch->source_entry,
+					pessimisticShortRename && 
+					ch->use_longname)) {
 			case -1:
 				return NAMEMATCH_ERROR;
 				
@@ -385,8 +387,8 @@ static __inline__ clash_action get_slots(Stream_t *Dir,
 		} else
 #endif
 			{
-			entry.dir.name[0] = DELMARK;
-			dir_write(&entry);
+			  fprintf(stderr, "Wipe! Wipe!\n");
+			wipeEntry(&entry);
 			return NAMEMATCH_RENAME;
 		}
 	}

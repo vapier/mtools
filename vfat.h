@@ -77,14 +77,6 @@ int clear_vses(Stream_t *, int, size_t);
 void autorename_short(char *, int);
 void autorename_long(char *, int);
 
-int lookupForInsert(Stream_t *Dir,
-					char *dosname,
-					char *longname,
-					struct scan_state *ssp, 
-					int ignore_entry,
-					int source_entry,
-					int pessimisticShortRename);
-
 #define DO_OPEN 1 /* open all files that are found */
 #define ACCEPT_LABEL 0x08
 #define ACCEPT_DIR 0x10

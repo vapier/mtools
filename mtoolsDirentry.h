@@ -37,4 +37,15 @@ int isSubdirOf(Stream_t *inside, Stream_t *outside);
 char *getPwd(direntry_t *entry);
 void fprintPwd(FILE *f, direntry_t *entry, int escape);
 int write_vfat(Stream_t *, char *, char *, int, direntry_t *);
+
+void wipeEntry(struct direntry_t *entry);
+
+int lookupForInsert(Stream_t *Dir,
+		    direntry_t *direntry,
+		    char *dosname,
+		    char *longname,
+		    struct scan_state *ssp, 
+		    int ignore_entry,
+		    int source_entry,
+		    int pessimisticShortRename);
 #endif

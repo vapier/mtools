@@ -87,10 +87,8 @@ int renameit(char *dosname,
 				}
 				break;
 			}
-			
-			/* wipe out original entry */			
-			movedEntry->dir.name[0] = DELMARK;
-			dir_write(movedEntry);
+
+			wipeEntry(movedEntry);
 			
 			/* free the old parent, allocate the new one. */
 			oldDir = movedEntry->Dir;
@@ -102,8 +100,7 @@ int renameit(char *dosname,
 	}
 
 	/* wipe out original entry */
-	arg->mp.direntry->dir.name[0] = DELMARK;
-	dir_write(arg->mp.direntry);
+	wipeEntry(arg->mp.direntry);
 	return 0;
 }
 
