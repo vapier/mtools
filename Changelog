@@ -1,3 +1,7 @@
+030105	If "standard" CHS specified, but non-standard root dir size do not
+	use table-lookup based geometry ("old-dos media descriptor")
+021118	David's new uz script, that can use commands other than gzip for
+	compression
 021116	Fixed vold support for mpartition
 021105	Added PACKED to unicode_char declaration (Arm)
 	Mpartition can now create the image if -I is specified.

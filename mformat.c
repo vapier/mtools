@@ -498,7 +498,10 @@ static void calc_fs_parameters(struct device *dev, unsigned int tot_sectors,
 		if (dev->sectors == old_dos[i].sectors &&
 		    dev->tracks == old_dos[i].tracks &&
 		    dev->heads == old_dos[i].heads &&
-		    (dev->fat_bits == 0 || abs(dev->fat_bits) == 12)){
+		    (dev->fat_bits == 0 || abs(dev->fat_bits) == 12) &&
+		    (Fs->dir_len == 0 || Fs->dir_len == old_dos[i].dir_len) &&
+		    (Fs->cluster_size == 0 || 
+		     Fs->cluster_size == old_dos[i].cluster_size)) {
 			boot->descr = old_dos[i].media;
 			Fs->cluster_size = old_dos[i].cluster_size;
 			Fs->dir_len = old_dos[i].dir_len;
