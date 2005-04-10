@@ -1091,7 +1091,7 @@ void mformat(int argc, char **argv, int dummy)
 	if(bootSector) {
 		int fd;
 
-		fd = open(bootSector, O_RDONLY | O_LARGEFILE);
+		fd = open(bootSector, O_RDONLY | O_BINARY | O_LARGEFILE);
 		if(fd < 0) {
 			perror("open boot sector");
 			exit(1);

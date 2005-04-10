@@ -87,7 +87,7 @@ static void load_toupper(int country, int *codepage, char *filename)
 		return;
 	}
 
-	fd = open(filename, O_RDONLY | O_LARGEFILE);
+	fd = open(filename, O_RDONLY | O_BINARY | O_LARGEFILE);
 	if(fd < 0) {
 		perror("open country.sys");
 		exit(1);

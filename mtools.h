@@ -233,4 +233,8 @@ int safePopenOut(char **command, char *output, int len);
 #define ROUND_DOWN(value, grain) ((value) - (value) % (grain))
 #define ROUND_UP(value, grain) ROUND_DOWN((value) + (grain)-1, (grain))
 
+#ifndef O_BINARY
+#define O_BINARY 0
+#endif
+
 #endif

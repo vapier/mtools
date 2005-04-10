@@ -73,7 +73,7 @@ int scsi_open(const char *name, int flag, int mode, void **extra_data)
     else
         return -1;
 #else
-    return open(name, O_RDONLY | O_LARGEFILE |
+    return open(name, O_RDONLY | O_LARGEFILE | O_BINARY |
 #ifdef O_NDELAY
 		O_NDELAY
 #endif

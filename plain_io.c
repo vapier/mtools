@@ -17,10 +17,6 @@
 #include "partition.h"
 #include "llong.h"
 
-#ifndef O_BINARY
-#define O_BINARY 0
-#endif
-
 typedef struct SimpleFile_t {
     Class_t *Class;
     int refs;
