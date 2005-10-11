@@ -103,58 +103,6 @@ FILE *open_mcwd(const char *mode)
 }
 	
 
-/* Fix the info in the MCWD file to be a proper directory name.
- * Always has a leading separator.  Never has a trailing separator
- * (unless it is the path itself).  */
-
-const char *fix_mcwd(char *ans)
-{
-	FILE *fp;
-	char *s;
-	char buf[MAX_PATH];
-
-	fp = open_mcwd("r");
-	if(!fp){
-		strcpy(ans, "A:/");
-		return ans;
-	}
-
-	if (!fgets(buf, MAX_PATH, fp))
-		return("A:/");
-
-	buf[strlen(buf) -1] = '\0';
-	fclose(fp);
-					/* drive letter present? */
-	s = buf;
-	if (buf[0] && buf[1] == ':') {
-		strncpy(ans, buf, 2);
-		ans[2] = '\0';
-		s = &buf[2];
-	} else 
-		strcpy(ans, "A:");
-					/* add a leading separator */
-	if (*s != '/' && *s != '\\') {
-		strcat(ans, "/");
-		strcat(ans, s);
-	} else
-		strcat(ans, s);
-
-#if 0
-					/* translate to upper case */
-	for (s = ans; *s; ++s) {
-		*s = toupper(*s);
-		if (*s == '\\')
-			*s = '/';
-	}
-#endif
-					/* if only drive, colon, & separator */
-	if (strlen(ans) == 3)
-		return(ans);
-					/* zap the trailing separator */
-	if (*--s == '/')
-		*s = '\0';
-	return ans;
-}
 
 void *safe_malloc(size_t size)
 {
