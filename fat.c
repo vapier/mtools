@@ -4,8 +4,6 @@
 #include "mtools.h"
 #include "fsP.h"
 
-extern Stream_t *default_drive;
-
 #ifdef HAVE_LONG_LONG
 typedef long long fatBitMask;
 #else
