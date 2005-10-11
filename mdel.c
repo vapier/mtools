@@ -125,7 +125,7 @@ static void usage(void)
 	fprintf(stderr, 
 		"Mtools version %s, dated %s\n", mversion, mdate);
 	fprintf(stderr, 
-		"Usage: %s [-v] msdosfile [msdosfiles...]", progname);
+		"Usage: %s [-v] msdosfile [msdosfiles...]\n", progname);
 	exit(1);
 }
 
