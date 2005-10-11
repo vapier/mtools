@@ -34,6 +34,8 @@ static int nr_dev; /* number of devices that the current table can hold */
 struct device *devices; /* the device table */
 static int token_nr; /* number of tokens in line */
 
+static char default_drive='\0'; /* default drive */
+
 /* "environment" variables */
 unsigned int mtools_skip_check=0;
 unsigned int mtools_fat_compatibility=0;
@@ -151,6 +153,23 @@ static switches_t dswitches[]= {
     { "PRECMD", OFFS(precmd), T_STRING },
     { "BLOCKSIZE", OFFS(blocksize), T_UINT }
 };
+
+static void maintain_default_drive(char drive)
+{
+    if(default_drive == ':')
+	return; /* we have an image */
+    if(default_drive == '\0' ||
+       default_drive > drive)
+	default_drive = drive;    
+}
+
+char get_default_drive(void)
+{
+    if(default_drive != '\0')
+	return default_drive;
+    else
+	return 'A';
+}
 
 static void syntax(const char *msg, int thisLine)
 {
@@ -495,6 +514,7 @@ static void get_toupper(void)
 void set_cmd_line_image(char *img, int flags) {
   prepend();
   devices[cur_dev].drive = ':';
+  default_drive = ':';
   devices[cur_dev].name = strdup(img);
   devices[cur_dev].fat_bits = 0;
   devices[cur_dev].tracks = 0;
@@ -549,6 +569,7 @@ static void parse_old_device_line(char drive)
     }
 	
     devices[cur_dev].drive = toupper(devices[cur_dev].drive);
+    maintain_default_drive(devices[cur_dev].drive);
     if (!(devices[cur_dev].name = strdup(name))) {
 	printOom();
 	exit(1);
@@ -589,6 +610,7 @@ static int parse_one(int privilege)
 	trusted = privilege;
 	flag_mask = 0;
 	devices[cur_dev].drive = toupper(token[0]);
+	maintain_default_drive(devices[cur_dev].drive);
 	expect_char(':');
 	return 1;
     }
