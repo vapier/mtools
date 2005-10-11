@@ -14,14 +14,68 @@
 #include "file.h"
 
 
+/* Fix the info in the MCWD file to be a proper directory name.
+ * Always has a leading separator.  Never has a trailing separator
+ * (unless it is the path itself).  */
+
+static const char *fix_mcwd(char *ans)
+{
+	FILE *fp;
+	char *s;
+	char buf[MAX_PATH];
+
+	fp = open_mcwd("r");
+	if(!fp || !fgets(buf, MAX_PATH, fp)) {
+		if(fp)
+			fclose(fp);
+		ans[0] = get_default_drive();
+		strcpy(ans+1, ":/");
+		return ans;
+	}
+
+	buf[strlen(buf) -1] = '\0';
+	fclose(fp);
+					/* drive letter present? */
+	s = buf;
+	if (buf[0] && buf[1] == ':') {
+		strncpy(ans, buf, 2);
+		ans[2] = '\0';
+		s = &buf[2];
+	} else {
+		ans[0] = get_default_drive();
+		strcpy(ans+1, ":");
+	}
+			/* add a leading separator */
+	if (*s != '/' && *s != '\\') {
+		strcat(ans, "/");
+		strcat(ans, s);
+	} else
+		strcat(ans, s);
+
+#if 0
+					/* translate to upper case */
+	for (s = ans; *s; ++s) {
+		*s = toupper(*s);
+		if (*s == '\\')
+			*s = '/';
+	}
+#endif
+					/* if only drive, colon, & separator */
+	if (strlen(ans) == 3)
+		return(ans);
+					/* zap the trailing separator */
+	if (*--s == '/')
+		*s = '\0';
+	return ans;
+}
+
 int unix_dir_loop(Stream_t *Stream, MainParam_t *mp); 
 int unix_loop(Stream_t *Stream, MainParam_t *mp, char *arg, 
 	      int follow_dir_link);
 
 static int _unix_loop(Stream_t *Dir, MainParam_t *mp, const char *filename)
 {
-	unix_dir_loop(Dir, mp);
-	return GOT_ONE;
+	return unix_dir_loop(Dir, mp);
 }
 
 int unix_loop(Stream_t *Stream, MainParam_t *mp, char *arg, int follow_dir_link)
@@ -355,7 +409,7 @@ static int common_dos_loop(MainParam_t *mp, const char *pathname,
 		drive = mp->mcwd[0];
 		cwd = mp->mcwd+2;
 	} else {
-		drive = 'A';
+		drive = get_default_drive();
 	}
 
 	if(*pathname=='/') /* absolute path name */
