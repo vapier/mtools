@@ -156,6 +156,7 @@ extern int mtools_raw_tty;
 
 extern int batchmode;
 
+char get_default_drive(void);
 void set_cmd_line_image(char *img, int flags);
 void read_config(void);
 extern struct device *devices;
@@ -224,7 +225,6 @@ int ask_confirmation(const char *, const char *, const char *);
 char *get_homedir(void);
 #define EXPAND_BUF 2048
 const char *expand(const char *, char *);
-const char *fix_mcwd(char *);
 FILE *open_mcwd(const char *mode);
 void unlink_mcwd(void);
 
