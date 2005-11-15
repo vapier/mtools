@@ -1,10 +1,11 @@
 Summary: mtools, read/write/list/format DOS disks under Unix
 Name: mtools
 Version: 3.9.10
-Release: 1
+Release: 2
 Group: Utilities/System
 URL: http://mtools.linux.lu
 Source0: mtools-%{version}.tar.gz
+Patch1: mtools-%{version}-20051011.diff.gz
 Buildroot: %{_tmppath}/%{name}-%{version}-buildroot
 License: GPL
 %description
@@ -16,6 +17,7 @@ disks (store up to 1992k on a high density 3 1/2 disk).
 
 %prep
 %setup -q
+%patch1 -p1
 ./configure --prefix=%{buildroot}%{_prefix} --sysconfdir=/etc --infodir=%{buildroot}%{_infodir} --mandir=%{buildroot}%{_mandir}
 
 %build
@@ -30,6 +32,7 @@ make install-info
 strip %{buildroot}%{_bindir}/mtools %{buildroot}%{_bindir}/mkmanifest %{buildroot}%{_bindir}/floppyd
 
 %files
+%defattr(-,root,root)
 %{_infodir}/mtools.info*
 %{_mandir}/man1/floppyd.1*
 %{_mandir}/man1/floppyd_installtest.1.gz
