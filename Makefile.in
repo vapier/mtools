@@ -208,8 +208,7 @@ install-info: info
 	if [ -n "$(INSTALL_INFO)" ] ; then \
 		if [ -f $(DESTDIR)$(infodir)/dir.info ] ; then \
 			$(INSTALL_INFO) $(DESTDIR)$(infodir)/mtools.info $(DESTDIR)$(infodir)/dir.info; \
-		fi; \
-		if [ -f $(DESTDIR)$(infodir)/dir ] ; then \
+		else \
 			$(INSTALL_INFO) $(DESTDIR)$(infodir)/mtools.info $(DESTDIR)$(infodir)/dir; \
 		fi; \
 	fi

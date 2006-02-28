@@ -1,3 +1,5 @@
+v20060228
+	If no info dir exists at all, assume dir
 v20060227
 	Support for DESTDIR
 v20051011
