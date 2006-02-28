@@ -717,8 +717,8 @@ int analyze_one_reply(RawRequest_t *raw_cmd, int *bytes, int do_print)
 
 #define predefined_devices
 struct device devices[] = {
-	{"/dev/fd0", 'A', 0, O_EXCL, 80,2, 18,0, MDEF_ARG},
-	{"/dev/fd1", 'B', 0, O_EXCL, 0,0, 0,0, FDEF_ARG},
+	{"/dev/fd0", 'A', 0, 0, 80,2, 18,0, MDEF_ARG},
+	{"/dev/fd1", 'B', 0, 0, 0,0, 0,0, FDEF_ARG},
 	/* we assume that the Zip or Jaz drive is the second on the SCSI bus */
 	{"/dev/sdb4",'J', GENHD },
 	{"/dev/sdb4",'Z', GENHD },

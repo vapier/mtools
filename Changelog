@@ -1,3 +1,6 @@
+v20060228b
+	Do no longer open floppy devices with O_EXCL, in order to enable
+	work-around against broken cache.
 v20060228
 	If no info dir exists at all, assume dir
 v20060227
