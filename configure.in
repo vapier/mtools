@@ -344,7 +344,7 @@ if test X$use_floppyd = Xyes; then
 	exit 1
     fi
     FLOPPYD="floppyd floppyd_installtest"
-    BINFLOPPYD="\$(bindir)/floppyd \$(bindir)/floppyd_installtest"
+    BINFLOPPYD="\$(DESTDIR)\$(bindir)/floppyd \$(DESTDIR)\$(bindir)/floppyd_installtest"
     AC_DEFINE([USE_FLOPPYD],1,[Define when you want to include floppyd support]) 
 else
     FLOPPYD=
