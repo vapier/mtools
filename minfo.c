@@ -42,8 +42,9 @@ static void displayInfosector(Stream_t *Stream, struct bootsector *boot)
 
 void minfo(int argc, char **argv, int type)
 {
-	struct bootsector boot0;
-#define boot (&boot0)
+	unsigned char boot0[MAX_BOOT];  
+	struct bootsector *boot = (struct bootsector *) boot0;
+
 	char name[EXPAND_BUF];
 	int media;
 	int tot_sectors;
