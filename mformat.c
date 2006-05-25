@@ -689,6 +689,51 @@ static void usage(void)
 	exit(1);
 }
 
+static int get_block_geom(int fd, struct MT_STAT *buf, struct device *dev,
+			  char *errmsg) {
+	struct hd_geometry geom;
+	long size;
+	int heads=dev->heads;
+	int sectors=dev->sectors;
+	int sect_per_track;
+
+	if (ioctl(fd, HDIO_GETGEO, &geom) < 0) {
+		sprintf(errmsg, "Could not get geometry of device (%s)",
+			strerror(errno));
+		return -1;
+	}
+	
+	if (ioctl(fd, BLKGETSIZE, &size) < 0) {
+		sprintf(errmsg, "Could not get size of device (%s)",
+			strerror(errno));
+		return -1;
+	}
+	
+	if(!heads)
+		heads = geom.heads;
+	if(!sectors)
+		sectors = geom.sectors;
+
+	sect_per_track = heads * sectors;
+	if(!dev->hidden) {
+		int hidden;
+		hidden = geom.start % sect_per_track;
+		if(hidden && hidden != sectors) {
+			sprintf(errmsg,
+				"Hidden (%d) does not match sectors (%d)\n",
+				hidden, sectors);
+			return -1;
+		}
+		dev->hidden = hidden;
+	}
+	dev->heads = heads;
+	dev->sectors = sectors;
+	if(!dev->tracks)
+		dev->tracks = (size + dev->hidden) / sect_per_track;
+	size = dev->tracks * dev->heads * dev->sectors + dev->hidden;
+	return 0;
+}
+
 void mformat(int argc, char **argv, int dummy)
 {
 	int r; /* generic return value */
@@ -997,29 +1042,9 @@ void mformat(int argc, char **argv, int dummy)
 				continue;						
 			}
 
-			if (S_ISBLK(buf.st_mode)) {
-				struct hd_geometry geom;
-				long size;
-				int sect_per_track;
-
-				if (ioctl(fd, HDIO_GETGEO, &geom) < 0) {
-					sprintf(errmsg, "Could not get geometry of device (%s)",
-							strerror(errno));
-					continue;
-				}
-
-				if (ioctl(fd, BLKGETSIZE, &size) < 0) {
-					sprintf(errmsg, "Could not get size of device (%s)",
-							strerror(errno));
-					continue;
-				}
-
-				sect_per_track = geom.heads * geom.sectors;
-				used_dev.heads = geom.heads;
-				used_dev.sectors = geom.sectors;
-				used_dev.hidden = geom.start % sect_per_track;
-				used_dev.tracks = (size + used_dev.hidden) / sect_per_track;
-			}
+			if (S_ISBLK(buf.st_mode) &&
+			    get_block_geom(fd, &buf, &used_dev, errmsg) < 0)
+				continue;
 		}
 #endif
 
