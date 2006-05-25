@@ -162,6 +162,8 @@ struct bootsector {
 		struct oldboot_t old;
 	} ext;
 };
+#define MAX_BOOT 4096
+
 
 #define CHAR(x) (boot->x[0])
 #define WORD(x) (_WORD(boot->x))
