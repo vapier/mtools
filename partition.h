@@ -24,7 +24,8 @@ struct partition {
 #define sys_ind end.byte0
 
 int consistencyCheck(struct partition *partTable, int doprint, int verbose,
-		     int *has_activated, unsigned int *last_end, int *j, 
+		     int *has_activated, unsigned int *last_end,
+		     unsigned int *j, 
 		     struct device *used_dev, int target_partition);
 
 void setBeginEnd(struct partition *partTable, int begin, int end,

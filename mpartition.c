@@ -78,11 +78,12 @@ void setBeginEnd(struct partition *partTable, int begin, int end,
 }
 
 int consistencyCheck(struct partition *partTable, int doprint, int verbose,
-		     int *has_activated, unsigned int *last_end, int *j, 
+		     int *has_activated, unsigned int *last_end,
+		     unsigned int *j, 
 		     struct device *used_dev, int target_partition)
 {
-	int i;
-	int inconsistency;
+	unsigned int i;
+	unsigned int inconsistency;
 	
 	*j = 0;
 	*last_end = 1;

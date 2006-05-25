@@ -669,7 +669,8 @@ APIRET rc;
 
 	while(!(mode2 & NO_OFFSET) &&
 	      dev && dev->partition && dev->partition <= 4) {
-		int has_activated, last_end, j;
+		int has_activated;
+		unsigned int last_end, j;
 		unsigned char buf[2048];
 		struct partition *partTable=(struct partition *)(buf+ 0x1ae);
 		size_t partOff;
