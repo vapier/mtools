@@ -2,4 +2,4 @@ const char *mversion="3.9.10";
 
 /* Multiple releases on same day should be marked with (b), (cd), (d) after
  * date string below */
-const char *mdate = "May 25th, 2006";
+const char *mdate = "May 31st, 2006";

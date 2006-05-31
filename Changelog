@@ -1,3 +1,5 @@
+v20060531
+	#ifdef linux-dependant code in mformat.c
 v20060525
 	Fix gcc4 warnings
 	Fix reading of boot sector (block size)
