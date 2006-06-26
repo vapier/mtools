@@ -382,7 +382,7 @@ static int recurs_dos_loop(MainParam_t *mp, const char *filename0,
 		return ERROR_ONE;
 	if(got_signal)
 		return ret | ERROR_ONE;
-	if(doing_mcwd & !have_one)
+	if(doing_mcwd && !have_one)
 		return NO_CWD;
 	return ret;
 }

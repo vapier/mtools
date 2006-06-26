@@ -445,8 +445,8 @@ void fat_write(Fs_t *This)
 		InfoSector_t *infoSector;
 		infoSector = (InfoSector_t *) safe_malloc(This->sector_size);
 		set_dword(infoSector->signature1, INFOSECT_SIGNATURE1);
-		memset(infoSector->filler1, sizeof(infoSector->filler1),0);
-		memset(infoSector->filler2, sizeof(infoSector->filler2),0);
+		memset(infoSector->filler1, 0, sizeof(infoSector->filler1));
+		memset(infoSector->filler2, 0, sizeof(infoSector->filler2));
 		set_dword(infoSector->signature2, INFOSECT_SIGNATURE2);
 		set_dword(infoSector->pos, This->last);
 		set_dword(infoSector->count, This->freeSpace);

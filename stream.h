@@ -25,10 +25,10 @@ typedef struct Class_t {
 } Class_t;
 
 #define READS(stream, buf, address, size) \
-(stream)->Class->read( (stream), (char *) (buf), (address), (size) )
+((stream)->Class->read)( (stream), (char *) (buf), (address), (size) )
 
 #define WRITES(stream, buf, address, size) \
-(stream)->Class->write( (stream), (char *) (buf), (address), (size) )
+((stream)->Class->write)( (stream), (char *) (buf), (address), (size) )
 
 #define SET_GEOM(stream, dev, orig_dev, media, boot) \
 (stream)->Class->set_geom( (stream), (dev), (orig_dev), (media), (boot) )

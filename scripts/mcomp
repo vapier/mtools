@@ -1,5 +1,10 @@
 #!/bin/sh
 
+if [ $# -lt 2 ]; then
+  echo "usage: $0 dosfile [cmpoptions] unixfile"
+  exit 1
+fi
+
 dosfile=$1
 shift
 

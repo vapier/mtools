@@ -251,7 +251,7 @@ static void usage(void)
 	fprintf(stderr, 
 		"Mtools version %s, dated %s\n", mversion, mdate);
 	fprintf(stderr, 
-		"Usage: %s [-pradcv] [-I [-B bootsect-template] [-s sectors] "
+		"Usage: %s [-pradcv] [-I] [-B bootsect-template] [-s sectors] "
 			"[-t cylinders] "
 		"[-h heads] [-T type] [-b begin] [-l length] "
 		"drive\n", progname);
