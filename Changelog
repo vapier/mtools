@@ -1,3 +1,5 @@
+v20060626
+	Merged Redhat/Fedora patches
 v20060531
 	#ifdef linux-dependant code in mformat.c
 v20060525
