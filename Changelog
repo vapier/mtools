@@ -1,3 +1,5 @@
+v20070503
+	Fixed mlabel on read-only disks
 v20060626
 	Merged Redhat/Fedora patches
 v20060531

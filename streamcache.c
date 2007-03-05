@@ -39,7 +39,7 @@ static void init_streamcache(void)
 	atexit(finish_sc);
 }
 
-Stream_t *open_root_dir(unsigned char drive, int flags)
+Stream_t *open_root_dir(unsigned char drive, int flags, int *isRop)
 {
 	Stream_t *Fs;
 
@@ -51,7 +51,7 @@ Stream_t *open_root_dir(unsigned char drive, int flags)
 	if(fss[drive])
 		Fs = fss[drive];
 	else {
-		Fs = fs_init(drive, flags);
+		Fs = fs_init(drive, flags, isRop);
 		if (!Fs){
 			fprintf(stderr, "Cannot initialize '%c:'\n", drive);
 			return NULL;

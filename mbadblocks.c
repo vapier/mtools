@@ -30,7 +30,7 @@ void mbadblocks(int argc, char **argv, int type)
 
 	init_mp(&mp);
 
-	Dir = open_root_dir(argv[1][0], O_RDWR);
+	Dir = open_root_dir(argv[1][0], O_RDWR, NULL);
 	if (!Dir) {
 		fprintf(stderr,"%s: Cannot initialize drive\n", argv[0]);
 		exit(1);

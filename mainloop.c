@@ -415,7 +415,7 @@ static int common_dos_loop(MainParam_t *mp, const char *pathname,
 	if(*pathname=='/') /* absolute path name */
 		cwd = "";
 
-	RootDir = mp->File = open_root_dir(drive, open_mode);
+	RootDir = mp->File = open_root_dir(drive, open_mode, NULL);
 	if(!mp->File)
 		return ERROR_ONE;
 

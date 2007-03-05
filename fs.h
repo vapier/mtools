@@ -16,7 +16,7 @@ typedef struct FsPublic_t {
 	unsigned int sector_size;
 } FsPublic_t;
 
-Stream_t *fs_init(char drive, int mode);
+Stream_t *fs_init(char drive, int mode, int *isRop);
 int fat_free(Stream_t *Dir, unsigned int fat);
 int fatFreeWithDir(Stream_t *Dir, struct directory *dir);
 int fat_error(Stream_t *Dir);

@@ -77,7 +77,7 @@ void minfo(int argc, char **argv, int type)
 		drive = toupper(argv[optind][0]);
 
 		if(! (Stream = find_device(drive, O_RDONLY, &dev, boot, 
-					   name, &media, 0)))
+					   name, &media, 0, NULL)))
 			exit(1);
 
 		tot_sectors = DWORD(bigsect);

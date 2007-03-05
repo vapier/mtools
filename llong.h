@@ -80,8 +80,9 @@ mt_size_t getfree(Stream_t *Stream);
 int getfreeMinBytes(Stream_t *Stream, mt_size_t ref);
 
 Stream_t *find_device(char drive, int mode, struct device *out_dev,
-					  struct bootsector *boot,
-					  char *name, int *media, mt_size_t *maxSize);
+		      struct bootsector *boot,
+		      char *name, int *media, mt_size_t *maxSize,
+		      int *isRop);
 
 int mt_lseek(int fd, mt_off_t where, int whence);
 

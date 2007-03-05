@@ -101,7 +101,7 @@ void do_mclasserase(char drive,int debug)
 
   /* Reading parameters from card. Exit with -1 if failed. */
   if(! (Stream = find_device(drive, O_RDONLY, &dev, boot,
-					   name, &media, 0)))
+					   name, &media, 0, NULL)))
 	exit(1);
 
   FREE(&Stream);

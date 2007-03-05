@@ -84,12 +84,14 @@ Stream_t *GetFs(Stream_t *Fs)
 
 Stream_t *find_device(char drive, int mode, struct device *out_dev,
 		      struct bootsector *boot,
-		      char *name, int *media, mt_size_t *maxSize)
+		      char *name, int *media, mt_size_t *maxSize,
+		      int *isRop)
 {
 	char errmsg[200];
 	Stream_t *Stream;
 	struct device *dev;
 	int r;
+	int isRo=0;
 
 	Stream = NULL;
 	sprintf(errmsg, "Drive '%c:' not supported", drive);	
@@ -126,9 +128,21 @@ Stream_t *find_device(char drive, int mode, struct device *out_dev,
 
 		    
 		    if (!Stream)
-			Stream = SimpleFileOpen(out_dev, dev, name, mode,
+			Stream = SimpleFileOpen(out_dev, dev, name,
+						isRop ? mode | O_RDWR: mode,
 						errmsg, 0, 1, maxSize);
 		    
+		    if(Stream) {
+			isRo=0;
+		    } else if(isRop &&
+		       (errno == EPERM || errno == EACCES || errno == EROFS)) {
+			Stream = SimpleFileOpen(out_dev, dev, name,
+						mode | O_RDONLY,
+						errmsg, 0, 1, maxSize);
+			if(Stream) {
+				isRo=1;
+			}
+		    }
 		}
 
 		if( !Stream)
@@ -180,11 +194,13 @@ Stream_t *find_device(char drive, int mode, struct device *out_dev,
 		fprintf(stderr,"%s\n",errmsg);
 		return NULL;
 	}
+	if(isRop)
+		*isRop = isRo;
 	return Stream;
 }
 
 
-Stream_t *fs_init(char drive, int mode)
+Stream_t *fs_init(char drive, int mode, int *isRop)
 {
 	int blocksize;
 	int media,i;
@@ -218,7 +234,7 @@ Stream_t *fs_init(char drive, int mode)
 	This->last = 0;
 
 	This->Direct = find_device(drive, mode, &dev, boot, name, &media, 
-							   &maxSize);
+				   &maxSize, isRop);
 	if(!This->Direct)
 		return NULL;
 	

@@ -69,7 +69,7 @@ void mlabel(int argc, char **argv, int type)
 {
     
 	char *newLabel;
-	int verbose, clear, interactive, show, open_mode;
+	int verbose, clear, interactive, show;
 	direntry_t entry;
 	int result=0;
 	char longname[VBUFSIZE];
@@ -88,6 +88,8 @@ void mlabel(int argc, char **argv, int type)
 	Stream_t *Fs=0;
 	int r;
 	struct label_blk_t *labelBlock;
+	int isRo=0;
+	int *isRop=NULL;
 
 	init_clash_handling(&ch);
 	ch.name_converter = label_name;
@@ -136,21 +138,21 @@ void mlabel(int argc, char **argv, int type)
 
 	init_mp(&mp);
 	newLabel = argv[optind]+2;
-	interactive = !show && !clear &&!newLabel[0] && 
-		(set_serial == SER_NONE);
-	open_mode = O_RDWR;
-	RootDir = open_root_dir(argv[optind][0], open_mode);
 	if(strlen(newLabel) > VBUFSIZE) {
 		fprintf(stderr, "Label too long\n");
 		FREE(&RootDir);
 		exit(1);
 	}
 
-	if(!RootDir && open_mode == O_RDWR && !clear && !newLabel[0] &&
-	   ( errno == EACCES || errno == EPERM) ) {
+	interactive = !show && !clear &&!newLabel[0] && 
+		(set_serial == SER_NONE);
+	if(!clear && !newLabel[0]) {
+		isRop = &isRo;
+	}
+	RootDir = open_root_dir(argv[optind][0], isRop ? 0 : O_RDWR, isRop);
+	if(isRo) {
 		show = 1;
 		interactive = 0;
-		RootDir = open_root_dir(argv[optind][0], O_RDONLY);
 	}	    
 	if(!RootDir) {
 		fprintf(stderr, "%s: Cannot initialize drive\n", argv[0]);

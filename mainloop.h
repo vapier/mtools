@@ -53,7 +53,7 @@ int main_loop(MainParam_t *MainParam, char **argv, int argc);
 
 int target_lookup(MainParam_t *mp, const char *arg);
 
-Stream_t *open_root_dir(unsigned char drivename, int flags);
+Stream_t *open_root_dir(unsigned char drivename, int flags, int *isRop);
 
 const char *mpGetBasename(MainParam_t *mp); /* statically allocated 
 					     * string */
