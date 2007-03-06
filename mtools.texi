@@ -660,7 +660,7 @@ files describe the following items:
 and @file{~/.mtoolsrc} is the user's private configuration file.
 
 On some systems, the system-wide configuration file is called
-@file{/etc/defaults/mtools.conf} instead.
+@file{/etc/default/mtools.conf} instead.
 
 
 @node general syntax, default values, config file location, Configuration

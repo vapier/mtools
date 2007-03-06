@@ -1,4 +1,6 @@
-v20070503
+v20070306
+	Fixed doc about /etc/default
+v20070305
 	Fixed mlabel on read-only disks
 v20060626
 	Merged Redhat/Fedora patches
@@ -923,7 +925,7 @@ v19950904
 	Based on comments by Paul Slootman <paul@ahwau.ahold.nl>:
 	init.c: fs_init(): initialized disk_size to 0.  The section
 		which previously initialized this is ifdef'd out.  Why?
-	Makefile, device.c: Passed ETCDIR (e.g. /etc or /etc/defaults)
+	Makefile, device.c: Passed ETCDIR (e.g. /etc or /etc/default)
 		Gee, the Makefile is pretty ugly!  It might be good to start
 		thinking about autoconfigure, or at least some cleanup.
 	Makefile, mformat.c: use -DSOLARIS2, use srand48()/rand48()
