@@ -7,7 +7,7 @@
 #include "sysincludes.h"
 #include "mtools.h"
 
-
+#ifndef OS_mingw32msvc
 int safePopenOut(char **command, char *output, int len)
 {
 	int pipefd[2];
@@ -42,11 +42,12 @@ int safePopenOut(char **command, char *output, int len)
 	}
 	return last;
 }
-
+#endif
 
 
 const char *expand(const char *input, char *ans)
 {
+#ifndef OS_mingw32msvc
 	int last;
 	char buf[256];
 	char *command[] = { "/bin/sh", "sh", "-c", 0, 0 };
@@ -80,4 +81,9 @@ const char *expand(const char *input, char *ans)
 	else
 		strncpy(ans, input, EXPAND_BUF-1);
 	return ans;
+#else
+	strncpy(ans, input, EXPAND_BUF-1);
+	ans[EXPAND_BUF-1]='\0';
+	return ans;
+#endif
 }

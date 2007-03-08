@@ -370,12 +370,18 @@ void myexit(int code)
 
 #endif
 
+#ifdef OS_mingw32msvc
+static const char PATH_SEP = '\\';
+#else
+static const char PATH_SEP = '/';
+#endif
+
 /*#ifndef HAVE_BASENAME*/
 const char *_basename(const char *filename)
 {
 	char *ptr;
 
-	ptr = strrchr(filename, '/');
+	ptr = strrchr(filename, PATH_SEP);
 	if(ptr)
 		return ptr+1;
 	else
@@ -383,4 +389,11 @@ const char *_basename(const char *filename)
 }
 /*#endif*/
 
-
+/* Strip the suffix ".exe" from the argument, if present. */
+void _stripexe(char *filename)
+{
+	char *ptr;
+	ptr = strrchr(filename, '.');
+	if(ptr && !strcasecmp(ptr, ".exe"))
+		*ptr = '\0';
+}

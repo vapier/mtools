@@ -940,6 +940,11 @@ struct device devices[] = {
 #endif
 #endif /* sysv4 */
 
+#ifdef OS_mingw32msvc
+#define predefined_devices
+struct device devices[] = {};
+#endif
+
 #ifdef INIT_GENERIC
 
 #ifndef USE_2M

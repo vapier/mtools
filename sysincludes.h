@@ -58,6 +58,10 @@
 # endif
 #endif
 
+#ifdef OS_mingw32msvc
+typedef void *caddr_t;
+#endif
+
 
 /***********************************************************************/
 /*                                                                     */
@@ -223,7 +227,11 @@ extern int ioctl(int fildes, int request, void *arg);
 #include <errno.h>
 extern int errno;
 
+#ifndef OS_mingw32msvc
 #include <pwd.h>
+#else
+typedef unsigned int uid_t;
+#endif
 
 
 #ifdef HAVE_STRING_H
@@ -306,11 +314,19 @@ extern int errno;
 
 /* missing functions */
 #ifndef HAVE_SRANDOM
-# define srandom srand48
+# ifdef OS_mingw32msvc
+#  define srandom srand
+# else
+#  define srandom srand48
+# endif
 #endif
 
 #ifndef HAVE_RANDOM
-# define random (long)lrand48
+# ifdef OS_mingw32msvc
+#  define random (long)rand
+# else
+#  define random (long)lrand48
+# endif
 #endif
 
 #ifndef HAVE_STRCHR
@@ -393,6 +409,8 @@ const char *basename(const char *filename);
 #endif
 
 const char *_basename(const char *filename);
+
+void _stripexe(char *filename);
 
 #ifndef __STDC__
 # ifndef signed

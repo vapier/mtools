@@ -8,7 +8,9 @@
 #define MAX_SECTOR	8192   		/* largest sector size */
 #define MDIR_SIZE	32		/* MSDOS directory entry size in bytes*/
 #define MAX_CLUSTER	8192		/* largest cluster size */
+#ifndef MAX_PATH
 #define MAX_PATH	128		/* largest MSDOS path length */
+#endif
 #define MAX_DIR_SECS	64		/* largest directory (in sectors) */
 #define MSECTOR_SIZE    msector_size
 

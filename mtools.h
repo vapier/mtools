@@ -228,7 +228,9 @@ const char *expand(const char *, char *);
 FILE *open_mcwd(const char *mode);
 void unlink_mcwd(void);
 
+#ifndef OS_mingw32msvc
 int safePopenOut(char **command, char *output, int len);
+#endif
 
 #define ROUND_DOWN(value, grain) ((value) - (value) % (grain))
 #define ROUND_UP(value, grain) ROUND_DOWN((value) + (grain)-1, (grain))

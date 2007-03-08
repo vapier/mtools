@@ -408,7 +408,7 @@ static __inline__ time_t conv_stamp(struct directory *dir)
 		tzone = tz.tz_minuteswest * 60L;
 	}
 #else
-#ifdef HAVE_TZSET
+#if defined HAVE_TZSET && !defined OS_mingw32msvc
 	{
 #if !defined OS_ultrix && !defined OS_cygwin
 		/* Ultrix defines this to be a different type */

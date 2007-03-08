@@ -110,10 +110,12 @@ int unix_loop(Stream_t *Stream, MainParam_t *mp, char *arg, int follow_dir_link)
 		}
 		GET_DATA(mp->File, 0, 0, &isdir, 0);
 		if(isdir) {
+#if !defined(__EMX__) && !defined(OS_mingw32msvc)
 			struct MT_STAT buf;
+#endif
 
 			FREE(&mp->File);
-#ifndef __EMX__
+#if !defined(__EMX__) && !defined(OS_mingw32msvc)
 			if(!follow_dir_link &&
 			   MT_LSTAT(arg, &buf) == 0 &&
 			   S_ISLNK(buf.st_mode)) {
@@ -498,7 +500,12 @@ int unix_target_lookup(MainParam_t *mp, const char *arg)
 
 int target_lookup(MainParam_t *mp, const char *arg)
 {
-	if((mp->lookupflags & NO_UNIX) || (arg[0] && arg[1] == ':' ))
+	if((mp->lookupflags & NO_UNIX) || (arg[0]
+#ifdef OS_mingw32msvc
+/* On Windows, support only the command-line image drive. */
+                                           && arg[0] == ':' 
+#endif
+                                           && arg[1] == ':' ))
 		return dos_target_lookup(mp, arg);
 	else
 		return unix_target_lookup(mp, arg);
@@ -522,7 +529,12 @@ int main_loop(MainParam_t *mp, char **argv, int argc)
 		mp->originalArg = argv[i];
 		mp->basenameHasWildcard = strpbrk(_basename(mp->originalArg), 
 						  "*[?") != 0;
-		if (mp->unixcallback && (!argv[i][0] || argv[i][1] != ':' ))
+		if (mp->unixcallback && (!argv[i][0]
+#ifdef OS_mingw32msvc
+/* On Windows, support only the command-line image drive. */
+                                         || argv[i][0] != ':' 
+#endif
+                                         || argv[i][1] != ':' ))
 			ret = unix_loop(0, mp, argv[i], 1);
 		else
 			ret = dos_loop(mp, argv[i]);

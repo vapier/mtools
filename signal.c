@@ -28,8 +28,16 @@ int do_gotsignal(char *f, int n)
 void setup_signal(void)
 {
 	/* catch signals */
+#ifdef SIGHUP
 	signal(SIGHUP, (SIG_CAST)signal_handler);
+#endif
+#ifdef SIGINT
 	signal(SIGINT, (SIG_CAST)signal_handler);
+#endif
+#ifdef SIGTERM
 	signal(SIGTERM, (SIG_CAST)signal_handler);
+#endif
+#ifdef SIGQUIT
 	signal(SIGQUIT, (SIG_CAST)signal_handler);
+#endif
 }

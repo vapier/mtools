@@ -589,6 +589,7 @@ APIRET rc;
 	}
 #ifndef __EMX__
 #ifndef __CYGWIN__
+#ifndef OS_mingw32msvc
 	/* lock the device on writes */
 	if (locked && lock_dev(This->fd, mode == O_RDWR, dev)) {
 		if(errmsg)
@@ -607,6 +608,7 @@ APIRET rc;
 		Free(This);
 		return NULL;
 	}
+#endif
 #endif
 #endif
 	/* set default parameters, if needed */

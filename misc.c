@@ -16,6 +16,7 @@ void printOom(void)
 
 char *get_homedir(void)
 {
+#ifndef OS_mingw32msvc
 	struct passwd *pw;
 	uid_t uid;
 	char *homedir;
@@ -47,6 +48,9 @@ char *get_homedir(void)
 	if ( pw )
 		return pw->pw_dir;
 	return 0;
+#else
+	return getenv("HOME");
+#endif
 }
 
 

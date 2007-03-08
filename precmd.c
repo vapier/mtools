@@ -9,6 +9,7 @@
 
 void precmd(struct device *dev)
 {
+#ifndef OS_mingw32msvc
 	int status;
 	pid_t pid;
 
@@ -27,5 +28,6 @@ void precmd(struct device *dev)
 			wait(&status);
 			break;
 	}
+#endif
 }
 		

@@ -176,7 +176,11 @@ static int unix_write(direntry_t *entry, MainParam_t *mp, int needfilter)
 
 static int makeUnixDir(char *filename)
 {
-	if(!mkdir(filename, 0777))
+	if(!mkdir(filename
+#ifndef OS_mingw32msvc
+	          , 0777
+#endif
+	         ))
 		return 0;
 	if(errno == EEXIST) {
 		struct MT_STAT buf;

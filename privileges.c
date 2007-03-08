@@ -2,6 +2,35 @@
 #include "msdos.h"
 #include "mtools.h"
 
+int noPrivileges=0;
+
+#ifdef OS_mingw32msvc
+void reclaim_privs(void)
+{
+}
+
+void drop_privs(void)
+{
+}
+
+void destroy_privs(void)
+{
+}
+
+uid_t get_real_uid(void)
+{
+	return 0;
+}
+
+void init_privs(void)
+{
+}
+
+void closeExec(int fd)
+{
+}
+
+#else
 /*#define PRIV_DEBUG*/
 
 #if 0
@@ -23,8 +52,6 @@ static __inline__ void print_privs(const char *message)
 	fprintf(stderr,"%s euid=%d ruid=%d\n", message, geteuid(), getuid());
 #endif
 }
-
-int noPrivileges=0;
 
 
 static gid_t rgid, egid;
@@ -164,3 +191,4 @@ void closeExec(int fd)
 	fcntl(fd, F_SETFD, 1);
 #endif
 }
+#endif
