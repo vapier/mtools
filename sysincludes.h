@@ -58,6 +58,17 @@
 # endif
 #endif
 
+/* For compiling with MingW, use the following configure line
+
+ac_cv_func_setpgrp_void=yes ../mtools/configure --build=i386-linux-gnu --host=i386-mingw32 --disable-floppyd --without-x --disable-raw-term --srcdir ../mtools
+
+ */
+#ifdef OS_mingw32
+#ifndef OS_mingw32msvc
+#define OS_mingw32msvc
+#endif
+#endif
+
 #ifdef OS_mingw32msvc
 typedef void *caddr_t;
 #endif
