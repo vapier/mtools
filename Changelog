@@ -1,3 +1,9 @@
+v20070411
+	Added sizecode printing on minfo
+	In mformat manpage, use same flag for sector number than printed in
+	minfo
+	Limit sizecode to 6, else it will overflow max sector size defined in
+	msdos.h
 v20070308
 	Applied mingw patch by Jamey Sharp and Josh Triplett
 v20070306
