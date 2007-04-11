@@ -1934,7 +1934,7 @@ The @code{mformat} command is used to add an MS-DOS filesystem to a
 low-level formatted diskette. Its syntax is:
 
 @display
-@code{mformat} [@code{-t} @var{cylinders}] [@code{-h} @var{heads}] [@code{-n} @var{sectors}]
+@code{mformat} [@code{-t} @var{cylinders}] [@code{-h} @var{heads}] [@code{-s} @var{sectors}]
   [@code{-f} @var{size}] [@code{-1}] [@code{-4}] [@code{-8}]
   [@code{-v} @var{volume_label}]
   [@code{-F}] [@code{-S} @var{sizecode}] [@code{-X}]
@@ -1970,7 +1970,7 @@ assign no label to the disk.
 @item f
 Specifies the size of the DOS filesystem to format. Only a certain
 number of predefined sizes are supported by this flag; for others use
-the -h/-t/-n flags. The following sizes are supported:
+the -h/-t/-s flags. The following sizes are supported:
 @table @asis
 @item 160
 160K, single-sided, 8 sectors per track, 40 cylinders (for 5 1/4 DD)
