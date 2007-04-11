@@ -878,6 +878,10 @@ void mformat(int argc, char **argv, int dummy)
 				argssize = atoi(optarg) | 0x80;
 				if(argssize < 0x81)
 					usage();
+				if(argssize >= 0x87) {
+					fprintf(stderr, "argssize must be less than 6\n");
+					usage();
+				}
 				break;
 
 #ifdef USE_XDF
