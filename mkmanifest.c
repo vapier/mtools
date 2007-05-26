@@ -10,7 +10,7 @@
 #include "msdos.h"
 #include "mtools.h"
 
-static char *dos_name2();
+static char *dos_name2(const char *name);
 
 int main(int argc, char **argv)
 {
