@@ -807,7 +807,7 @@ struct device devices[] = {
 #endif /* __FreeBSD__ */
  
 /*** /jes -- for ALR 486 DX4/100 ***/
-#if defined(OS_netbsd)
+#if defined(OS_netbsd) || defined(OS_netbsdelf)
 #define predefined_devices
 struct device devices[] = {
 	{"/dev/rfd0a", 'A', FHD312},
