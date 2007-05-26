@@ -56,7 +56,7 @@ static void usage(void)
  * @returns n.a.
  *
  */
-void do_mclasserase(char drive,int debug)
+static void do_mclasserase(char drive,int debug)
 {
   struct device dev;		/* Device information structure */
   unsigned char boot0[MAX_BOOT];
