@@ -14,9 +14,6 @@
 #include "xdf_io.h"
 #include "buffer.h"
 
-extern int errno;
-
-
 #define FULL_CYL
 
 unsigned int num_clus;			/* total number of cluster */
