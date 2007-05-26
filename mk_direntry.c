@@ -227,7 +227,8 @@ static void clear_scan(char *longname, int use_longname, struct scan_state *s)
 	s->free_end = s->got_slots = s->free_start = 0;
 
 	if (use_longname & 1)
-                s->size_needed = 2 + (strlen(longname)/VSE_NAMELEN);
+		s->size_needed = 1 +
+			(strlen(longname) + VSE_NAMELEN - 1)/VSE_NAMELEN;
 	else
                 s->size_needed = 1;
 }
