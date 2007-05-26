@@ -46,7 +46,7 @@ unsigned int mtools_no_vfat=0;
 unsigned int mtools_numeric_tail=1;
 unsigned int mtools_dotted_dir=0;
 unsigned int mtools_twenty_four_hour_clock=1;
-char *mtools_date_string="yyyy-mm-dd";
+const char *mtools_date_string="yyyy-mm-dd";
 char *country_string=0;
 
 typedef struct switches_l {
@@ -59,7 +59,7 @@ typedef struct switches_l {
     } type;
 } switches_t;
 
-static switches_t switches[] = {
+static switches_t global_switches[] = {
     { "MTOOLS_LOWER_CASE", (caddr_t) & mtools_ignore_short_case, T_UINT },
     { "MTOOLS_FAT_COMPATIBILITY", (caddr_t) & mtools_fat_compatibility, T_UINT },
     { "MTOOLS_SKIP_CHECK", (caddr_t) & mtools_skip_check, T_UINT },
@@ -190,15 +190,15 @@ static void get_env_conf(void)
     char *s;
     unsigned int i;
 
-    for(i=0; i< sizeof(switches) / sizeof(*switches); i++) {
-	s = getenv(switches[i].name);
+    for(i=0; i< sizeof(global_switches) / sizeof(*global_switches); i++) {
+	s = getenv(global_switches[i].name);
 	if(s) {
-	    if(switches[i].type == T_INT)
-		* ((int *)switches[i].address) = (int) strtol(s,0,0);
-	    if(switches[i].type == T_UINT)
-		* ((int *)switches[i].address) = (unsigned int) strtoul(s,0,0);
-	    else if (switches[i].type == T_STRING)
-		* ((char **)switches[i].address) = s;
+	    if(global_switches[i].type == T_INT)
+		* ((int *)global_switches[i].address) = (int) strtol(s,0,0);
+	    if(global_switches[i].type == T_UINT)
+		* ((int *)global_switches[i].address) = (unsigned int) strtoul(s,0,0);
+	    else if (global_switches[i].type == T_STRING)
+		* ((char **)global_switches[i].address) = s;
 	}
     }
 }
@@ -644,8 +644,8 @@ static int parse_one(int privilege)
 	 set_openflags(&devices[cur_dev]) &&
 	 set_misc_flags(&devices[cur_dev]) &&
 	 set_def_format(&devices[cur_dev]))) &&
-       set_var(switches,
-	       sizeof(switches)/sizeof(*switches), 0))
+       set_var(global_switches,
+	       sizeof(global_switches)/sizeof(*global_switches), 0))
 	syntax("unrecognized keyword", 1);
     return 1;
 }
