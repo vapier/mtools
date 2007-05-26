@@ -18,12 +18,6 @@ int isNotFound(direntry_t *entry)
 	return entry->entry == -2;
 }
 
-void rewindEntry(direntry_t *entry)
-{
-	entry->entry = -1;
-}
-
-
 direntry_t *getParent(direntry_t *entry)
 {
 	return getDirentry(entry->Dir);
