@@ -3,12 +3,6 @@
 #include "dirCache.h"
 
 
-void myfree(void *a)
-{
-	free(a);
-}
-
-#define free myfree
 
 
 #define BITS_PER_INT (sizeof(unsigned int) * 8)
@@ -95,13 +89,6 @@ int isHashed(dirCache_t *cache, char *name)
 	ret =  _addHash(cache, calcHash(name), 1);
 	return ret;
 }
-
-void checkXYZ(dirCache_t *cache)
-{
-	if(cache->entries[2])
-		printf(" at 2 = %d\n", cache->entries[2]->beginSlot);
-}
-
 
 int growDirCache(dirCache_t *cache, int slot)
 {
