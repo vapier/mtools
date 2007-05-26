@@ -148,31 +148,31 @@ int scsi_cmd(int fd, unsigned char *cdb, int cmdlen, scsi_io_mode_t mode,
 	return 0;
 	
 #elif defined OS_linux
-	struct scsi_ioctl_command scsi_cmd;
+	struct scsi_ioctl_command my_scsi_cmd;
 
 
-	memcpy(scsi_cmd.cmd, cdb, cmdlen);        /* copy command */
+	memcpy(my_scsi_cmd.cmd, cdb, cmdlen);        /* copy command */
 
 	switch (mode) {
 		case SCSI_IO_READ:
-			scsi_cmd.inlen = 0;
-			scsi_cmd.outlen = len;
+			my_scsi_cmd.inlen = 0;
+			my_scsi_cmd.outlen = len;
 			break;
 		case SCSI_IO_WRITE:
-			scsi_cmd.inlen = len;
-			scsi_cmd.outlen = 0;
-			memcpy(scsi_cmd.cmd + cmdlen,data,len);
+			my_scsi_cmd.inlen = len;
+			my_scsi_cmd.outlen = 0;
+			memcpy(my_scsi_cmd.cmd + cmdlen,data,len);
 			break;
 	}
 	
-	if (ioctl(fd, SCSI_IOCTL_SEND_COMMAND, &scsi_cmd) < 0) {
+	if (ioctl(fd, SCSI_IOCTL_SEND_COMMAND, &my_scsi_cmd) < 0) {
 		perror("scsi_io");
 		return -1;
 	}
 	
 	switch (mode) {
 		case SCSI_IO_READ:
-			memcpy(data, &scsi_cmd.cmd[0], len);
+			memcpy(data, &my_scsi_cmd.cmd[0], len);
 			break;
 		case SCSI_IO_WRITE:
 			break;
@@ -181,52 +181,52 @@ int scsi_cmd(int fd, unsigned char *cdb, int cmdlen, scsi_io_mode_t mode,
 	return 0;  /* where to get scsi status? */
 
 #elif (defined _SCO_DS) && (defined SCSIUSERCMD)
-	struct scsicmd scsi_cmd;
+	struct scsicmd my_scsi_cmd;
 
-	memset(scsi_cmd.cdb, 0, SCSICMDLEN);	/* ensure zero pad */
-	memcpy(scsi_cmd.cdb, cdb, cmdlen);
-	scsi_cmd.cdb_len = cmdlen;
-	scsi_cmd.data_len = len;
-	scsi_cmd.data_ptr = data;
-	scsi_cmd.is_write = mode == SCSI_IO_WRITE;
-	if (ioctl(fd,SCSIUSERCMD,&scsi_cmd) == -1) {
+	memset(my_scsi_cmd.cdb, 0, SCSICMDLEN);	/* ensure zero pad */
+	memcpy(my_scsi_cmd.cdb, cdb, cmdlen);
+	my_scsi_cmd.cdb_len = cmdlen;
+	my_scsi_cmd.data_len = len;
+	my_scsi_cmd.data_ptr = data;
+	my_scsi_cmd.is_write = mode == SCSI_IO_WRITE;
+	if (ioctl(fd,SCSIUSERCMD,&my_scsi_cmd) == -1) {
 		perror("scsi_io: SCSIUSERCMD");
 		return -1;
 	}
-	if (scsi_cmd.host_sts != 0 || scsi_cmd.target_sts != 0) {
+	if (my_scsi_cmd.host_sts != 0 || my_scsi_cmd.target_sts != 0) {
 		fprintf(stderr, "scsi_io: scsi status: host=%x; target=%x\n",
-		(unsigned)scsi_cmd.host_sts,(unsigned)scsi_cmd.target_sts);
+		(unsigned)my_scsi_cmd.host_sts,(unsigned)my_scsi_cmd.target_sts);
 		return -1;
 	}
 	return 0;
 #elif defined sgi
- 	struct dsreq scsi_cmd;
+ 	struct dsreq my_scsi_cmd;
 
-	scsi_cmd.ds_cmdbuf = (char *)cdb;
-	scsi_cmd.ds_cmdlen = cmdlen;
-	scsi_cmd.ds_databuf = data;
-	scsi_cmd.ds_datalen = len;
+	my_scsi_cmd.ds_cmdbuf = (char *)cdb;
+	my_scsi_cmd.ds_cmdlen = cmdlen;
+	my_scsi_cmd.ds_databuf = data;
+	my_scsi_cmd.ds_datalen = len;
        	switch (mode) {
 	case SCSI_IO_READ:
-	  scsi_cmd.ds_flags = DSRQ_READ|DSRQ_SENSE;
+	  my_scsi_cmd.ds_flags = DSRQ_READ|DSRQ_SENSE;
 	  break;
 	case SCSI_IO_WRITE:
-	  scsi_cmd.ds_flags = DSRQ_WRITE|DSRQ_SENSE;
+	  my_scsi_cmd.ds_flags = DSRQ_WRITE|DSRQ_SENSE;
 	  break;
         } 
-	scsi_cmd.ds_time = 10000;
-	scsi_cmd.ds_link = 0;
-	scsi_cmd.ds_synch =0;
-	scsi_cmd.ds_ret =0;
-	if (ioctl(fd, DS_ENTER, &scsi_cmd) == -1) {
+	my_scsi_cmd.ds_time = 10000;
+	my_scsi_cmd.ds_link = 0;
+	my_scsi_cmd.ds_synch =0;
+	my_scsi_cmd.ds_ret =0;
+	if (ioctl(fd, DS_ENTER, &my_scsi_cmd) == -1) {
                 perror("scsi_io");
                 return -1;
         }
 
-        if(scsi_cmd.ds_status) {
+        if(my_scsi_cmd.ds_status) {
                 errno = 0;
                 fprintf(stderr,"scsi status=%x\n",  
-                        (unsigned short)scsi_cmd.ds_status);
+                        (unsigned short)my_scsi_cmd.ds_status);
                 return -1;
         }
         
