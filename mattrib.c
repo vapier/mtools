@@ -16,8 +16,6 @@ typedef struct Arg_t {
 	int doPrintName;
 } Arg_t;
 
-int concise;
-
 static int attrib_file(direntry_t *entry, MainParam_t *mp)
 {
 	Arg_t *arg=(Arg_t *) mp->arg;
