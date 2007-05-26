@@ -13,7 +13,7 @@
 #include "floppyd_io.h"
 #include "plain_io.h"
 
-void usage() 
+static void usage(void) 
 {
 	fprintf(stderr, "Mtools version %s, dated %s\n", 
 		mversion, mdate);
