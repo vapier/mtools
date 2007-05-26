@@ -271,7 +271,7 @@ void mpartition(int argc, char **argv, int dummy)
 	int create = 0;
 	int force = 0;
 	int length = 0;
-	int remove = 0;
+	int do_remove = 0;
 	int initialize = 0;
 	unsigned int tot_sectors=0;
 	int type = 0;
@@ -328,7 +328,7 @@ void mpartition(int argc, char **argv, int dummy)
 				doprint = 1;
 				break;
 			case 'r':
-				remove = 1;
+				do_remove = 1;
 				dirty = 1;
 				break;
 			case 'I':
@@ -524,7 +524,7 @@ void mpartition(int argc, char **argv, int dummy)
 		inconsistency = 1;
 	}
 	
-	if(remove){
+	if(do_remove){
 		if(!partTable[dev->partition].sys_ind)
 			fprintf(stderr,
 				"Partition for drive %c: does not exist\n",
