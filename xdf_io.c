@@ -16,8 +16,6 @@
 #include "devices.h"
 #include "xdf_io.h"
 
-extern int errno;
-
 /* Algorithms can't be patented */
 
 typedef struct sector_map {
