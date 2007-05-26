@@ -38,8 +38,6 @@
 #define SOMAXCONN 5
 #endif
 
-extern int errno;
-
 /*
    To compile:
 
@@ -111,7 +109,7 @@ typedef struct io_buffer {
 	int handle;
 } *io_buffer;
 
-io_buffer new_io_buffer (int _handle) {
+static io_buffer new_io_buffer (int _handle) {
 	io_buffer buffer;
 
 	buffer = New(struct io_buffer);
@@ -130,13 +128,13 @@ static void flush(io_buffer buffer) {
 	}
 }
 
-void free_io_buffer(io_buffer buffer) {
+static void free_io_buffer(io_buffer buffer) {
 	flush(buffer);
 	free(buffer);
 }
 
 
-size_t buf_read (io_buffer buf, Byte* buffer, size_t nbytes) {
+static size_t buf_read (io_buffer buf, Byte* buffer, size_t nbytes) {
 	size_t rval;
 	
 	if (nbytes <= buf->in_valid) {
@@ -178,7 +176,7 @@ size_t buf_read (io_buffer buf, Byte* buffer, size_t nbytes) {
 	return rval;
 }
 
-size_t buf_write(io_buffer buf, void* buffer, size_t nbytes) {
+static size_t buf_write(io_buffer buf, void* buffer, size_t nbytes) {
 	if (buf->out_valid + nbytes > BUFFERED_IO_SIZE) {
 		flush(buf);
 		return write(buf->handle, buffer, nbytes);
@@ -221,25 +219,10 @@ typedef struct Packet {
 	Dword alloc_size;
 } *Packet;
 
-Dword byte2dword(Byte* val) {
-	Dword l;
-	l = (val[0] << 24) + (val[1] << 16) + (val[2] << 8) + val[3];
-	
-#if DEBUG
-	fprintf(stderr, "byte2dword(): %ld, 0x%x\n", l, (unsigned int) l);
-#endif		
-	
-	return l;
-}	
+#include "byte_dword.h"
 
-void dword2byte(Dword parm, Byte* rval) {
-	rval[0] = (parm >> 24) & 0xff;
-	rval[1] = (parm >> 16) & 0xff;
-	rval[2] = (parm >> 8)  & 0xff;
-	rval[3] = parm         & 0xff;
-}
-
-Dword read_dword(io_buffer fp) {
+static Dword read_dword(io_buffer fp)
+{
 	Byte val[4];
 	if (buf_read(fp, val, 4) < 4) {
 		return 0xffffffff;
@@ -248,7 +231,8 @@ Dword read_dword(io_buffer fp) {
 	return byte2dword(val);
 }
 
-void write_dword(io_buffer fp, Dword parm) {
+static void write_dword(io_buffer fp, Dword parm)
+{
 	Byte val[4];
 	
 	dword2byte(parm, val);
@@ -257,7 +241,8 @@ void write_dword(io_buffer fp, Dword parm) {
 }
 
 
-Packet newPacket() {
+static Packet newPacket(void)
+{
 	Packet packet;
 
 	packet = New(struct Packet);
@@ -267,13 +252,15 @@ Packet newPacket() {
 }
 
 
-void destroyPacket(Packet packet) {
+static void destroyPacket(Packet packet)
+{
 	if(packet->data)
 		free(packet->data);
 	free(packet);
 }
 
-void kill_packet(Packet packet) {
+static void kill_packet(Packet packet)
+{
 	if(packet->data)
 		free(packet->data);
 	packet->data = NULL;
@@ -281,7 +268,8 @@ void kill_packet(Packet packet) {
 	packet->alloc_size = 0;
 }
 
-void make_new(Packet packet, unsigned long l) {
+static void make_new(Packet packet, unsigned long l)
+{
 	if (l < packet->alloc_size) {
 		packet->len = l;
 		return;
@@ -292,7 +280,8 @@ void make_new(Packet packet, unsigned long l) {
 	memset(packet->data, 0, l);
 }
 
-char send_packet(Packet packet, io_buffer fp) {
+static char send_packet(Packet packet, io_buffer fp)
+{
 	if (packet->data) {
 		write_dword(fp, packet->len);
 		buf_write(fp, packet->data, packet->len);
@@ -313,7 +302,8 @@ char send_packet(Packet packet, io_buffer fp) {
 	return (packet->data != NULL);
 }
 
-char recv_packet(Packet packet, io_buffer fp, Dword maxlength) {
+static char recv_packet(Packet packet, io_buffer fp, Dword maxlength)
+{
 	int start;
 	int l;
 	Dword length = read_dword(fp);
@@ -348,32 +338,28 @@ char recv_packet(Packet packet, io_buffer fp, Dword maxlength) {
 	return 1;
 }
 
-void read_packet(Packet packet, int fd, int length) {
+static void read_packet(Packet packet, int fd, int length) {
 	make_new(packet, length);
 	packet->len = read(fd, packet->data, packet->len);
 }
 
-int write_packet(Packet packet, int fd) {
+static int write_packet(Packet packet, int fd) {
 	return (write(fd, packet->data, packet->len));
 }
 
-void put_dword(Packet packet, int index, Dword val) {
-	dword2byte(val, packet->data+index);
+static void put_dword(Packet packet, int my_index, Dword val) {
+	dword2byte(val, packet->data+my_index);
 }
 
-Dword get_dword(Packet packet, int index) {
-	return byte2dword(packet->data+index);
+static Dword get_dword(Packet packet, int my_index) {
+	return byte2dword(packet->data+my_index);
 }	
 
-char is_valid(Packet packet) {
-	return (packet->data != NULL);
-}
-
-Dword get_length(Packet packet) {
+static Dword get_length(Packet packet) {
 	return packet->len;
 }
 
-int eat(char **ptr, int *len, unsigned char c) {
+static int eat(char **ptr, int *len, unsigned char c) {
     /* remove length + size code + terminating 0 */
     if (*len < c + 3)
 	return -1;
@@ -382,11 +368,11 @@ int eat(char **ptr, int *len, unsigned char c) {
     return 0;
 }
 
-static char *dispName;
+static const char *dispName;
 
 static char XAUTHORITY[]="XAUTHORITY";
 
-char do_auth(io_buffer sock, int *version) 
+static char do_auth(io_buffer sock, int *version) 
 {
 	int fd;
 	Display* displ;
@@ -755,7 +741,7 @@ static void server_main_loop(int sock, char **device_name, int n_dev)
 /*
  * Print some basic help information.
  */
-static void usage(char *prog, char *opt)
+static void usage(char *prog, const char *opt)
 {
 	if (opt)
 		{
@@ -772,7 +758,7 @@ static void usage(char *prog, char *opt)
 }
 
 
-char *makeDisplayName(int dispNr)
+static char *makeDisplayName(int dispNr)
 {
 	char result[80];
 	sprintf(result, ":%d.0", dispNr);
@@ -978,7 +964,7 @@ int main (int argc, char** argv)
 	return 0;
 }
 
-void send_reply(int rval, io_buffer sock, int len) {
+static void send_reply(int rval, io_buffer sock, int len) {
 	Packet reply = newPacket();
 
 	make_new(reply, 8);
@@ -992,7 +978,7 @@ void send_reply(int rval, io_buffer sock, int len) {
 	destroyPacket(reply);
 }
 
-void cleanup(int x) {
+static void cleanup(int x) {
 	unlink(XauFileName());
 	exit(-1);
 }
@@ -1070,7 +1056,6 @@ void serve_client(int sockhandle, char **device_name, int n_dev) {
 
 	while(!stopLoop) {
 		int dev_nr = 0;
-		int rval = 0;
 		/*
 		 * Allow 60 seconds for any activity.
 		 */
