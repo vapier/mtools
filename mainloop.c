@@ -394,7 +394,7 @@ static int common_dos_loop(MainParam_t *mp, const char *pathname,
 
 {
 	Stream_t *RootDir;
-	char *cwd;
+	const char *cwd;
 	char drive;
 
 	int ret;
@@ -479,7 +479,7 @@ static int dos_target_lookup(MainParam_t *mp, const char *arg)
 	}
 }
 
-int unix_target_lookup(MainParam_t *mp, const char *arg)
+static int unix_target_lookup(MainParam_t *mp, const char *arg)
 {
 	char *ptr;
 	mp->unixTarget = strdup(arg);
