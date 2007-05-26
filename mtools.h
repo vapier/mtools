@@ -150,7 +150,7 @@ extern unsigned int mtools_no_vfat;
 extern unsigned int mtools_numeric_tail;
 extern unsigned int mtools_dotted_dir;
 extern unsigned int mtools_twenty_four_hour_clock;
-extern char *mtools_date_string;
+extern const char *mtools_date_string;
 extern unsigned int mtools_rate_0, mtools_rate_any;
 extern int mtools_raw_tty;
 
@@ -201,7 +201,7 @@ extern const char *progname;
 
 void precmd(struct device *dev);
 
-void print_sector(char *message, unsigned char *data, int size);
+void print_sector(const char *message, unsigned char *data, int size);
 time_t getTimeNow(time_t *now);
 
 #ifdef USING_NEW_VOLD
@@ -229,7 +229,7 @@ FILE *open_mcwd(const char *mode);
 void unlink_mcwd(void);
 
 #ifndef OS_mingw32msvc
-int safePopenOut(char **command, char *output, int len);
+int safePopenOut(const char **command, char *output, int len);
 #endif
 
 #define ROUND_DOWN(value, grain) ((value) - (value) % (grain))
