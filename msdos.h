@@ -114,7 +114,7 @@ typedef struct label_blk_t {
 } label_blk_t;
 
 /* FAT32 specific info in the bootsector */
-typedef struct fat32_t {
+struct fat32_t {
 	unsigned char bigFat[4];	/* 36 nb of sectors per FAT */
 	unsigned char extFlags[2];     	/* 40 extension flags */
 	unsigned char fsVersion[2];	/* 42 ? */
@@ -124,7 +124,7 @@ typedef struct fat32_t {
 	unsigned char reserved[6];	/* 52 ? */
 	unsigned char reserved2[6];	/* 52 ? */
 	struct label_blk_t labelBlock;
-} fat32; /* ends at 58 */
+}; /* ends at 58 */
 
 typedef struct oldboot_t {
 	struct label_blk_t labelBlock;
