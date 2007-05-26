@@ -17,8 +17,6 @@
 #include "mainloop.h"
 #include "fs.h"
 
-extern int errno;
-
 void mmount(int argc, char **argv, int type)
 {
 	char drive;
