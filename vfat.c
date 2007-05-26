@@ -238,7 +238,7 @@ int write_vfat(Stream_t *Dir, char *shortname, char *longname, int start,
 		printf("Wrote checksum=%d for shortname %s.\n", 
 		       vse->sum,shortname);
 #endif
-		num_vses = strlen(longname)/VSE_NAMELEN + 1;
+		num_vses = (strlen(longname) + VSE_NAMELEN - 1)/VSE_NAMELEN;
 		for (vse_id = num_vses; vse_id; --vse_id) {
 			int end = 0;
 			
