@@ -25,7 +25,7 @@
 typedef unsigned char Byte;
 typedef unsigned long Dword;
 
-char* AuthErrors[] = {
+const char* AuthErrors[] = {
 	"Auth success!",
 	"Auth failed: Packet oversized!",
 	"Auth failed: X-Cookie doesn't match!",
@@ -49,60 +49,17 @@ typedef struct RemoteFile_t {
 } RemoteFile_t;
 
 
-#ifndef HAVE_HTONS
-unsigned short myhtons(unsigned short parm) 
-{
-	Byte val[2];
-	
-	val[0] = (parm >> 8) & 0xff;
-	val[1] = parm        & 0xff;
-
-	return *((unsigned short*) (val));
-}
-#endif
-
-Dword byte2dword(Byte* val) 
-{
-	Dword l;
-	l = (val[0] << 24) + (val[1] << 16) + (val[2] << 8) + val[3];
-
-	return l;
-}	
-
-void dword2byte(Dword parm, Byte* rval) 
-{
-	rval[0] = (parm >> 24) & 0xff;
-	rval[1] = (parm >> 16) & 0xff;
-	rval[2] = (parm >> 8)  & 0xff;
-	rval[3] = parm         & 0xff;
-}
-
-Dword read_dword(int handle) 
-{
-	Byte val[4];
-	
-	read(handle, (char *)val, 4);
-
-	return byte2dword(val);
-}
-
-void write_dword(int handle, Dword parm) 
-{
-	Byte val[4];
-
-	dword2byte(parm, val);
-
-	write(handle, val, 4);
-}
+#include "byte_dword.h"
+#include "read_dword.h"
 
 
 /* ######################################################################## */
 
-int authenticate_to_floppyd(RemoteFile_t *floppyd, int sock, char *display)
+static int authenticate_to_floppyd(RemoteFile_t *floppyd, int sock, char *display)
 {
 	off_t filelen;
 	Byte buf[16];
-	char *command[] = { "xauth", "xauth", "extract", "-", 0, 0 };
+	const char *command[] = { "xauth", "xauth", "extract", "-", 0, 0 };
 	char *xcookie;
 	Dword errcode;
 	int l;
@@ -444,8 +401,8 @@ static Class_t FloppydFileClass = {
 
 /* ######################################################################## */
 
-int get_host_and_port_and_drive(const char* name, char** hostname, char **display,
-				short* port, int *drive)
+static int get_host_and_port_and_drive(const char* name, char** hostname,
+				       char **display, short* port, int *drive)
 {
 	char* newname = strdup(name);
 	char* p;
@@ -504,7 +461,7 @@ static IPaddr_t getipaddress(char *ipaddr)
 		endhostent();
 	}
 	
-#if DEBUG
+#ifdef DEBUG
 	fprintf(stderr, "IP lookup %s -> 0x%08lx\n", ipaddr, ip);
 #endif
 	  
