@@ -28,7 +28,7 @@
 typedef unsigned char Byte;
 typedef unsigned long Dword;
 
-char* AuthErrors[] = {
+const char* AuthErrors[] = {
 	"Auth success!",
 	"Auth failed: Packet oversized!",
 	"Auth failed: X-Cookie doesn't match!",
@@ -36,45 +36,10 @@ char* AuthErrors[] = {
 	"Auth failed: Device locked!"
 };
 
+#include "byte_dword.h"
+#include "read_dword.h"
 
-#ifndef HAVE_HTONS
-unsigned short myhtons(unsigned short parm) 
-{
-	Byte val[2];
-	
-	val[0] = (parm >> 8) & 0xff;
-	val[1] = parm        & 0xff;
-
-	return *((unsigned short*) (val));
-}
-#endif
-
-Dword byte2dword(Byte* val) 
-{
-	Dword l;
-	l = (val[0] << 24) + (val[1] << 16) + (val[2] << 8) + val[3];
-
-	return l;
-}	
-
-void dword2byte(Dword parm, Byte* rval) 
-{
-	rval[0] = (parm >> 24) & 0xff;
-	rval[1] = (parm >> 16) & 0xff;
-	rval[2] = (parm >> 8)  & 0xff;
-	rval[3] = parm         & 0xff;
-}
-
-Dword read_dword(int handle) 
-{
-	Byte val[4];
-	
-	read(handle, (char *) val, 4);
-
-	return byte2dword(val);
-}
-
-void write_dword(int handle, Dword parm) 
+static void write_dword(int handle, Dword parm) 
 {
 	Byte val[4];
 
@@ -86,12 +51,12 @@ void write_dword(int handle, Dword parm)
 
 /* ######################################################################## */
 
-int authenticate_to_floppyd(char fullauth, int sock, char *display, 
-			    int protoversion)
+static int authenticate_to_floppyd(char fullauth, int sock, char *display, 
+				   int protoversion)
 {
 	off_t filelen=0;
 	Byte buf[16];
-	char *command[] = { "xauth", "xauth", "extract", "-", 0, 0 };
+	const char *command[] = { "xauth", "xauth", "extract", "-", 0, 0 };
 	char *xcookie = NULL;
 	Dword errcode;
 	int bytesRead;
@@ -150,8 +115,8 @@ int authenticate_to_floppyd(char fullauth, int sock, char *display,
 
 /* ######################################################################## */
 
-int get_host_and_port(const char* name, char** hostname, char **display,
-					  short* port)
+static int get_host_and_port(const char* name, char** hostname, char **display,
+			     short* port)
 {
 	char* newname = strdup(name);
 	char* p;
@@ -206,7 +171,7 @@ static IPaddr_t getipaddress(char *ipaddr)
 		endhostent();
 	}
 	
-#if DEBUG
+#ifdef DEBUG
 	fprintf(stderr, "IP lookup %s -> 0x%08lx\n", ipaddr, ip);
 #endif
 	  
