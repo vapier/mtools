@@ -83,7 +83,7 @@ void mlabel(int argc, char **argv, int type)
 	long serial = 0;
 	int need_write_boot = 0;
 	int have_boot = 0;
-	char *eptr = "";
+	char *eptr;
 	struct bootsector boot;
 	Stream_t *Fs=0;
 	int r;
