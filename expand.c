@@ -8,7 +8,7 @@
 #include "mtools.h"
 
 #ifndef OS_mingw32msvc
-int safePopenOut(char **command, char *output, int len)
+int safePopenOut(const char **command, char *output, int len)
 {
 	int pipefd[2];
 	pid_t pid;
@@ -28,7 +28,7 @@ int safePopenOut(char **command, char *output, int len)
 			close(2); /* avoid nasty error messages on stderr */
 			dup(pipefd[1]);
 			close(pipefd[1]);
-			execvp(command[0], command+1);
+			execvp(command[0], (char**)(command+1));
 			exit(1);
 		default:
 			close(pipefd[1]);
@@ -50,7 +50,7 @@ const char *expand(const char *input, char *ans)
 #ifndef OS_mingw32msvc
 	int last;
 	char buf[256];
-	char *command[] = { "/bin/sh", "sh", "-c", 0, 0 };
+	const char *command[] = { "/bin/sh", "sh", "-c", 0, 0 };
 
 	ans[EXPAND_BUF-1]='\0';
 

@@ -62,8 +62,33 @@ typedef struct Arg_t {
 	int noClobber;
 } Arg_t;
 
+static int _unix_write(direntry_t *entry, MainParam_t *mp, int needfilter,
+		       const char *unixFile);
+
 /* Write the Unix file */
 static int unix_write(direntry_t *entry, MainParam_t *mp, int needfilter)
+{
+	Arg_t *arg=(Arg_t *) mp->arg;
+
+	if(arg->type)
+		return _unix_write(entry, mp, needfilter, "-");
+	else {
+		char *unixFile = mpBuildUnixFilename(mp);
+		int ret;
+		if(!unixFile) {
+			printOom();
+			return ERROR_ONE;
+		}
+		ret = _unix_write(entry, mp, needfilter, unixFile);
+		free(unixFile);
+		return ret;
+	}
+}
+
+
+/* Write the Unix file */
+static int _unix_write(direntry_t *entry, MainParam_t *mp, int needfilter,
+		       const char *unixFile)
 {
 	Arg_t *arg=(Arg_t *) mp->arg;
 	time_t mtime;
@@ -72,21 +97,11 @@ static int unix_write(direntry_t *entry, MainParam_t *mp, int needfilter)
 	struct MT_STAT stbuf;
 	int ret;
 	char errmsg[80];
-	char *unixFile;
 
 	File->Class->get_data(File, &mtime, 0, 0, 0);
 
 	if (!arg->preserveTime)
 		mtime = 0L;
-
-	if(arg->type)
-		unixFile = "-";
-	else
-		unixFile = mpBuildUnixFilename(mp);
-	if(!unixFile) {
-		printOom();
-		return ERROR_ONE;
-	}
 
 	/* if we are creating a file, check whether it already exists */
 	if(!arg->type) {
@@ -104,7 +119,6 @@ static int unix_write(direntry_t *entry, MainParam_t *mp, int needfilter)
 					fprintf(stderr,"\"%s\" is not a regular file\n",
 						unixFile);
 				
-					free(unixFile);
 					return ERROR_ONE;
 				}
 				sFd = get_fd(File);
@@ -121,7 +135,6 @@ static int unix_write(direntry_t *entry, MainParam_t *mp, int needfilter)
 
 			if( ask_confirmation("File \"%s\" exists, overwrite (y/n) ? ",
 					     unixFile,0)) {
-				free(unixFile);
 				return ERROR_ONE;
 			}
 			
@@ -135,7 +148,6 @@ static int unix_write(direntry_t *entry, MainParam_t *mp, int needfilter)
 	}
 	
 	if(got_signal) {
-		free(unixFile);
 		return ERROR_ONE;
 	}
 
@@ -155,21 +167,15 @@ static int unix_write(direntry_t *entry, MainParam_t *mp, int needfilter)
 		FREE(&Source);
 		FREE(&Target);
 		if(ret <= -1){
-			if(!arg->type) {
+			if(!arg->type)
 				unlink(unixFile);
-				free(unixFile);
-			}
 			return ERROR_ONE;
 		}
-		if(!arg->type) {
+		if(!arg->type)
 			set_mtime(unixFile, mtime);
-			free(unixFile);
-		}
 		return GOT_ONE;
 	} else {
 		fprintf(stderr,"%s\n", errmsg);
-		if(!arg->type)
-			free(unixFile);
 		return ERROR_ONE;
 	}
 }
@@ -571,7 +577,7 @@ void mcopy(int argc, char **argv, int mtype)
 		arg.mp.dirCallback = unix_copydir;
 		arg.mp.unixcallback = unix_to_unix;		
 	} else {
-		char *target;
+		const char *target;
 		if (argc - optind == 1) {
 			/* copying to the current directory */
 			target = ".";
