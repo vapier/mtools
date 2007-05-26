@@ -139,7 +139,7 @@ int main(int argc,char **argv)
 #else
 		printf("disable-new-vold ");
 #endif
-#if DEBUG
+#ifdef DEBUG
 		printf("enable-debug ");
 #else
 		printf("disable-debug ");
