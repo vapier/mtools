@@ -57,7 +57,7 @@ char *get_homedir(void)
 static void get_mcwd_file_name(char *file)
 {
 	char *mcwd_path;
-	char *homedir;
+	const char *homedir;
 
 	mcwd_path = getenv("MCWD");
 	if (mcwd_path == NULL || *mcwd_path == '\0'){
@@ -73,7 +73,7 @@ static void get_mcwd_file_name(char *file)
 	}
 }
 
-void unlink_mcwd()
+void unlink_mcwd(void)
 {
 	char file[MAXPATHLEN+1];
 	get_mcwd_file_name(file);
@@ -120,7 +120,7 @@ void *safe_malloc(size_t size)
 	return p;
 }
 
-void print_sector(char *message, unsigned char *data, int size)
+void print_sector(const char *message, unsigned char *data, int size)
 {
 	int col;
 	int row;
