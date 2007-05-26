@@ -136,10 +136,6 @@ typedef void *caddr_t;
 
 #ifdef HAVE_GETOPT_H
 # include <getopt.h>
-#else
-int getopt();
-extern char *optarg;
-extern int optind, opterr;
 #endif
 
 #ifdef HAVE_FCNTL_H
@@ -236,7 +232,9 @@ extern int ioctl(int fildes, int request, void *arg);
 #include <sys/stat.h>
 
 #include <errno.h>
+#ifndef errno
 extern int errno;
+#endif
 
 #ifndef OS_mingw32msvc
 #include <pwd.h>
@@ -348,8 +346,6 @@ typedef unsigned int uid_t;
 # define strrchr rindex
 #endif
 
-
-#define SIG_CAST RETSIGTYPE(*)()
 
 #ifndef HAVE_STRDUP
 extern char *strdup(const char *str);
