@@ -25,7 +25,7 @@ static void autorename(char *name,
 	char tmp;
 	char *p;
 	
-#if DEBUG
+#ifdef DEBUG
 	printf("In autorename for name=%s.\n", name);
 #endif
 	tildapos = -1;
@@ -158,7 +158,7 @@ static __inline__ void check_vfat(struct vfat_state *v, struct directory *dir)
 	char name[12];
 
 	if (! v->subentries) {
-#if DEBUG
+#ifdef DEBUG
 		fprintf(stderr, "check_vfat: no VSEs.\n");
 #endif
 		return;
@@ -197,7 +197,7 @@ int clear_vses(Stream_t *Dir, int entrySlot, size_t last)
 	}
 	addFreeEntry(cache, entry.entry, last);
 	for (; entry.entry < (signed int) last; ++entry.entry) {
-#if DEBUG
+#ifdef DEBUG
 		fprintf(stderr,"Clearing entry %d.\n", entry.entry);
 #endif
 		dir_read(&entry, &error);
@@ -224,7 +224,7 @@ int write_vfat(Stream_t *Dir, char *shortname, char *longname, int start,
 	char unixyName[13];
 	
 	if(longname) {
-#if DEBUG
+#ifdef DEBUG
 		printf("Entering write_vfat with longname=\"%s\", start=%d.\n",
 		       longname,start);
 #endif
@@ -234,7 +234,7 @@ int write_vfat(Stream_t *Dir, char *shortname, char *longname, int start,
 		vse->attribute = 0x0f;
 		vse->hash1 = vse->sector_l = vse->sector_u = 0;
 		vse->sum = sum_shortname(shortname);
-#if DEBUG
+#ifdef DEBUG
 		printf("Wrote checksum=%d for shortname %s.\n", 
 		       vse->sum,shortname);
 #endif
@@ -249,7 +249,7 @@ int write_vfat(Stream_t *Dir, char *shortname, char *longname, int start,
 			c += unicode_write(c, vse->text3, VSE3SIZE, &end);
 
 			vse->id = (vse_id == num_vses) ? (vse_id | VSE_LAST) : vse_id;
-#if DEBUG
+#ifdef DEBUG
 			printf("Writing longname=(%s), VSE %d (%13s) at %d, end = %d.\n",
 			       longname, vse_id, longname + (vse_id-1) * VSE_NAMELEN,
 			       start + num_vses - vse_id, start + num_vses);
@@ -340,7 +340,7 @@ static __inline__ void parse_vses(direntry_t *entry,
 		v->sum = vse->sum;
 	}
 	
-#if DEBUG
+#ifdef DEBUG
 	if(v->status & (1 << (id-1)))
 		fprintf(stderr,
 			"parse_vses: duplicate VSE %d\n", vse->id);
@@ -350,7 +350,7 @@ static __inline__ void parse_vses(direntry_t *entry,
 	if(last_flag)
 		v->subentries = id;
 	
-#if DEBUG
+#ifdef DEBUG
 	if (id > v->subentries)
 		/* simple test to detect entries preceding
 		 * the "last" entry (really the first) */
@@ -363,7 +363,7 @@ static __inline__ void parse_vses(direntry_t *entry,
 	c += unicode_read(vse->text1, c, VSE1SIZE);
 	c += unicode_read(vse->text2, c, VSE2SIZE);
 	c += unicode_read(vse->text3, c, VSE3SIZE);
-#if DEBUG
+#ifdef DEBUG
 	printf("Read VSE %d at %d, subentries=%d, = (%13s).\n",
 	       id,entry->entry,v->subentries,&(v->name[VSE_NAMELEN * (id-1)]));
 #endif		
