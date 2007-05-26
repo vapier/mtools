@@ -42,10 +42,10 @@ typedef struct CreateArg_t {
  * Open the named file for read, create the cluster chain, return the
  * directory structure or NULL on error.
  */
-int makeit(char *dosname,
-	    char *longname,
-	    void *arg0,
-	    direntry_t *targetEntry)
+static int makeit(char *dosname,
+		  char *longname,
+		  void *arg0,
+		  direntry_t *targetEntry)
 {
 	Stream_t *Target;
 	CreateArg_t *arg = (CreateArg_t *) arg0;

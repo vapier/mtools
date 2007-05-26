@@ -35,10 +35,10 @@ typedef struct Arg_t {
  * Open the named file for read, create the cluster chain, return the
  * directory structure or NULL on error.
  */
-int renameit(char *dosname,
-	     char *longname,
-	     void *arg0,
-	     direntry_t *targetEntry)
+static int renameit(char *dosname,
+		    char *longname,
+		    void *arg0,
+		    direntry_t *targetEntry)
 {
 	Arg_t *arg = (Arg_t *) arg0;
 	int fat;
