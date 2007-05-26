@@ -69,13 +69,13 @@ static Terminal in_orig;
 
 /*--------------- Signal Handler routines -------------*/
 
-static void tty_time_out(void)
+static void tty_time_out(int dummy)
 {
 	int exit_code;
 	signal(SIGALRM, SIG_IGN);
 	if(tty && need_tty_reset)
 		restore_tty (&in_orig);	
-#if future
+#ifdef future
 	if (fail_on_timeout)
 		exit_code=SHFAIL;
 	else {
@@ -121,7 +121,7 @@ static void set_raw_tty(int mode)
 
 
 		setup_signal();
-		signal (SIGALRM, (SIG_CAST) tty_time_out);
+		signal (SIGALRM, tty_time_out);
 	
 		/* Change STDIN settings to raw */
 
