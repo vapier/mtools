@@ -299,7 +299,8 @@ static void scsi_init(SimpleFile_t *This)
    }
 }
 
-int scsi_io(Stream_t *Stream, char *buf,  mt_off_t where, size_t len, int rwcmd)
+static int scsi_io(Stream_t *Stream, char *buf,
+		   mt_off_t where, size_t len, int rwcmd)
 {
 	unsigned int firstblock, nsect;
 	int clen,r;
@@ -415,7 +416,7 @@ int scsi_io(Stream_t *Stream, char *buf,  mt_off_t where, size_t len, int rwcmd)
 	else return nsect*This->scsi_sector_size-offset;
 }
 
-int scsi_read(Stream_t *Stream, char *buf, mt_off_t where, size_t len)
+static int scsi_read(Stream_t *Stream, char *buf, mt_off_t where, size_t len)
 {
 	
 #ifdef JPD
@@ -424,7 +425,7 @@ int scsi_read(Stream_t *Stream, char *buf, mt_off_t where, size_t len)
 	return scsi_io(Stream, buf, where, len, SCSI_IO_READ);
 }
 
-int scsi_write(Stream_t *Stream, char *buf, mt_off_t where, size_t len)
+static int scsi_write(Stream_t *Stream, char *buf, mt_off_t where, size_t len)
 {
 #ifdef JPD
 	Printf("zip: to write %d bytes at %d\n", len, where);
