@@ -40,8 +40,8 @@ static mt_size_t bytesOnDrive;
 static Stream_t *RootDir;	
 
 
-static char shortname[13];
-static char longname[VBUFSIZE];
+static char global_shortname[13];
+static char global_longname[VBUFSIZE];
 
 
 /*
@@ -52,7 +52,7 @@ static __inline__ void print_date(struct directory *dir)
 	char year[5];
 	char day[3];
 	char month[3];
-	char *p;
+	const char *p;
 
 	sprintf(year, "%04d", DOS_YEAR(dir));
 	sprintf(day, "%02d", DOS_DAY(dir));
@@ -378,14 +378,14 @@ static int list_file(direntry_t *entry, MainParam_t *mp)
 	to_unix(entry->dir.name,8);
 	if(wide){
 		if(IS_DIR(entry))
-			printf("[%s]%*s", shortname,
-			       (int) (15 - 2 - strlen(shortname)), "");
+			printf("[%s]%*s", global_shortname,
+			       (int) (15 - 2 - strlen(global_shortname)), "");
 		else
-			printf("%-15s", shortname);
+			printf("%-15s", global_shortname);
 	} else if(!concise) {				
 		/* is a subdirectory */
 		if(mtools_dotted_dir)
-			printf("%-13s", shortname);
+			printf("%-13s", global_shortname);
 		else
 			printf("%-8.8s %-3.3s ",
 			       entry->dir.name, 
@@ -402,8 +402,8 @@ static int list_file(direntry_t *entry, MainParam_t *mp)
 		if(debug)
 			printf(" %s %d ", entry->dir.name, START(&entry->dir));
 		
-		if(*longname)
-			printf(" %s", longname);
+		if(*global_longname)
+			printf(" %s", global_longname);
 		printf("\n");
 	} else {
 		printf("%s/%s", dirPath, entry->name);
@@ -568,8 +568,8 @@ void mdir(int argc, char **argv, int type)
 		mp.dirCallback = list_non_recurs_directory;
 		mp.callback = list_file;
 	}
-	mp.longname = longname;
-	mp.shortname = shortname;
+	mp.longname = global_longname;
+	mp.shortname = global_shortname;
 	ret=main_loop(&mp, argv + optind, argc - optind);
 	leaveDirectory(ret);
 	leaveDrive(ret);
