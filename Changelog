@@ -1,3 +1,9 @@
+v20070531
+	Fixed lots of minor items raised by gcc4
+	Merged some of the BSD patches
+	New version of amuFormat.sh written in sh rather than csh
+	Support for config parameters after -i file
+	Released 3.9.11
 v20070411
 	Added sizecode printing on minfo
 	In mformat manpage, use same flag for sector number than printed in

@@ -17,9 +17,9 @@ mtools - utilities to access DOS disks in Unix.
 @end ignore
 
 
-@set EDITION 3.9.10
-@set VERSION 3.9.10
-@set UPDATED March 2005
+@set EDITION 3.9.11
+@set VERSION 3.9.11
+@set UPDATED May 2007
 
 @iftex
 @finalout
@@ -163,9 +163,9 @@ click "Cancel" to refuse the cookie and protect your privacy.
 
 Mtools can be found at the following places (and their mirrors):
 @example
-http://mtools.linux.lu/mtools-3.9.10.tar.gz
-ftp://www.tux.org/pub/knaff/mtools/mtools-3.9.10.tar.gz
-ftp://ibiblio.unc.edu/pub/Linux/utils/disk-management/mtools-3.9.10.tar.gz
+http://mtools.linux.lu/mtools-3.9.11.tar.gz
+ftp://www.tux.org/pub/knaff/mtools/mtools-3.9.11.tar.gz
+ftp://ibiblio.unc.edu/pub/Linux/utils/disk-management/mtools-3.9.11.tar.gz
 @end example
 
 Before reporting a bug, make sure that it has not yet been fixed in the
@@ -1490,7 +1490,7 @@ nor @code{DISPLAY} is set, floppyd uses @code{:0.0}.
 
 @var{devicenames} is a list of device nodes to be opened.  Default
 is @code{/dev/fd0}. Multiple devices are only supported on mtools
-versions newer than 3.9.10.
+versions newer than 3.9.11.
 
 
 @subsection Connecting to floppyd
@@ -1504,7 +1504,7 @@ using this entry, mtools connects to port
 @var{baseport}+@var{displaynumber} at @var{hostname}. By default
 @var{baseport} is 5703. The drive parameter is to distinguish among
 multiple drives associated with a single display (only mtools versions
-more recent than 3.9.10)
+more recent than 3.9.11)
 
 @subsection Examples:
 
