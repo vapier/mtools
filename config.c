@@ -205,7 +205,7 @@ static void get_env_conf(void)
 
 static int mtools_getline(void)
 {
-    if(!fgets(buffer, MAX_LINE_LEN, fp))
+    if(!fp || !fgets(buffer, MAX_LINE_LEN, fp))
 	return -1;
     linenumber++;
     pos = buffer;
@@ -511,6 +511,8 @@ static void get_toupper(void)
 	mstoupper[i] = get_number();
 }
 
+static int parse_one(int privilege);
+
 void set_cmd_line_image(char *img, int flags) {
   prepend();
   devices[cur_dev].drive = ':';
@@ -521,6 +523,19 @@ void set_cmd_line_image(char *img, int flags) {
   devices[cur_dev].heads = 0;
   devices[cur_dev].sectors = 0;
   devices[cur_dev].offset = 0;
+  if (strchr(devices[cur_dev].name, '|')) {
+    char *pipechar = strchr(devices[cur_dev].name, '|');
+    *pipechar = 0;
+    strncpy(buffer, pipechar+1, MAX_LINE_LEN);
+    buffer[MAX_LINE_LEN] = '\0';
+    fp = NULL;
+    filename = "{command line}";
+    linenumber = 0;
+    lastTokenLinenumber = 0;
+    pos = buffer;
+    token = 0;
+    while (parse_one(0));
+  }
 }
 
 static void parse_old_device_line(char drive)
