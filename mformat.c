@@ -1115,6 +1115,16 @@ void mformat(int argc, char **argv, int dummy)
 		exit(1);
 	}
 
+	/* calculate the total number of sectors */
+	tot_sectors = used_dev.tracks*used_dev.heads*used_dev.sectors - used_dev.hidden;
+
+	/* create the image file if needed */
+	if (create) {
+		WRITES(Fs.Direct, (char *) buf,
+		       sectorsToBytes((Stream_t*)&Fs, tot_sectors-1),
+		       Fs.sector_size);
+	}
+
 	/* the boot sector */
 	boot = (struct bootsector *) buf;
 	if(bootSector) {
@@ -1151,10 +1161,7 @@ void mformat(int argc, char **argv, int dummy)
 	if(!keepBoot)
 		set_word(boot->jump + 510, 0xaa55);
 	
-	/* get the parameters */
-	tot_sectors = used_dev.tracks * used_dev.heads * used_dev.sectors - 
-		DWORD(nhs);
-
+	/* Initialize the remaining parameters */
 	set_word(boot->nsect, used_dev.sectors);
 	set_word(boot->nheads, used_dev.heads);
 
@@ -1232,12 +1239,6 @@ void mformat(int argc, char **argv, int dummy)
 		boot->banner[6] = random();
 		boot->banner[7] = random();
 	}		
-
-	if (create) {
-		WRITES(Fs.Direct, (char *) buf,
-		       sectorsToBytes((Stream_t*)&Fs, tot_sectors-1),
-		       Fs.sector_size);
-	}
 
 	if(!keepBoot)
 		inst_boot_prg(boot, bootOffset);
