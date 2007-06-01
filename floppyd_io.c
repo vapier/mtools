@@ -489,11 +489,7 @@ static int connect_to_server(IPaddr_t ip, short port)
 	 */
 	
 	addr.sin_family = AF_INET;
-#ifndef HAVE_HTONS
-	addr.sin_port = myhtons(port);
-#else	
 	addr.sin_port = htons(port);
-#endif	
 	addr.sin_addr.s_addr = ip;
 	
         /*

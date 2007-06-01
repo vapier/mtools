@@ -19,7 +19,11 @@
 #include "vfat.h"
 #include "mainloop.h"
 #include "fsP.h"
-#include "getopt.h"
+
+#ifdef HAVE_GETOPT_H
+#include <getopt.h>
+#endif
+
 #include "file.h"
 
 #include <unistd.h>
