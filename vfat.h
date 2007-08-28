@@ -11,7 +11,7 @@
 struct unicode_char {
 	char lchar;
 	char uchar;
-} PACKED;
+};
 
 
 /* #define MAX_VFAT_SUBENTRIES 32 */ /* Theoretical max # of VSEs */
@@ -26,14 +26,14 @@ struct unicode_char {
 
 struct vfat_subentry {
 	unsigned char id;		/* 0x40 = last; & 0x1f = VSE ID */
-	struct unicode_char text1[VSE1SIZE] PACKED;
+	struct unicode_char text1[VSE1SIZE];
 	unsigned char attribute;	/* 0x0f for VFAT */
 	unsigned char hash1;		/* Always 0? */
 	unsigned char sum;		/* Checksum of short name */
-	struct unicode_char text2[VSE2SIZE] PACKED;
+	struct unicode_char text2[VSE2SIZE];
 	unsigned char sector_l;		/* 0 for VFAT */
 	unsigned char sector_u;		/* 0 for VFAT */
-	struct unicode_char text3[VSE3SIZE] PACKED;
+	struct unicode_char text3[VSE3SIZE];
 };
 
 /* Enough size for a worst case number of full VSEs plus a null */

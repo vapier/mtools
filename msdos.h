@@ -145,13 +145,13 @@ typedef struct oldboot_t {
 
 struct bootsector {
 	unsigned char jump[3];		/* 0  Jump to boot code */
-	char banner[8] PACKED;	       	/* 3  OEM name & version */
-	unsigned char secsiz[2] PACKED;	/* 11 Bytes per sector hopefully 512 */
+	char banner[8];	       		/* 3  OEM name & version */
+	unsigned char secsiz[2];	/* 11 Bytes per sector hopefully 512 */
 	unsigned char clsiz;    	/* 13 Cluster size in sectors */
 	unsigned char nrsvsect[2];	/* 14 Number of reserved (boot) sectors */
 	unsigned char nfat;		/* 16 Number of FAT tables hopefully 2 */
-	unsigned char dirents[2] PACKED;/* 17 Number of directory slots */
-	unsigned char psect[2] PACKED; 	/* 19 Total sectors on disk */
+	unsigned char dirents[2];	/* 17 Number of directory slots */
+	unsigned char psect[2]; 	/* 19 Total sectors on disk */
 	unsigned char descr;		/* 21 Media descriptor=first byte of FAT */
 	unsigned char fatlen[2];	/* 22 Sectors in FAT */
 	unsigned char nsect[2];		/* 24 Sectors/track */
