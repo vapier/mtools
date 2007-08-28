@@ -1,0 +1,8 @@
+#!/bin/sh
+
+infodir=/usr/share/info
+INSTALL_INFO=/usr/sbin/install-info
+
+if [ -f $INSTALL_INFO ] ; then
+	$INSTALL_INFO --info-dir=$infodir --remove $infodir/mtools.info
+fi
