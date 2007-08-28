@@ -167,10 +167,10 @@ clean:	mostlyclean
 
 
 texclean:
-	-rm mtools.aux mtools.toc mtools.log
-	-rm mtools.cps mtools.pgs mtools.vrs
-	-rm mtools.cp mtools.fn mtools.ky
-	-rm mtools.pg mtools.tp mtools.vr
+	-rm -f mtools.aux mtools.toc mtools.log
+	-rm -f mtools.cps mtools.pgs mtools.vrs
+	-rm -f mtools.cp mtools.fn mtools.ky
+	-rm -f mtools.pg mtools.tp mtools.vr
 
 info: mtools.info
 %.info: %.texi
@@ -206,10 +206,7 @@ install-info: info
 	  done; \
 	fi; \
 	if [ -n "$(INSTALL_INFO)" ] ; then \
-		if [ -f $(DESTDIR)$(infodir)/dir.info ] ; then \
-			$(INSTALL_INFO) $(DESTDIR)$(infodir)/mtools.info $(DESTDIR)$(infodir)/dir.info; \
-		else \
-			$(INSTALL_INFO) $(DESTDIR)$(infodir)/mtools.info $(DESTDIR)$(infodir)/dir; \
+		$(INSTALL_INFO) --info-dir=$(DESTDIR)$(infodir) $(DESTDIR)$(infodir)/mtools.info; \
 		fi; \
 	fi
 
