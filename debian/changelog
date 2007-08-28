@@ -1,0 +1,5 @@
+mtools (3.9.11) stable; urgency=low
+
+  * first release of debian package
+
+ -- Alain Knaff <alain@knaff.lu>  Tue, 28 Aug 2007 23:23:37 +0100
