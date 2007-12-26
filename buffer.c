@@ -209,7 +209,7 @@ static int buf_write(Stream_t *Stream, char *buf, mt_off_t start, size_t len)
 				if ( ret < 0 )
 					return ret;
 				if(ret % This->sectorSize) {
-				    fprintf(stderr, "Weird: read size (%d) not a multiple of sector size (%d)\n", ret, This->sectorSize);
+				  fprintf(stderr, "Weird: read size (%d) not a multiple of sector size (%d)\n", ret, (int) This->sectorSize);
 				    ret -= ret % This->sectorSize;
 				    if(ret == 0) {
 					fprintf(stderr, "Nothing left\n");
@@ -272,8 +272,10 @@ static int buf_write(Stream_t *Stream, char *buf, mt_off_t start, size_t len)
 	if(This->dirty_end > This->cur_size) {
 		fprintf(stderr, 
 			"Internal error, dirty end too big dirty_end=%x cur_size=%x len=%x offset=%d sectorSize=%x\n",
-			This->dirty_end, (unsigned int) This->cur_size, (unsigned int) len, 
-				(int) offset, (int) This->sectorSize);
+			(unsigned int) This->dirty_end,
+			(unsigned int) This->cur_size,
+			(unsigned int) len, 
+			(int) offset, (int) This->sectorSize);
 		fprintf(stderr, "offset + len + grain - 1 = %x\n",
 				(int) (offset + len + This->sectorSize - 1));
 		fprintf(stderr, "ROUNDOWN(offset + len + grain - 1) = %x\n",
