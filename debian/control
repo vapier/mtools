@@ -7,7 +7,7 @@ Maintainer: Alain Knaff <alain@knaff.lu>
 Package: mtools
 Section: otherosfs
 Priority: optional
-Architecture: i386
+Architecture: any
 Depends: libc6 (>= 2.4-1)
 Essential: no
 Provides: mtools
