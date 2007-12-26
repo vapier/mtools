@@ -612,6 +612,7 @@ char *mpBuildUnixFilename(MainParam_t *mp)
 {
 	const char *target;
 	char *ret;
+	char *tmp;
 
 	target = mpPickTargetName(mp);
 	ret = malloc(strlen(mp->unixTarget) + 2 + strlen(target));
@@ -627,6 +628,16 @@ char *mpBuildUnixFilename(MainParam_t *mp)
 		}
 #endif
 		strcat(ret, "/");
+		if(!strcmp(target, ".")) {
+		  target="DOT";
+		} else if(!strcmp(target, "..")) {
+		  target="DOTDOT";
+		}
+		while( (tmp=strchr(target, '/')) ) {
+		  strncat(ret, target, tmp-target);
+		  strcat(ret, "\\");
+		  target=tmp+1;
+		}
 		strcat(ret, target);
 	}
 	return ret;
