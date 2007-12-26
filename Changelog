@@ -1,3 +1,7 @@
+v20071226
+	Debian build files
+	Fixed security issue with doctored file names
+	64 bit compilation fixes
 v20070828
 	Debian build files
 v20070601
