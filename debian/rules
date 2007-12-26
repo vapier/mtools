@@ -30,8 +30,9 @@ clean:
 	# Add here commands to clean up after the build process.
 	#-$(MAKE) clean
 	#-$(MAKE) distclean
-	-$(MAKE) clean
-	-$(MAKE) distclean
+	if [ -f Makefile ] ; then $(MAKE) clean ; fi
+	if [ -f Makefile ] ; then $(MAKE) distclean ; fi
+	rm -f config.status Makefile config.log config.h build-stamp
 
 	dh_clean
 
