@@ -775,7 +775,7 @@ void mformat(int argc, char **argv, int dummy)
 	int fsVersion;
 	int mediaDesc=-1;
 
-	mt_off_t maxSize;
+	mt_size_t maxSize;
 
 	int Atari = 0; /* should we add an Atari-style serial number ? */
  
@@ -1009,16 +1009,18 @@ void mformat(int argc, char **argv, int dummy)
 #endif
 			Fs.Direct = 0;
 #ifdef USE_FLOPPYD
-			Fs.Direct = FloppydOpen(&used_dev, dev, name, O_RDWR | create,
-									errmsg, 0, 1);
+			Fs.Direct = FloppydOpen(&used_dev, dev, name,
+						O_RDWR | create,
+						errmsg, 0, 1);
 			if(Fs.Direct) {
 				maxSize = max_off_t_31;
 			}
 #endif
 			if(!Fs.Direct) {			
 				Fs.Direct = SimpleFileOpen(&used_dev, dev, name,
-										   O_RDWR | create,
-										   errmsg, 0, 1, &maxSize);
+							   O_RDWR | create,
+							   errmsg, 0, 1,
+							   &maxSize);
 			}
 #ifdef USE_XDF
 		} else {
