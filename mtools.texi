@@ -17,9 +17,9 @@ mtools - utilities to access DOS disks in Unix.
 @end ignore
 
 
-@set EDITION 3.9.11
-@set VERSION 3.9.11
-@set UPDATED May 2007
+@set EDITION 4.0.0
+@set VERSION 4.0.0
+@set UPDATED November 2008
 
 @iftex
 @finalout
@@ -163,9 +163,9 @@ click "Cancel" to refuse the cookie and protect your privacy.
 
 Mtools can be found at the following places (and their mirrors):
 @example
-http://mtools.linux.lu/mtools-3.9.11.tar.gz
-ftp://www.tux.org/pub/knaff/mtools/mtools-3.9.11.tar.gz
-ftp://ibiblio.unc.edu/pub/Linux/utils/disk-management/mtools-3.9.11.tar.gz
+http://mtools.linux.lu/mtools-4.0.0_pre1.tar.gz
+ftp://www.tux.org/pub/knaff/mtools/mtools-4.0.0_pre1.tar.gz
+ftp://ibiblio.unc.edu/pub/Linux/utils/disk-management/mtools-4.0.0_pre1.tar.gz
 @end example
 
 Before reporting a bug, make sure that it has not yet been fixed in the
@@ -995,7 +995,8 @@ between 1 and 999. By default, codepage 850 is used. The reason for
 this is because this codepage contains most of the characters that are
 also available in ISO-Latin-1. You may also specify a global codepage
 for all drives by using the global @code{default_codepage} parameter
-(outside of any drive description).
+(outside of any drive description). This parameters exists starting at
+version 4.0.0
 @item precmd
 @cindex Solaris (volcheck)
 @cindex Executing commands before opening the device
