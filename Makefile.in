@@ -32,13 +32,14 @@ bindir      = @bindir@
 infodir     = @infodir@
 mandir      = @mandir@
 sysconfdir  = @sysconfdir@
+datarootdir = @datarootdir@
 
 CC         = @CC@
 CXX        = @CXX@
 MYCFLAGS   = @CFLAGS@
 MYCXXFLAGS = @CXXFLAGS@
 CPPFLAGS   = @CPPFLAGS@
-HOST_ID    = @HOST_ID@ 
+HOST_ID    = @HOST_ID@
 DEFS       = @DEFS@ -DSYSCONFDIR=\"$(sysconfdir)\" $(HOST_ID)
 
 LDFLAGS     = @LDFLAGS@
@@ -66,14 +67,14 @@ MAN5	= mtools.5
 MAN5EXT	= 5
 MAN5DIR	= $(DESTDIR)$(mandir)/man${MAN5EXT}
 
-# all files in this directory included in the distribution 
+# all files in this directory included in the distribution
 DIST = \
 COPYING Changelog INSTALL Makefile Makefile.in README Release.notes \
-buffer.c buffer.h codepage.c codepage.h codepages.c config.c \
+buffer.c buffer.h charsetConv.c codepage.h codepages.c config.c \
 config.guess config.h.in config.log config.sub configure configure.in \
 copyfile.c devices.c devices.h dirCache.c dirCache.h directory.c direntry.c \
 expand.c fat.c \
-fat_free.c file.c file.h file_name.c files filter.c floppyd.1 \
+fat_free.c file.c file.h file_name.h file_name.c files filter.c floppyd.1 \
 floppyd.c floppyd_io.c floppyd_io.h force_io.c fs.h fsP.h \
 getopt.h hash.c htable.h init.c llong.c mainloop.c match.c mattrib.1 \
 mattrib.c mbadblocks.1 mbadblocks.c mcat.1 mcat.c mcd.1 mcd.c mclasserase.c \
@@ -86,18 +87,18 @@ mpartition.1 mpartition.c mrd.1 \
 mren.1 msdos.h mshowfat.1 mtoolstest.1 mtools.1 mtools.5 mtools.c \
 mtools.conf mtools.h mtype.1 nameclash.h patchlevel.c \
 plain_io.c plain_io.h precmd.c privileges.c scripts signal.c stream.c stream.h \
-streamcache.c streamcache.h subdir.c sysincludes.h unixdir.c todo toupper.c \
+streamcache.c streamcache.h subdir.c sysincludes.h unixdir.c todo \
 vfat.c vfat.h xdf_io.c xdf_io.h
 
-OBJS1 = buffer.o codepage.o codepages.o config.o copyfile.o devices.o \
-dirCache.o directory.o direntry.o expand.o fat.o fat_free.o file.o  \
+OBJS1 = buffer.o charsetConv.o codepages.o config.o copyfile.o \
+devices.o dirCache.o directory.o direntry.o expand.o fat.o fat_free.o file.o  \
 file_name.o filter.o floppyd_io.o force_io.o hash.o init.o llong.o match.o \
 mainloop.o mattrib.o mbadblocks.o mcat.o mcd.o mclasserase.o mcopy.o mdel.o \
 mdir.o mdoctorfat.o mdu.o \
 mformat.o minfo.o misc.o missFuncs.o mk_direntry.o mlabel.o mmd.o mmount.o \
 mmove.o mpartition.o mshowfat.o mzip.o mtools.o patchlevel.o plain_io.o \
 precmd.o privileges.o scsi.o signal.o stream.o streamcache.o subdir.o \
-unixdir.o toupper.o tty.o vfat.o xdf_io.o
+unixdir.o tty.o vfat.o xdf_io.o
 
 OBJS2 = missFuncs.o mkmanifest.o misc.o patchlevel.o
 
@@ -105,14 +106,14 @@ SRCS3 = floppyd.c
 
 OBJS4 = floppyd_installtest.o misc.o expand.o privileges.o
 
-SRCS = buffer.c codepage.c codepages.c config.c copyfile.c devices.c \
+SRCS = buffer.c codepages.c config.c copyfile.c devices.c \
 dirCache.c directory.c direntry.c expand.c fat.c fat_free.c file.c file_name.c \
 file_read.c filter.c floppyd_io.c force_io.c hash.c init.c match.c mainloop.c \
 mattrib.c mbadblocks.c mcat.c mcd.c mclasserase.c mcopy.c mdel.c mdir.c \
 mdu.c mdoctorfat.c mformat.c minfo.c misc.c \
 missFuncs.c mk_direntry.c mlabel.c mmd.c mmount.c mmove.c mpartition.c \
 mshowfat.c mzip.c mtools.c plain_io.c precmd.c privileges.c scsi.o \
-signal.c stream.c streamcache.c subdir.c unixdir.c toupper.c tty.o vfat.c \
+signal.c stream.c streamcache.c subdir.c unixdir.c tty.o vfat.c \
 xdf_io.c mkmanifest.c
 
 
@@ -126,11 +127,11 @@ X_CFLAGS = @X_CFLAGS@
 X_LIBS = @X_LIBS@
 X_EXTRA_LIBS = @X_EXTRA_LIBS@
 X_PRE_LIBS = @X_PRE_LIBS@
-CFLAGS = $(CPPFLAGS) $(DEFS) $(MYCFLAGS) -fno-strict-aliasing -I. @extraincludedir@ -I@srcdir@ $(USERCFLAGS) 
-CXXFLAGS  = $(CPPFLAGS) $(DEFS) $(MYCXXFLAGS) -I. @extraincludedir@ -I@srcdir@ $(USERCFLAGS) 
+CFLAGS = $(CPPFLAGS) $(DEFS) $(MYCFLAGS) -fno-strict-aliasing -I. @extraincludedir@ -I@srcdir@ $(USERCFLAGS)
+CXXFLAGS  = $(CPPFLAGS) $(DEFS) $(MYCXXFLAGS) -I. @extraincludedir@ -I@srcdir@ $(USERCFLAGS)
 LINK      = $(CC) $(LDFLAGS) $(USERLDFLAGS) @extralibdir@
 ALLLIBS   = $(USERLDLIBS) $(MACHDEPLIBS) $(SHLIB) $(LIBS)
-X_LDFLAGS = $(X_EXTRA_LIBS) $(X_LIBS) $(X_PRE_LIBS) -lXau -lX11 $(LIBS) 
+X_LDFLAGS = $(X_EXTRA_LIBS) $(X_LIBS) $(X_PRE_LIBS) -lXau -lX11 $(LIBS)
 X_CCFLAGS = $(X_CFLAGS) $(CFLAGS)
 
 all:    mtools $(LINKS) mkmanifest @FLOPPYD@

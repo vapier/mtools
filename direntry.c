@@ -3,6 +3,7 @@
 #include "stream.h"
 #include "file.h"
 #include "mtoolsDirentry.h"
+#include "file_name.h"
 
 void initializeDirentry(direntry_t *entry, Stream_t *Dir)
 {
@@ -32,7 +33,7 @@ static int getPathLen(direntry_t *entry)
 		if(entry->entry == -3) /* rootDir */
 			return length + 3;
 		
-		length += 1 + strlen(entry->name);
+		length += 1 + wcslen(entry->name);
 		entry = getDirentry(entry->Dir);
 	}
 }
@@ -43,19 +44,21 @@ static char *sprintPwd(direntry_t *entry, char *ptr)
 		*ptr++ = getDrive(entry->Dir);
 		*ptr++ = ':';
 		*ptr++ = '/';
-		*ptr   = '\0';
 	} else {
 		ptr = sprintPwd(getDirentry(entry->Dir), ptr);
 		if(ptr[-1] != '/')
 			*ptr++ = '/';
-		strcpy(ptr, entry->name);
-		ptr += strlen(entry->name);
+		ptr += wchar_to_native(entry->name, ptr, MAX_VNAMELEN);
 	}
 	return ptr;		
 }
 
 
+#ifdef HAVE_WCHAR_H
+#define NEED_ESCAPE L"\"$\\"
+#else
 #define NEED_ESCAPE "\"$\\"
+#endif
 
 static void _fprintPwd(FILE *f, direntry_t *entry, int recurs, int escape)
 {
@@ -66,16 +69,18 @@ static void _fprintPwd(FILE *f, direntry_t *entry, int recurs, int escape)
 			putc('/', f);
 	} else {
 		_fprintPwd(f, getDirentry(entry->Dir), 1, escape);
-		if (escape && strpbrk(entry->name, NEED_ESCAPE)) {
-			char *ptr;
+		if (escape && wcspbrk(entry->name, NEED_ESCAPE)) {
+			wchar_t *ptr;
 			putc('/', f);
 			for(ptr = entry->name; *ptr; ptr++) {
-				if (strchr(NEED_ESCAPE, *ptr))
+				if (wcschr(NEED_ESCAPE, *ptr))
 					putc('\\', f);
-				putc(*ptr, f);
+				putwc(*ptr, f);
 			}
 		} else {
-			fprintf(f, "/%s", entry->name);
+			char tmp[4*MAX_VNAMELEN+1];
+			wchar_to_native(entry->name,tmp,MAX_VNAMELEN);
+			fprintf(f, "/%s", tmp);
 		}
 	}
 }
@@ -93,12 +98,14 @@ char *getPwd(direntry_t *entry)
 {
 	int size;
 	char *ret;
+	char *end;
 
 	size = getPathLen(entry);
 	ret = malloc(size+1);
 	if(!ret)
 		return 0;
-	sprintPwd(entry, ret);
+	end = sprintPwd(entry, ret);
+	*end = '\0';
 	return ret;
 }
 

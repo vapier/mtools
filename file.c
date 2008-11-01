@@ -74,7 +74,7 @@ static int recalcPreallocSize(File_t *This)
 		fprintf(stderr, "Bad filesize\n");
 	}
 	if(This->preallocatedSize & 0xc0000000) {
-		fprintf(stderr, "Bad preallocated size %x\n", 
+		fprintf(stderr, "Bad preallocated size %x\n",
 				(int) This->preallocatedSize);
 	}
 
@@ -92,7 +92,7 @@ static int recalcPreallocSize(File_t *This)
 	return 0;
 }
 
-static int _loopDetect(unsigned int *oldrel, unsigned int rel, 
+static int _loopDetect(unsigned int *oldrel, unsigned int rel,
 		       unsigned int *oldabs, unsigned int absol)
 {
 	if(*oldrel && rel > *oldrel && absol == *oldabs) {
@@ -149,7 +149,7 @@ static size_t countBytes(Stream_t *Dir, unsigned int block)
 	Stream_t *Stream = GetFs(Dir);
 	DeclareThis(Fs_t);
 
-	return _countBlocks(This, block) * 
+	return _countBlocks(This, block) *
 		This->sector_size * This->cluster_size;
 }
 
@@ -254,7 +254,7 @@ static int normal_map(File_t *This, off_t where, size_t *len, int mode,
 		}
 		NewCluNr = fatDecode(This->Fs, AbsCluNr);
 		if (NewCluNr == 1 || NewCluNr == 0){
-			fprintf(stderr,"Fat problem while decoding %d %x\n", 
+			fprintf(stderr,"Fat problem while decoding %d %x\n",
 				AbsCluNr, NewCluNr);
 			exit(1);
 		}
@@ -288,8 +288,8 @@ static int normal_map(File_t *This, off_t where, size_t *len, int mode,
 	maximize(*len, (1 + CurCluNr - RelCluNr) * clus_size - offset);
 	
 	end = where + *len;
-	if(batchmode && 
-	   mode == MT_WRITE && 
+	if(batchmode &&
+	   mode == MT_WRITE &&
 	   end >= This->FileSize) {
 		*len += ROUND_UP(end, clus_size) - end;
 	}
@@ -300,7 +300,7 @@ static int normal_map(File_t *This, off_t where, size_t *len, int mode,
 		exit(1);
 	}
 
-	*res = sectorsToBytes((Stream_t*)Fs, 
+	*res = sectorsToBytes((Stream_t*)Fs,
 						  (This->PreviousAbsCluNr-2) * Fs->cluster_size +
 						  Fs->clus_start) + offset;
 	return 1;
@@ -327,7 +327,7 @@ static int root_map(File_t *This, off_t where, size_t *len, int mode,
 }
 	
 
-static int read_file(Stream_t *Stream, char *buf, mt_off_t iwhere, 
+static int read_file(Stream_t *Stream, char *buf, mt_off_t iwhere,
 					 size_t len)
 {
 	DeclareThis(File_t);
@@ -363,7 +363,7 @@ static int write_file(Stream_t *Stream, char *buf, mt_off_t iwhere, size_t len)
 		ret = WRITES(Disk, buf, pos, len);
 	if(ret > (signed int) requestedLen)
 		ret = requestedLen;
-	if (ret > 0 && 
+	if (ret > 0 &&
 	    where + ret > (off_t) This->FileSize )
 		This->FileSize = where + ret;
 	recalcPreallocSize(This);
@@ -455,7 +455,7 @@ static int free_file(Stream_t *Stream)
 {
 	DeclareThis(File_t);
 	Fs_t *Fs = This->Fs;
-	fsPreallocateClusters(Fs, -This->preallocatedClusters);       
+	fsPreallocateClusters(Fs, -This->preallocatedClusters);
 	FREE(&This->direntry.Dir);
 	freeDirCache(Stream);
 	return hash_remove(filehash, (void *) Stream, This->hint);
@@ -495,13 +495,14 @@ static int pre_allocate_file(Stream_t *Stream, mt_size_t isize)
 }
 
 static Class_t FileClass = {
-	read_file, 
-	write_file, 
+	read_file,
+	write_file,
 	flush_file, /* flush */
 	free_file, /* free */
 	0, /* get_geom */
 	get_file_data,
-	pre_allocate_file
+	pre_allocate_file,
+	get_dosConvert_pass_through
 };
 
 static unsigned int getAbsCluNr(File_t *This)
@@ -548,7 +549,7 @@ static void init_hash(void)
 }
 
 
-static Stream_t *_internalFileOpen(Stream_t *Dir, unsigned int first, 
+static Stream_t *_internalFileOpen(Stream_t *Dir, unsigned int first,
 				   size_t size, direntry_t *entry)
 {
 	Stream_t *Stream = GetFs(Dir);
@@ -571,7 +572,7 @@ static Stream_t *_internalFileOpen(Stream_t *Dir, unsigned int first,
 		Pattern.FirstAbsCluNr = first;
 		Pattern.loopDetectRel = 0;
 		Pattern.loopDetectAbs = first;
-		if(!hash_lookup(filehash, (T_HashTableEl) &Pattern, 
+		if(!hash_lookup(filehash, (T_HashTableEl) &Pattern,
 				(T_HashTableEl **)&File, 0)){
 			File->refs++;
 			This->refs--;
@@ -628,7 +629,7 @@ Stream_t *OpenRoot(Stream_t *Dir)
 	/* make the directory entry */
 	entry.entry = -3;
 	entry.name[0] = '\0';
-	mk_entry("/", ATTR_DIR, num, 0, 0, &entry.dir);
+	mk_entry_from_base("/", ATTR_DIR, num, 0, 0, &entry.dir);
 
 	if(num)
 		size = countBytes(Dir, num);
@@ -654,7 +655,7 @@ Stream_t *OpenFileByDirentry(direntry_t *entry)
 		return OpenRoot(entry->Dir);
 	if (IS_DIR(entry))
 		size = countBytes(entry->Dir, first);
-	else 
+	else
 		size = FILE_SIZE(&entry->dir);
 	file = _internalFileOpen(entry->Dir, first, size, entry);
 	if(IS_DIR(entry)) {

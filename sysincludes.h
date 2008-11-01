@@ -277,6 +277,31 @@ typedef unsigned int uid_t;
 # endif
 #endif
 
+#ifdef HAVE_WCHAR_H
+# include <wchar.h>
+#else
+# define wcscmp strcmp
+# define wcscasecmp strcasecmp
+# define wcsdup strdup
+# define wcslen strlen
+# define wcschr strchr
+# define wcspbrk strpbrk
+# define wchar_t char
+#endif
+
+#ifdef HAVE_WCTYPE_H
+# include <wctype.h>
+#else
+# define towupper(x) toupper(x)
+# define towlower(x) tolower(x)
+# define iswupper(x) isupper(x)
+# define iswlower(x) islower(x)
+# define iswcntrl(x) iscntrl(x)
+#endif
+
+#ifdef HAVE_LOCALE_H
+# include <locale.h>
+#endif
 
 #ifdef USE_FLOPPYD
 

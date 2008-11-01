@@ -42,7 +42,7 @@ typedef struct CreateArg_t {
  * Open the named file for read, create the cluster chain, return the
  * directory structure or NULL on error.
  */
-static int makeit(char *dosname,
+static int makeit(dos_name_t *dosname,
 		  char *longname,
 		  void *arg0,
 		  direntry_t *targetEntry)
@@ -72,16 +72,16 @@ static int makeit(char *dosname,
 	if (fat == fat32RootCluster(targetEntry->Dir)) {
 	    fat = 0;
 	}
-	mk_entry("..         ", ATTR_DIR, fat, 0, arg->mtime, &subEntry.dir);
+	mk_entry_from_base("..      ", ATTR_DIR, fat, 0, arg->mtime, &subEntry.dir);
 	dir_write(&subEntry);
 
 	FLUSH((Stream_t *) Target);
 	subEntry.entry = 0;
 	GET_DATA(Target, 0, 0, 0, &fat);
-	mk_entry(".          ", ATTR_DIR, fat, 0, arg->mtime, &subEntry.dir);
+	mk_entry_from_base(".       ", ATTR_DIR, fat, 0, arg->mtime, &subEntry.dir);
 	dir_write(&subEntry);
 
-	mk_entry(dosname, ATTR_DIR | arg->attr, fat, 0, arg->mtime, 
+	mk_entry(dosname, ATTR_DIR | arg->attr, fat, 0, arg->mtime,
 		 &targetEntry->dir);
 	arg->NewDir = Target;
 	return 0;
@@ -95,12 +95,12 @@ static void usage(void)
 	fprintf(stderr,
 		"Usage: %s [-D clash_option] file targetfile\n", progname);
 	fprintf(stderr,
-		"       %s [-D clash_option] file [files...] target_directory\n", 
+		"       %s [-D clash_option] file [files...] target_directory\n",
 		progname);
 	exit(1);
 }
 
-Stream_t *createDir(Stream_t *Dir, const char *filename, ClashHandling_t *ch, 
+Stream_t *createDir(Stream_t *Dir, const char *filename, ClashHandling_t *ch,
 					unsigned char attr, time_t mtime)
 {
 	CreateArg_t arg;
@@ -113,7 +113,7 @@ Stream_t *createDir(Stream_t *Dir, const char *filename, ClashHandling_t *ch,
 	if (!getfreeMinClusters(Dir, 1))
 		return NULL;
 
-	ret = mwrite_one(Dir, filename,0, makeit, &arg, ch);
+	ret = mwrite_one(Dir, filename, 0, makeit, &arg, ch);
 	if(ret < 1)
 		return NULL;
 	else
@@ -125,7 +125,7 @@ static int createDirCallback(direntry_t *entry, MainParam_t *mp)
 	Stream_t *ret;
 	time_t now;
 
-	ret = createDir(mp->File, mp->targetName, &((Arg_t *)(mp->arg))->ch, 
+	ret = createDir(mp->File, mp->targetName, &((Arg_t *)(mp->arg))->ch,
 					ATTR_DIR, getTimeNow(&now));
 	if(ret == NULL)
 		return ERROR_ONE;

@@ -81,13 +81,14 @@ AC_HEADER_SYS_WAIT
 AC_CHECK_HEADERS(getopt.h sys/stat.h stdlib.h unistd.h linux/unistd.h \
 libc.h fcntl.h limits.h sys/file.h sys/ioctl.h sys/time.h strings.h string.h \
 sys/param.h memory.h malloc.h signal.h sys/signal.h utime.h sgtty.h \
-sys/floppy.h mntent.h sys/sysmacros.h netinet/in.h assert.h)
+sys/floppy.h mntent.h sys/sysmacros.h netinet/in.h assert.h \
+iconv.h wctype.h wchar.h locale.h)
 AC_CHECK_HEADERS(termio.h sys/termio.h, [break])
 AC_CHECK_HEADERS(termios.h sys/termios.h, [break])
 
 
 dnl
-dnl Check to see if llseek() is declared in unistd.h.  On some libc's 
+dnl Check to see if llseek() is declared in unistd.h.  On some libc's
 dnl it is, and on others it isn't..... Thank you glibc developers....
 dnl
 dnl Warning!  Use of --enable-gcc-wall may throw off this test.
@@ -138,7 +139,7 @@ strcasecmp strncasecmp atexit on_exit getpass memmove \
 strdup strcspn strspn strtoul strtol memcpy strpbrk memset setenv \
 seteuid setresuid \
 tcsetattr tcflush basename fchdir media_oldaliases llseek lseek64 \
-snprintf stat64)
+snprintf stat64 setlocale)
 AC_FUNC_SETPGRP
 
 dnl
@@ -345,7 +346,7 @@ if test X$use_floppyd = Xyes; then
     fi
     FLOPPYD="floppyd floppyd_installtest"
     BINFLOPPYD="\$(DESTDIR)\$(bindir)/floppyd \$(DESTDIR)\$(bindir)/floppyd_installtest"
-    AC_DEFINE([USE_FLOPPYD],1,[Define when you want to include floppyd support]) 
+    AC_DEFINE([USE_FLOPPYD],1,[Define when you want to include floppyd support])
 else
     FLOPPYD=
     BINFLOPPYD=

@@ -134,7 +134,7 @@ static int _unix_write(direntry_t *entry, MainParam_t *mp, int needfilter,
 			}
 
 			if( ask_confirmation("File \"%s\" exists, overwrite (y/n) ? ",
-					     unixFile,0)) {
+					     unixFile)) {
 				return ERROR_ONE;
 			}
 			
@@ -270,7 +270,7 @@ static int directory_dos_to_unix(direntry_t *entry, MainParam_t *mp)
  * Open the named file for read, create the cluster chain, return the
  * directory structure or NULL on error.
  */
-static int writeit(char *dosname,
+static int writeit(struct dos_name_t *dosname,
 		   char *longname,
 		   void *arg0,
 		   direntry_t *entry)
@@ -372,7 +372,7 @@ static int dos_write(direntry_t *entry, MainParam_t *mp, int needfilter)
 
 static Stream_t *subDir(Stream_t *parent, const char *filename)
 {
-	direntry_t entry;		
+	direntry_t entry;
 	initializeDirentry(&entry, parent);
 
 	switch(vfat_lookup(&entry, filename, -1, ACCEPT_DIR, 0, 0)) {

@@ -3,35 +3,48 @@
 #include "mtools.h"
 #include "vfat.h"
 #include "codepage.h"
+#include "file_name.h"
 
 /* Write a DOS name + extension into a legal unix-style name.  */
-char *unix_normalize (char *ans, char *name, char *ext)
+char *unix_normalize (doscp_t *cp, char *ans, dos_name_t *dn)
 {
+	char buffer[13];
+	wchar_t wbuffer[13];
 	char *a;
 	int j;
 	
-	for (a=ans,j=0; (j<8) && (name[j] > ' '); ++j,++a)
-		*a = name[j];
-	if(*ext > ' ') {
+	for (a=buffer,j=0; (j<8) && (dn->base[j] > ' '); ++j,++a)
+		*a = dn->base[j];
+	if(dn->ext[0] > ' ') {
 		*a++ = '.';
-		for (j=0; j<3 && ext[j] > ' '; ++j,++a)
-			*a = ext[j];
+		for (j=0; j<3 && dn->ext[j] > ' '; ++j,++a)
+			*a = dn->ext[j];
 	}
 	*a++ = '\0';
+	dos_to_wchar(cp, buffer, wbuffer, 13);
+	wchar_to_native(wbuffer, ans, 13);
 	return ans;
 }
 
 typedef enum Case_l {
 	NONE,
 	UPPER,
-	LOWER 
+	LOWER
 } Case_t;
 
-static void TranslateToDos(const char *s, char *t, int count,
+static void TranslateToDos(doscp_t *toDos, const char *in, char *out, int count,
 			   char *end, Case_t *Case, int *mangled)
 {
+	wchar_t buffer[12];
+	wchar_t *s=buffer;
+	wchar_t *t=buffer;
+
+	/* first convert to wchar, so we get to use towupper etc. */
+	native_to_wchar(in, buffer, count, end, mangled);
+	buffer[count]='\0';
+
 	*Case = NONE;
-	for( ;  *s && (s < end || !end); s++) {
+	for( ;  *s ; s++) {
 		if(!count) {
 			*mangled |= 3;
 			break;
@@ -42,34 +55,28 @@ static void TranslateToDos(const char *s, char *t, int count,
 			continue;
 		}
 
-		/* convert to dos */
-		if((*s) & 0x80) {
-			*mangled |= 1;
-			*t = to_dos(*s);
-		}
-
-		if ((*s & 0x7f) < ' ' ) {
+		if (iswcntrl(*s)) {
+			/* "control" characters */
 			*mangled |= 3;
 			*t = '_';
-		} else if (islower((unsigned char)*s)) {
-			*t = toupper(*s);
+		} else if (iswlower(*s)) {
+			*t = towupper(*s);
 			if(*Case == UPPER && !mtools_no_vfat)
 				*mangled |= 1;
 			else
 				*Case = LOWER;
-		} else if (isupper((unsigned char)*s)) {
+		} else if (iswupper(*s)) {
 			*t = *s;
 			if(*Case == LOWER && !mtools_no_vfat)
 				*mangled |= 1;
 			else
 				*Case = UPPER;
-		} else if((*s) & 0x80)
-			*t = mstoupper[(*t) & 0x7f];	/* upper case */
-		else
+		} else
 			*t = *s;
 		count--;
 		t++;
 	}
+	wchar_to_dos(toDos, buffer, out, t - buffer, mangled);
 }
 
 /* dos_name
@@ -78,7 +85,8 @@ static void TranslateToDos(const char *s, char *t, int count,
  * Will truncate file and extension names, will substitute
  * the character '~' for any illegal character(s) in the name.
  */
-char *dos_name(char *name, int verbose, int *mangled, char *ans)
+void dos_name(doscp_t *toDos, const char *name, int verbose, int *mangled,
+	      dos_name_t *dn)
 {
 	char *s, *ext;
 	register int i;
@@ -95,8 +103,7 @@ char *dos_name(char *name, int verbose, int *mangled, char *ans)
 	if ((s = strrchr(name, '\\')))
 		name = s + 1;
 	
-	memset(ans, ' ', 11);
-	ans[11]='\0';
+	memset(dn, ' ', 11);
 
 	/* skip leading dots and spaces */
 	i = strspn(name, ". ");
@@ -104,16 +111,16 @@ char *dos_name(char *name, int verbose, int *mangled, char *ans)
 		name += i;
 		*mangled = 3;
 	}
-		
+
 	ext = strrchr(name, '.');
 
 	/* main name */
-	TranslateToDos(name, ans, 8, ext, &BaseCase, mangled);
+	TranslateToDos(toDos, name, dn->base, 8, ext, &BaseCase, mangled);
 	if(ext)
-		TranslateToDos(ext+1, ans+8, 3, 0, &ExtCase,  mangled);
+		TranslateToDos(toDos, ext+1, dn->ext, 3, 0, &ExtCase,  mangled);
 
 	if(*mangled & 2)
-		autorename_short(ans, 0);
+		autorename_short(dn, 0);
 
 	if(!*mangled) {
 		if(BaseCase == LOWER)
@@ -122,10 +129,9 @@ char *dos_name(char *name, int verbose, int *mangled, char *ans)
 			*mangled |= EXTCASE;
 		if((BaseCase == LOWER || ExtCase == LOWER) &&
 		   !mtools_no_vfat) {
-		  *mangled |= 1;
+			*mangled |= 1;
 		}
 	}
-	return ans;
 }
 
 
@@ -136,12 +142,13 @@ char *dos_name(char *name, int verbose, int *mangled, char *ans)
  * been altered by dos_name().
  */
 
-char *unix_name(char *name, char *ext, char Case, char *ans)
+wchar_t *unix_name(doscp_t *dosCp,
+		   const char *base, const char *ext, char Case, wchar_t *ret)
 {
-	char *s, tname[9], text[4];
+	char *s, tname[9], text[4], ans[11];
 	int i;
 
-	strncpy(tname, (char *) name, 8);
+	strncpy(tname, base, 8);
 	tname[8] = '\0';
 	if ((s = strchr(tname, ' ')))
 		*s = '\0';
@@ -153,7 +160,7 @@ char *unix_name(char *name, char *ext, char Case, char *ans)
 		for(i=0;i<8 && tname[i];i++)
 			tname[i] = tolower(tname[i]);
 
-	strncpy(text, (char *) ext, 3);
+	strncpy(text, ext, 3);
 	text[3] = '\0';
 	if ((s = strchr(text, ' ')))
 		*s = '\0';
@@ -170,8 +177,8 @@ char *unix_name(char *name, char *ext, char Case, char *ans)
 		strcpy(ans, tname);
 
 	/* fix special characters (above 0x80) */
-	to_unix(ans,11);
-	return(ans);
+	dos_to_wchar(dosCp, ans, ret, 12);
+	return ret;
 }
 
 /* If null encountered, set *end to 0x40 and write nulls rest of way
@@ -181,16 +188,16 @@ char *unix_name(char *name, char *ext, char Case, char *ans)
  * that will make it happy)
  */
 /* Always return num */
-int unicode_write(char *in, struct unicode_char *out, int num, int *end_p)
+int unicode_write(wchar_t *in, struct unicode_char *out, int num, int *end_p)
 {
 	int j;
 
 	for (j=0; j<num; ++j) {
-		out->uchar = '\0';	/* Hard coded to ASCII */
 		if (*end_p)
 			/* Fill with 0xff */
 			out->uchar = out->lchar = (char) 0xff;
 		else {
+			out->uchar = *in >> 8;
 			out->lchar = *in;
 			if (! *in) {
 				*end_p = VSE_LAST;

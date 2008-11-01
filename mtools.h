@@ -3,6 +3,8 @@
 
 #include "msdos.h"
 
+typedef struct dos_name_t dos_name_t;
+
 #if defined(OS_sco3)
 #define MAXPATHLEN 1024
 #include <signal.h>
@@ -57,6 +59,8 @@ typedef struct device {
 	int file_nr;		/* used during parsing */
 	unsigned int blocksize;	  /* size of disk block in bytes */
 
+	int codepage; /* codepage for shortname encoding */
+
 	const char *cfg_filename; /* used for debugging purposes */
 } device_t;
 
@@ -66,6 +70,8 @@ typedef struct device {
 #else
 #define BOOTSIZE 256
 #endif
+
+typedef struct doscp_t doscp_t;
 
 #include "stream.h"
 
@@ -101,11 +107,17 @@ int readwrite_sectors(int fd, /* file descriptor */
 
 int lock_dev(int fd, int mode, struct device *dev);
 
-char *unix_normalize (char *ans, char *name, char *ext);
-char *dos_name(char *filename, int verbose, int *mangled, char *buffer);
-struct directory *mk_entry(const char *filename, char attr,
+char *unix_normalize (doscp_t *cp, char *ans, struct dos_name_t *dn);
+void dos_name(doscp_t *cp, const char *filename, int verbose, int *mangled,
+	      struct dos_name_t *);
+struct directory *mk_entry(const dos_name_t *filename, char attr,
 			   unsigned int fat, size_t size, time_t date,
 			   struct directory *ndir);
+
+struct directory *mk_entry_from_base(const char *base, char attr,
+				     unsigned int fat, size_t size, time_t date,
+				     struct directory *ndir);
+
 int copyfile(Stream_t *Source, Stream_t *Target);
 int getfreeMinClusters(Stream_t *Stream, size_t ref);
 
@@ -115,9 +127,11 @@ int is_dir(Stream_t *Dir, char *path);
 void bufferize(Stream_t **Dir);
 
 int dir_grow(Stream_t *Dir, int size);
-int match(const char *, const char *, char *, int, int);
+int match(const wchar_t *, const wchar_t *, wchar_t *, int,  int);
 
-char *unix_name(char *name, char *ext, char Case, char *answer);
+wchar_t *unix_name(doscp_t *fromDos,
+		   const char *base, const char *ext, char Case,
+		   wchar_t *answer);
 void *safe_malloc(size_t size);
 Stream_t *open_filter(Stream_t *Next,int convertCharset);
 
@@ -139,8 +153,8 @@ UNUSED(static __inline__ int compare (long ref, long testee))
 
 Stream_t *GetFs(Stream_t *Fs);
 
-char *label_name(char *filename, int verbose, 
-		 int *mangled, char *ans);
+void label_name(doscp_t *cp, const char *filename, int verbose, 
+		int *mangled, dos_name_t *ans);
 
 /* environmental variables */
 extern unsigned int mtools_skip_check;
@@ -152,6 +166,7 @@ extern unsigned int mtools_dotted_dir;
 extern unsigned int mtools_twenty_four_hour_clock;
 extern const char *mtools_date_string;
 extern unsigned int mtools_rate_0, mtools_rate_any;
+extern unsigned int mtools_default_codepage;
 extern int mtools_raw_tty;
 
 extern int batchmode;
@@ -221,7 +236,8 @@ char getDrive(Stream_t *Stream);
 
 
 void printOom(void);
-int ask_confirmation(const char *, const char *, const char *);
+int ask_confirmation(const char *, ...)  __attribute__ ((format (printf, 1, 2)));
+
 char *get_homedir(void);
 #define EXPAND_BUF 2048
 const char *expand(const char *, char *);

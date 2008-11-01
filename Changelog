@@ -1,3 +1,5 @@
+v20081101
+	Mtools-4 with Unicode support
 v20071226
 	Debian build files
 	Fixed security issue with doctored file names
@@ -332,7 +334,7 @@ v19980404
 v19980331
 	"Dirty end too big" mformat bug corrected
 v19980330
-	Corrected typoes for IRIX devices, use macros for attribute types, 
+	Corrected typoes for IRIX devices, use macros for attribute types,
 	fix 0 length file bug.
 v19980327
 	Loop detection code
@@ -376,7 +378,7 @@ v19971215
 	Jacked up performance, and corrected signal handling bugs.  Also
 	corrected various "Disk full bugs"
 v19971212
-	Fixed "Bad address" errors which occured when running mdu on empty 
+	Fixed "Bad address" errors which occured when running mdu on empty
 	files.  When copying recursively, do not barf if a directory
 	already exist at the target.  Mcopy operates silently by default.
 v19971212
@@ -694,7 +696,7 @@ v19961225
 	Added warnings against cookies, fixed doc to reflect new set-uid
 	policy.
 v19961224
-	Fixed typoes in privilege routines, and removed Heisenbergian 
+	Fixed typoes in privilege routines, and removed Heisenbergian
 	parts of the  debugging code.
 v19961223
 	Deleted prototypes for random() and srandom(): they *did*
@@ -830,7 +832,7 @@ v19960501
 	use autoconf to get rid once and for all of those pesky OS
 	dependencies.
 v19960429
-	use sys/termio instead of sys/termios to please AIX  
+	use sys/termio instead of sys/termios to please AIX
 v19960427
 	more spelling fixes.
 v19960426

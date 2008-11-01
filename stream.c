@@ -63,3 +63,8 @@ int write_pass_through(Stream_t *Stream, char *buf, mt_off_t start, size_t len)
 {
 	return WRITES(Stream->Next, buf, start, len);
 }
+
+doscp_t *get_dosConvert_pass_through(Stream_t *Stream)
+{
+	return GET_DOSCONVERT(Stream->Next);
+}

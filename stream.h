@@ -13,6 +13,8 @@ typedef struct Stream_t {
 
 #include "llong.h"
 
+doscp_t *get_dosConvert_pass_through(Stream_t *Stream);
+
 typedef struct Class_t {
 	int (*read)(Stream_t *, char *, mt_off_t, size_t);
 	int (*write)(Stream_t *, char *, mt_off_t, size_t);
@@ -22,6 +24,8 @@ typedef struct Class_t {
 					struct bootsector *);
 	int (*get_data)(Stream_t *, time_t *, mt_size_t *, int *, int *);
 	int (*pre_allocate)(Stream_t *, mt_size_t);
+
+	doscp_t *(*get_dosConvert)(Stream_t *);
 } Class_t;
 
 #define READS(stream, buf, address, size) \
@@ -38,6 +42,9 @@ typedef struct Class_t {
 
 #define PRE_ALLOCATE(stream, size) \
 (stream)->Class->pre_allocate((stream), (size))
+
+#define GET_DOSCONVERT(stream)			\
+	(stream)->Class->get_dosConvert((stream))
 
 int flush_stream(Stream_t *Stream);
 Stream_t *copy_stream(Stream_t *Stream);

@@ -976,5 +976,7 @@ int fs_free(Stream_t *Stream)
 				free(This->FatMap[i].data);		
 		free(This->FatMap);
 	}
+	if(This->cp)
+		free(This->cp);
 	return 0;
 }

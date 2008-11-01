@@ -1,3 +1,4 @@
+#include <stdarg.h>
 #include "sysincludes.h"
 #include "mtools.h"
 
@@ -174,15 +175,18 @@ FILE *opentty(int mode)
 	return tty;
 }
 
-int ask_confirmation(const char *format, const char *p1, const char *p2)
+int ask_confirmation(const char *format, ...)
 {
 	char ans[10];
+	va_list ap;
 
 	if(!opentty(-1))
 		return 0;
 
 	while (1) {
-		fprintf(stderr, format, p1, p2);
+		va_start(ap, format);
+		vfprintf(stderr, format, ap);
+		va_end(ap);
 		fflush(stderr);
 		fflush(opentty(-1));
 		if (mtools_raw_tty) {

@@ -34,12 +34,13 @@ typedef struct ClashHandling_t {
 	int source; /* to prevent the source from overwriting itself */
 	int source_entry; /* to account for the space freed up by the original 
 					   * name */
-	char * (*name_converter)(char *filename, int verbose, 
-				 int *mangled, char *ans);
+	void (*name_converter)(doscp_t *cp,
+			       const char *filename, int verbose, 
+			       int *mangled, dos_name_t *ans);
 } ClashHandling_t;
 
 /* write callback */
-typedef int (write_data_callback)(char *,char *, void *, struct direntry_t *);
+typedef int (write_data_callback)(dos_name_t *,char *, void *, struct direntry_t *);
 
 int mwrite_one(Stream_t *Dir,
 	       const char *argname,

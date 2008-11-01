@@ -9,8 +9,8 @@
 #define VFAT_SUPPORT
 
 struct unicode_char {
-	char lchar;
-	char uchar;
+	unsigned char lchar;
+	unsigned char uchar;
 };
 
 
@@ -47,7 +47,7 @@ struct vfat_subentry {
 #define VSE_MASK 0x1f
 
 struct vfat_state {
-	char name[VBUFSIZE];
+	wchar_t name[VBUFSIZE];
 	int status; /* is now a bit map of 32 bits */
 	int subentries;
 	unsigned char sum; /* no need to remember the sum for each entry,
@@ -71,10 +71,10 @@ struct scan_state {
 #include "mtoolsDirentry.h"
 
 void clear_vfat(struct vfat_state  *);
-int unicode_write(char *, struct unicode_char *, int num, int *end);
+int unicode_write(wchar_t *, struct unicode_char *, int num, int *end);
 
 int clear_vses(Stream_t *, int, size_t);
-void autorename_short(char *, int);
+void autorename_short(struct dos_name_t *, int);
 void autorename_long(char *, int);
 
 #define DO_OPEN 1 /* open all files that are found */

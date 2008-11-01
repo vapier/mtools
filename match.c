@@ -7,21 +7,21 @@
 #include "mtools.h"
 
 
-static int casecmp(char a,char b)
+static int casecmp(wchar_t a, wchar_t b)
 {
-	return toupper(a) == toupper(b);
+	return towupper(a) == towupper(b);
 }
 
-static int exactcmp(char a,char b)
+static int exactcmp(wchar_t a,wchar_t b)
 {
 	return a == b;
 }
 
 
-static int parse_range(const char **p, const char *s, char *out, 
-		       int (*compfn)(char a, char b))
+static int parse_range(const wchar_t **p, const wchar_t *s, wchar_t *out,
+		       int (*compfn)(wchar_t a, wchar_t b))
 {
-	char table[256];
+	wchar_t table[256];
 	int reverse;
 	int i;
 	short first, last;
@@ -68,9 +68,9 @@ static int parse_range(const char **p, const char *s, char *out,
 }
 
 
-static int _match(const char *s, const char *p, char *out, int Case,
+static int _match(const wchar_t *s, const wchar_t *p, wchar_t *out, int Case,
 		  int length,
-		  int (*compfn) (char a, char b))
+		  int (*compfn) (wchar_t a, wchar_t b))
 {
 	for (; *p != '\0' && length; ) {
 		switch (*p) {
@@ -88,7 +88,7 @@ static int _match(const char *s, const char *p, char *out, int Case,
 
 					/* search for next char in pattern */
 				while(*s) {
-					if(_match(s, p, out, Case, length, 
+					if(_match(s, p, out, Case, length,
 						  compfn))
 						return 1;
 					if(out)
@@ -128,9 +128,9 @@ static int _match(const char *s, const char *p, char *out, int Case,
 }
 
 
-int match(const char *s, const char *p, char *out, int Case, int length)
+int match(const wchar_t *s, const wchar_t *p, wchar_t *out, int Case, int length)
 {
-	int (*compfn)(char a, char b);
+	int (*compfn)(wchar_t a, wchar_t b);
 
 	if(Case)
 		compfn = casecmp;

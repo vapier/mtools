@@ -35,7 +35,7 @@ typedef struct Arg_t {
  * Open the named file for read, create the cluster chain, return the
  * directory structure or NULL on error.
  */
-static int renameit(char *dosname,
+static int renameit(dos_name_t *dosname,
 		    char *longname,
 		    void *arg0,
 		    direntry_t *targetEntry)
@@ -44,8 +44,7 @@ static int renameit(char *dosname,
 	int fat;
 
 	targetEntry->dir = arg->entry->dir;
-	strncpy(targetEntry->dir.name, dosname, 8);
-	strncpy(targetEntry->dir.ext, dosname + 8, 3);
+	dosnameToDirentry(dosname, &targetEntry->dir);
 
 	if(IS_DIR(targetEntry)) {
 		direntry_t *movedEntry;
@@ -275,7 +274,7 @@ void mmove(int argc, char **argv, int oldsyntax)
 	if (oldsyntax && (argc - optind != 2 || strpbrk(":/", argv[argc-1])))
 		oldsyntax = 0;
 
-	arg.mp.lookupflags = 
+	arg.mp.lookupflags =
 	  ACCEPT_PLAIN | ACCEPT_DIR | DO_OPEN_DIRS | NO_DOTS | NO_UNIX;
 
 	if (!oldsyntax){

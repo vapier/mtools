@@ -15,11 +15,11 @@ static __inline__ unsigned int rol(unsigned int arg, int shift)
 }
 
 
-static int calcHash(char *name)
+static int calcHash(wchar_t *name)
 {
 	unsigned long hash;
 	int i;
-	unsigned char c;
+	wchar_t c;
 
 	hash = 0;
 	i = 0;
@@ -28,9 +28,9 @@ static int calcHash(char *name)
 		hash = rol(hash,5); /* a shift of 5 makes sure we spread quickly
 				     * over the whole width, moreover, 5 is
 				     * prime with 32, which makes sure that
-				     * successive letters cannot cover each 
+				     * successive letters cannot cover each
 				     * other easily */
-		c = toupper(*name);
+		c = towupper(*name);		
 		hash ^=  (c * (c+2)) ^ (i * (i+2));
 		hash &= 0xffffffff;
 		i++, name++;
@@ -67,7 +67,7 @@ static int _addHash(dirCache_t *cache, unsigned int hash, int checkOnly)
 }
 
 
-static void addNameToHash(dirCache_t *cache, char *name)
+static void addNameToHash(dirCache_t *cache, wchar_t *name)
 {	
 	_addHash(cache, calcHash(name), 0);
 }
@@ -82,7 +82,7 @@ static void hashDce(dirCache_t *cache, dirCacheEntry_t *dce)
 	addNameToHash(cache, dce->shortName);
 }
 
-int isHashed(dirCache_t *cache, char *name)
+int isHashed(dirCache_t *cache, wchar_t *name)
 {
 	int ret;
 
@@ -101,7 +101,7 @@ int growDirCache(dirCache_t *cache, int slot)
 		int i;
 		
 		cache->entries = realloc(cache->entries,
-					 (slot+1) * 2 * 
+					 (slot+1) * 2 *
 					 sizeof(dirCacheEntry_t *));
 		if(!cache->entries)
 			return -1;
@@ -114,7 +114,7 @@ int growDirCache(dirCache_t *cache, int slot)
 }
 
 dirCache_t *allocDirCache(Stream_t *Stream, int slot)
-{       
+{
 	dirCache_t **dcp;
 
 	if(slot < 0) {
@@ -143,7 +143,7 @@ dirCache_t *allocDirCache(Stream_t *Stream, int slot)
 	return *dcp;
 }
 
-static void freeDirCacheRange(dirCache_t *cache, 
+static void freeDirCacheRange(dirCache_t *cache,
 			      unsigned int beginSlot,
 			      unsigned int endSlot)
 {
@@ -153,7 +153,7 @@ static void freeDirCacheRange(dirCache_t *cache,
 	unsigned int i;
 
 	if(endSlot < beginSlot) {
-		fprintf(stderr, "Bad slots %d %d in free range\n", 
+		fprintf(stderr, "Bad slots %d %d in free range\n",
 			beginSlot, endSlot);
 		exit(1);
 	}
@@ -178,10 +178,10 @@ static void freeDirCacheRange(dirCache_t *cache,
 		else if(entry->beginSlot == beginSlot)
 			entry->beginSlot = endSlot;
 		else {
-			fprintf(stderr, 
+			fprintf(stderr,
 				"Internal error, non contiguous de-allocation\n");
 			fprintf(stderr, "%d %d\n", beginSlot, endSlot);
-			fprintf(stderr, "%d %d\n", entry->beginSlot, 
+			fprintf(stderr, "%d %d\n", entry->beginSlot,
 				entry->endSlot);
 			exit(1);			
 		}
@@ -198,7 +198,7 @@ static void freeDirCacheRange(dirCache_t *cache,
 	}
 }
 
-static dirCacheEntry_t *allocDirCacheEntry(dirCache_t *cache, int beginSlot, 
+static dirCacheEntry_t *allocDirCacheEntry(dirCache_t *cache, int beginSlot,
 					   int endSlot,
 					   dirCacheEntryType_t type)
 {
@@ -224,15 +224,15 @@ static dirCacheEntry_t *allocDirCacheEntry(dirCache_t *cache, int beginSlot,
 	return entry;
 }
 
-dirCacheEntry_t *addUsedEntry(dirCache_t *cache, int beginSlot, int endSlot, 
-			      char *longName, char *shortName,
+dirCacheEntry_t *addUsedEntry(dirCache_t *cache, int beginSlot, int endSlot,
+			      wchar_t *longName, wchar_t *shortName,
 			      struct directory *dir)
 {
 	dirCacheEntry_t *entry;
 
 	if(endSlot < beginSlot) {
-		fprintf(stderr, 
-			"Bad slots %d %d in add used entry\n", 
+		fprintf(stderr,
+			"Bad slots %d %d in add used entry\n",
 			beginSlot, endSlot);
 		exit(1);
 	}
@@ -245,8 +245,8 @@ dirCacheEntry_t *addUsedEntry(dirCache_t *cache, int beginSlot, int endSlot,
 	entry->beginSlot = beginSlot;
 	entry->endSlot = endSlot;
 	if(longName)
-		entry->longName = strdup(longName);
-	entry->shortName = strdup(shortName);
+		entry->longName = wcsdup(longName);
+	entry->shortName = wcsdup(shortName);
 	entry->dir = *dir;
 	hashDce(cache, entry);
 	return entry;
@@ -270,8 +270,8 @@ static void mergeFreeSlots(dirCache_t *cache, int slot)
 	}
 }
 
-dirCacheEntry_t *addFreeEntry(dirCache_t *cache, 
-			      unsigned int beginSlot, 
+dirCacheEntry_t *addFreeEntry(dirCache_t *cache,
+			      unsigned int beginSlot,
 			      unsigned int endSlot)
 {
 	dirCacheEntry_t *entry;
@@ -280,7 +280,7 @@ dirCacheEntry_t *addFreeEntry(dirCache_t *cache,
 		cache->nrHashed = beginSlot;
 
 	if(endSlot < beginSlot) {
-		fprintf(stderr, "Bad slots %d %d in add free entry\n", 
+		fprintf(stderr, "Bad slots %d %d in add free entry\n",
 			beginSlot, endSlot);
 		exit(1);
 	}

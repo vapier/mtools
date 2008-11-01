@@ -10,8 +10,8 @@ typedef struct direntry_t {
 	int entry; /* slot in parent directory (-3 if root) */
 	struct directory dir; /* descriptor in parent directory (random if 
 			       * root)*/
-	char name[MAX_VNAMELEN+1]; /* name in its parent directory, or 
-				    * NULL if root */
+	wchar_t name[MAX_VNAMELEN+1]; /* name in its parent directory, or 
+				       * NULL if root */
 	int beginSlot; /* begin and end slot, for delete */
 	int endSlot;
 } direntry_t;
@@ -29,23 +29,26 @@ direntry_t *getParent(direntry_t *entry);
 void dir_write(direntry_t *entry);
 void low_level_dir_write(direntry_t *entry);
 int fatFreeWithDirentry(direntry_t *entry);
-int labelit(char *dosname,
+int labelit(struct dos_name_t *dosname,
 	    char *longname,
 	    void *arg0,
 	    direntry_t *entry);
 int isSubdirOf(Stream_t *inside, Stream_t *outside);
 char *getPwd(direntry_t *entry);
 void fprintPwd(FILE *f, direntry_t *entry, int escape);
-int write_vfat(Stream_t *, char *, char *, int, direntry_t *);
+int write_vfat(Stream_t *, dos_name_t *, char *, int, direntry_t *);
 
 void wipeEntry(struct direntry_t *entry);
 
+void dosnameToDirentry(const struct dos_name_t *n, struct directory *dir);
+
 int lookupForInsert(Stream_t *Dir,
 		    direntry_t *direntry,
-		    char *dosname,
+		    struct dos_name_t *dosname,
 		    char *longname,
 		    struct scan_state *ssp, 
 		    int ignore_entry,
 		    int source_entry,
-		    int pessimisticShortRename);
+		    int pessimisticShortRename,
+		    int use_longname);
 #endif

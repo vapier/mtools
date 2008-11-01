@@ -9,41 +9,48 @@
 #include "vfat.h"
 #include "mtools.h"
 #include "nameclash.h"
+#include "file_name.h"
 
-char *label_name(char *filename, int verbose, 
-		 int *mangled, char *ans)
+void label_name(doscp_t *cp, const char *filename, int verbose,
+		int *mangled, dos_name_t *ans)
 {
 	int len;
 	int i;
 	int have_lower, have_upper;
+	wchar_t wbuffer[12];
 
-	strcpy(ans,"           ");
-	len = strlen(filename);
+	strcpy(ans->base,"           ");
+	len = native_to_wchar(filename, wbuffer, 11, 0, 0);
 	if(len > 11){
 		*mangled = 1;
 		len = 11;
 	} else
 		*mangled = 0;
-	strncpy(ans, filename, len);
-	have_lower = have_upper = 0;
-	for(i=0; i<11; i++){
-		if(islower((unsigned char)ans[i]))
-			have_lower = 1;
-		if(isupper(ans[i]))
-			have_upper = 1;
-		ans[i] = toupper((unsigned char)ans[i]);
 
-		if(strchr("^+=/[]:,?*\\<>|\".", ans[i])){
+	have_lower = have_upper = 0;
+	for(i=0; i<len; i++){
+		if(islower(wbuffer[i]))
+			have_lower = 1;
+		if(isupper(wbuffer[i]))
+			have_upper = 1;
+		wbuffer[i] = towupper(wbuffer[i]);
+		if(
+#ifdef HAVE_WCHAR_H
+		   wcschr(L"^+=/[]:,?*\\<>|\".", wbuffer[i])
+#else
+		   strchr("^+=/[]:,?*\\<>|\".", wbuffer[i])
+#endif
+		   ){
 			*mangled = 1;
-			ans[i] = '~';
+			wbuffer[i] = '~';
 		}
 	}
 	if (have_lower && have_upper)
 		*mangled = 1;
-	return ans;
+	wchar_to_dos(cp, wbuffer, ans->base, len, mangled);
 }
 
-int labelit(char *dosname,
+int labelit(struct dos_name_t *dosname,
 	    char *longname,
 	    void *arg0,
 	    direntry_t *entry)
@@ -67,13 +74,13 @@ static void usage(void)
 
 void mlabel(int argc, char **argv, int type)
 {
-    
+
 	char *newLabel;
 	int verbose, clear, interactive, show;
 	direntry_t entry;
 	int result=0;
 	char longname[VBUFSIZE];
-	char shortname[13];
+	char shortname[45];
 	ClashHandling_t ch;
 	struct MainParam_t mp;
 	Stream_t *RootDir;
@@ -133,7 +140,7 @@ void mlabel(int argc, char **argv, int type)
 			}
 	}
 
-	if (argc - optind != 1 || !argv[optind][0] || argv[optind][1] != ':') 
+	if (argc - optind != 1 || !argv[optind][0] || argv[optind][1] != ':')
 		usage();
 
 	init_mp(&mp);
@@ -144,7 +151,7 @@ void mlabel(int argc, char **argv, int type)
 		exit(1);
 	}
 
-	interactive = !show && !clear &&!newLabel[0] && 
+	interactive = !show && !clear &&!newLabel[0] &&
 		(set_serial == SER_NONE);
 	if(!clear && !newLabel[0]) {
 		isRop = &isRo;
@@ -153,7 +160,7 @@ void mlabel(int argc, char **argv, int type)
 	if(isRo) {
 		show = 1;
 		interactive = 0;
-	}	    
+	}	
 	if(!RootDir) {
 		fprintf(stderr, "%s: Cannot initialize drive\n", argv[0]);
 		exit(1);
@@ -174,7 +181,7 @@ void mlabel(int argc, char **argv, int type)
 			printf(" Volume label is %s (abbr=%s)\n",
 			       longname, shortname);
 		else
-			printf(" Volume label is %s\n", shortname);
+			printf(" Volume label is %s\n",  shortname);
 
 	}
 
@@ -190,7 +197,7 @@ void mlabel(int argc, char **argv, int type)
 	if((!show || newLabel[0]) && !isNotFound(&entry)){
 		/* if we have a label, wipe it out before putting new one */
 		if(interactive && newLabel[0] == '\0')
-			if(ask_confirmation("Delete volume label (y/n): ",0,0)){
+			if(ask_confirmation("Delete volume label (y/n): ")){
 				FREE(&RootDir);
 				exit(0);
 			}
@@ -200,14 +207,14 @@ void mlabel(int argc, char **argv, int type)
 
 	if (newLabel[0] != '\0') {
 		ch.ignore_entry = 1;
-		result = mwrite_one(RootDir,newLabel,0,labelit,NULL,&ch) ? 
+		result = mwrite_one(RootDir,newLabel,0,labelit,NULL,&ch) ?
 		  0 : 1;
 	}
 
 	have_boot = 0;
 	if( (!show || newLabel[0]) || set_serial != SER_NONE) {
 		Fs = GetFs(RootDir);
-		have_boot = (force_read(Fs,(char *)&boot,0,sizeof(boot)) == 
+		have_boot = (force_read(Fs,(char *)&boot,0,sizeof(boot)) ==
 			     sizeof(boot));
 	}
 
@@ -219,14 +226,19 @@ void mlabel(int argc, char **argv, int type)
 
 	if(!show || newLabel[0]){
 
+		dos_name_t shortname;
+		char *shrtLabel;
+		doscp_t *cp;
 		if(!newLabel[0])
-			strncpy(shortname, "NO NAME    ",11);
+			shrtLabel = "NO NAME    ";
 		else
-			label_name(newLabel, verbose, &mangled, shortname);
+			shrtLabel = newLabel;
+		cp = GET_DOSCONVERT(Fs);
+		label_name(cp, shrtLabel, verbose, &mangled, &shortname);
 
 		if(have_boot && boot.descr >= 0xf0 &&
 		   labelBlock->dos4 == 0x29) {
-			strncpy(labelBlock->label, shortname, 11);
+			strncpy(labelBlock->label, shortname.base, 11);
 			need_write_boot = 1;
 
 		}

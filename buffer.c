@@ -51,7 +51,7 @@ static int _buf_flush(Buffer_t *Buffer)
 		Buffer->dirty_end - Buffer->dirty_pos);
 #endif
 
-	ret = force_write(Buffer->Next, 
+	ret = force_write(Buffer->Next,
 			  Buffer->buf + Buffer->dirty_pos,
 			  Buffer->current + Buffer->dirty_pos,
 			  Buffer->dirty_end - Buffer->dirty_pos);
@@ -93,7 +93,7 @@ typedef enum position_t {
 	OUTSIDE,
 	APPEND,
 	INSIDE,
-	ERROR 
+	ERROR
 } position_t;
 
 static position_t isInBuffer(Buffer_t *This, mt_off_t start, size_t *len)
@@ -183,10 +183,10 @@ static int buf_write(Stream_t *Stream, char *buf, mt_off_t start, size_t len)
 	This->ever_dirty = 1;
 
 #ifdef DEBUG
-	fprintf(stderr, "buf write %x   %02x %08x %08x -- %08x %08x -- %08x\n", 
+	fprintf(stderr, "buf write %x   %02x %08x %08x -- %08x %08x -- %08x\n",
 		Stream, (unsigned char) This->buf[0],
 		start, len, This->current, This->cur_size, This->size);
-	fprintf(stderr, "%d %d %d %x %x\n", 
+	fprintf(stderr, "%d %d %d %x %x\n",
 		start == This->current + This->cur_size,
 		This->cur_size < This->size,
 		len >= This->sectorSize, len, This->sectorSize);
@@ -196,12 +196,12 @@ static int buf_write(Stream_t *Stream, char *buf, mt_off_t start, size_t len)
 #ifdef DEBUG
 			fprintf(stderr, "outside\n");
 #endif
-			if(start % This->cylinderSize || 
+			if(start % This->cylinderSize ||
 			   len < This->sectorSize) {
 				size_t readSize;
 				int ret;
 
-				readSize = This->cylinderSize - 
+				readSize = This->cylinderSize -
 					This->current % This->cylinderSize;
 
 				ret=READS(This->Next, This->buf, This->current, readSize);
@@ -270,11 +270,11 @@ static int buf_write(Stream_t *Stream, char *buf, mt_off_t start, size_t len)
 		This->dirty_end = ROUND_UP(offset + len, This->sectorSize);
 	
 	if(This->dirty_end > This->cur_size) {
-		fprintf(stderr, 
+		fprintf(stderr,
 			"Internal error, dirty end too big dirty_end=%x cur_size=%x len=%x offset=%d sectorSize=%x\n",
 			(unsigned int) This->dirty_end,
 			(unsigned int) This->cur_size,
-			(unsigned int) len, 
+			(unsigned int) len,
 			(int) offset, (int) This->sectorSize);
 		fprintf(stderr, "offset + len + grain - 1 = %x\n",
 				(int) (offset + len + This->sectorSize - 1));
@@ -321,10 +321,11 @@ static Class_t BufferClass = {
 	0, /* set_geom */
 	get_data_pass_through, /* get_data */
 	0, /* pre-allocate */
+	get_dosConvert_pass_through /* dos convert */
 };
 
-Stream_t *buf_init(Stream_t *Next, int size, 
-		   int cylinderSize, 
+Stream_t *buf_init(Stream_t *Next, int size,
+		   int cylinderSize,
 		   int sectorSize)
 {
 	Buffer_t *Buffer;

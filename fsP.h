@@ -5,8 +5,8 @@
 #include "msdos.h"
 #include "fs.h"
 
-typedef enum fatAccessMode_t { 
-	FAT_ACCESS_READ, 
+typedef enum fatAccessMode_t {
+	FAT_ACCESS_READ,
 	FAT_ACCESS_WRITE
 } fatAccessMode_t;
 
@@ -59,6 +59,8 @@ typedef struct Fs_t {
 	fatAccessMode_t lastFatAccessMode;
 	int sectorMask;
 	int sectorShift;
+
+	doscp_t *cp;
 } Fs_t;
 
 int fs_free(Stream_t *Stream);

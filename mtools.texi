@@ -644,7 +644,6 @@ files describe the following items:
 * default values::        Why you don't need a config file in most cases
 * global variables::      Variables that are independent of the drive
 * per drive variables::   Variables that are specific to a given drive
-* character sets::        Character set translation tables
 * parsing order::         Location of configuration files and parsing order
 * old style config::      Backwards compatibility
 @end menu
@@ -759,13 +758,14 @@ Global string variables may be set to any value:
 The format used for printing dates of files.  By default, is dd-mm-yyyy.
 @end table
 
-@node per drive variables, character sets, global variables, Configuration
+@node per drive variables, parsing order, global variables, Configuration
 @section Per drive flags and variables
 @cindex Drive description
 @cindex Drive configuration
 
 @menu
 * general information::   What a drive description looks like
+* location information::  Where is the drive data physically stored
 * geometry description::  Describes the physical characteristics of
                           the media
 * open flags::            Flags passed to the open system call when the
@@ -776,7 +776,7 @@ The format used for printing dates of files.  By default, is dd-mm-yyyy.
                           drive, to be tried one after the other.
 @end menu
 
-@node general information, geometry description, per drive variables, per drive variables
+@node general information, location information, per drive variables, per drive variables
 @subsection General information
 @cindex Drive description, example
 @cindex Drive configuration, example
@@ -794,7 +794,53 @@ This is a sample drive description:
     file="/dev/fd0" use_xdf=1
 @end example
 
-@node geometry description, open flags, general information, per drive variables
+@node location information, geometry description, general information, per drive variables
+@cindex Hdimage
+
+For each drive, you need to describe where its data is physically
+stored (imag file, physical device, partition, offset).
+
+@table @code
+@item file
+@cindex Image file
+@cindex Name of device node
+@cindex File name of device node
+@vindex file
+The name of the file or device holding the disk image. This is
+mandatory. The file name should be enclosed in quotes.
+
+@item partition
+@cindex Dosemu hard disk image
+@cindex Zip disks (partitions)
+@cindex Jaz disks (partitions)
+@cindex Syquest disks
+@cindex Magneto-optical disks
+@cindex OS/2 (layout of removable media)
+@cindex Windows NT (layout of removable media)
+@cindex Removable media
+@cindex Partitioned image file
+Tells mtools to treat the drive as a partitioned device, and to use the
+given partition. Only primary partitions are accessible using this
+method, and they are numbered from 1 to 4. For logical partitions, use
+the more general @code{offset} variable. The @code{partition} variable
+is intended for removable media such as Syquests, ZIP drives, and
+magneto-optical disks. Although traditional DOS sees Syquests and
+magneto-optical disks as @samp{giant floppy disks} which are
+unpartitioned, OS/2 and Windows NT treat them like hard disks,
+i.e. partioned devices. The @code{partition} flag is also useful DOSEMU
+hdimages. It is not recommended for hard disks for which direct access
+to partitions is available through mounting.
+
+@item offset
+@cindex Ram disk
+@cindex Atari Ram disk
+Describes where in the file the MS-DOS filesystem starts. This is useful
+for logical partitions in DOSEMU hdimages, and for ATARI ram disks. By
+default, this is zero, meaning that the filesystem starts right at the
+beginning of the device or file.
+@end table
+
+@node geometry description, open flags, location information, per drive variables
 @subsection Disk Geometry Configuration
 @cindex Disk Geometry
 @cindex Configuration of disk geometry
@@ -929,50 +975,12 @@ architectures, and for plain files it has no effect at all.
 
 @node misc variables, misc flags, open flags, per drive variables
 @section General Purpose Drive Variables
-@cindex Hdimage
 
 The following general purpose drive variables are available.  Depending
-to their type, these variables can be set to a string (file, precmd) or
+to their type, these variables can be set to a string (precmd) or
 an integer (all others)
 
 @table @code
-@item file
-@cindex Image file
-@cindex Name of device node
-@cindex File name of device node
-@vindex file
-The name of the file or device holding the disk image. This is
-mandatory. The file name should be enclosed in quotes.
-
-@item partition
-@cindex Dosemu hard disk image
-@cindex Zip disks (partitions)
-@cindex Jaz disks (partitions)
-@cindex Syquest disks
-@cindex Magneto-optical disks
-@cindex OS/2 (layout of removable media)
-@cindex Windows NT (layout of removable media)
-@cindex Removable media
-@cindex Partitioned image file
-Tells mtools to treat the drive as a partitioned device, and to use the
-given partition. Only primary partitions are accessible using this
-method, and they are numbered from 1 to 4. For logical partitions, use
-the more general @code{offset} variable. The @code{partition} variable
-is intended for removable media such as Syquests, ZIP drives, and
-magneto-optical disks. Although traditional DOS sees Syquests and
-magneto-optical disks as @samp{giant floppy disks} which are
-unpartitioned, OS/2 and Windows NT treat them like hard disks,
-i.e. partioned devices. The @code{partition} flag is also useful DOSEMU
-hdimages. It is not recommended for hard disks for which direct access
-to partitions is available through mounting.
-
-@item offset
-@cindex Ram disk
-@cindex Atari Ram disk
-Describes where in the file the MS-DOS filesystem starts. This is useful
-for logical partitions in DOSEMU hdimages, and for ATARI ram disks. By
-default, this is zero, meaning that the filesystem starts right at the
-beginning of the device or file.
 @item fat_bits
 @vindex fat_bits
 The number of FAT bits. This may be 12 or 16. This is very rarely
@@ -981,6 +989,13 @@ boot sector. On the contrary, describing the number of fat bits may
 actually be harmful if you get it wrong. You should only use it if
 mtools gets the autodetected number of fat bits wrong, or if you want
 to mformat a disk with a weird number of fat bits.
+@item codepage
+Describes the DOS codepage used for short filenames. This is a number
+between 1 and 999. By default, codepage 850 is used. The reason for
+this is because this codepage contains most of the characters that are
+also available in ISO-Latin-1. You may also specify a global codepage
+for all drives by using the global @code{default_codepage} parameter
+(outside of any drive description).
 @item precmd
 @cindex Solaris (volcheck)
 @cindex Executing commands before opening the device
@@ -1160,182 +1175,7 @@ keywords instead of @code{drive}. The first adds a description to the
 end of the list (i.e. it will be tried last), and the first adds it to
 the start of the list.
 
-@node character sets, parsing order, per drive variables, Configuration
-@section Character set translation tables
-@cindex Internationalization
-@cindex Accented characters
-@cindex National character set
-
-If you live in the USA, in Western Europe or in Australia, you may
-skip this section.
-
-@menu
-* why::              Why character set tables are needed
-* country::          Using the COUNTRY variable to select tables
-* explicit tables::  Supplying a new table for an unknown country
-@end menu
-
-@node why, country, character sets, character sets
-@subsection Why character set translation tables are needed
-
-DOS uses a different character code mapping than Unix. 7-bit
-characters still have the same meaning, only characters with the eight
-bit set are affected. To make matters worse, there are several
-translation tables available depending on the country where you
-are. The appearance of the characters is defined using
-code pages. These code pages aren't the same for all countries. For
-instance, some code pages don't contain upper case accented
-characters. On the other hand, some code pages contain characters which
-don't exist in Unix, such as certain line-drawing characters or
-accented consonants used by some Eastern European countries. This
-affects two things, relating to filenames:
-
-@table @asis
-@item upper case characters
-In short names, only upper case characters are allowed. This also
-holds for accented characters. For instance, in a code page which
-doesn't contain accented uppercase characters, the accented lowercase
-characters get transformed into their unaccented counterparts.
-@item long file names
-Micro$oft has finally come to their senses and uses a more standard
-mapping for the long file names. They use Unicode, which is basically
-a 32 bit version of ASCII. Its first 256 characters are identical to
-Unix ASCII. Thus, the code page also affects the correspondence
-between the codes used in long names and those used in short names
-@end table
-
-
-Mtools considers the filenames entered on the command line as having the
-Unix mapping, and translates the characters to get short names.  By
-default, code page 850 is used with the Swiss uppercase/lowercase
-mapping. I chose this code page, because its set of existing characters
-most closely matches Unix's. Moreover, this code page covers most
-characters in use in the USA, Australia and Western Europe. However, it
-is still possible to chose a different mapping. There are two methods:
-the @code{country} variable and explicit tables.
-
-@node country, explicit tables, why, character sets
-@subsection Configuration using Country
-
-The @code{COUNTRY} variable is recommended for people which also have
-access to MS-DOS system files and documentation. If you don't have access
-to these, I'd suggest you'd rather use explicit tables instead.
-
-Syntax:
-
-@code{COUNTRY="}@var{country}@code{[,[}@var{codepage}@code{],}
-@var{country-file}@code{]"}
-
-This tells mtools to use a Unix-to-DOS translation table which matches
-@var{codepage} and an lowercase-to-uppercase table for @var{country} and
-to use the @var{country-file} file to get the lowercase-to-uppercase
-table. The country code is most often the telephone prefix of the
-country. Refer to the DOS help page on "country" for more details. The
-@var{codepage} and the @var{country-file} parameters are
-optional. Please don't type in the square brackets, they are only there
-to say which parameters are optional. The @var{country-file} file is
-supplied with MS-DOS, and is usually called @file{COUNTRY.SYS}, and
-stored in the @file{C:\DOS} directory. In most cases you don't need it,
-as the most common translation tables are compiled into mtools. So,
-don't worry if you run a Unix-only box which lacks this file.
-
-If @var{codepage} is not given, a per country default code page is
-used. If the @var{country-file} parameter isn't given, compiled-in
-defaults are used for the lowercase-to-uppercase table. This is useful
-for other Unices than Linux, which may have no @file{COUNTRY.SYS} file
-available online.
-
-The Unix-to-DOS are not contained in the @file{COUNTRY.SYS} file, and
-thus mtools always uses compiled-in defaults for those. Thus, only a
-limited amount of code pages are supported. If your preferred code page
-is missing, or if you know the name of the Windows 95 file which
-contains this mapping, could you please drop me a line at
-@code{alain@@linux.lu}.
-
-The @code{COUNTRY} variable can also be set using the environment.
-
-@node explicit tables, , country, character sets
-@subsection Configuration using explicit translation tables
-
-Translation tables may be described in line in the configuration
-file. Two tables are needed: first the DOS-to-Unix table, and then the
-Lowercase-to-Uppercase table. A DOS-to-Unix table starts with the
-@code{tounix}
-keyword, followed by a colon, and 128 hexadecimal numbers.
-A lower-to-upper table starts with the
-@code{fucase}
-keyword, followed by a colon, and 128 hexadecimal numbers.
-
-The tables only show the translations for characters whose codes is
-greater than 128, because translation for lower codes is trivial.
-
-Example:
-@vindex tounix
-@vindex fucase
-
-@example
- tounix:
-   0xc7 0xfc 0xe9 0xe2 0xe4 0xe0 0xe5 0xe7 
-   0xea 0xeb 0xe8 0xef 0xee 0xec 0xc4 0xc5 
-   0xc9 0xe6 0xc6 0xf4 0xf6 0xf2 0xfb 0xf9 
-   0xff 0xd6 0xdc 0xf8 0xa3 0xd8 0xd7 0x5f 
-   0xe1 0xed 0xf3 0xfa 0xf1 0xd1 0xaa 0xba 
-   0xbf 0xae 0xac 0xbd 0xbc 0xa1 0xab 0xbb 
-   0x5f 0x5f 0x5f 0x5f 0x5f 0xc1 0xc2 0xc0 
-   0xa9 0x5f 0x5f 0x5f 0x5f 0xa2 0xa5 0xac 
-   0x5f 0x5f 0x5f 0x5f 0x5f 0x5f 0xe3 0xc3 
-   0x5f 0x5f 0x5f 0x5f 0x5f 0x5f 0x5f 0xa4 
-   0xf0 0xd0 0xc9 0xcb 0xc8 0x69 0xcd 0xce 
-   0xcf 0x5f 0x5f 0x5f 0x5f 0x7c 0x49 0x5f 
-   0xd3 0xdf 0xd4 0xd2 0xf5 0xd5 0xb5 0xfe 
-   0xde 0xda 0xd9 0xfd 0xdd 0xde 0xaf 0xb4 
-   0xad 0xb1 0x5f 0xbe 0xb6 0xa7 0xf7 0xb8 
-   0xb0 0xa8 0xb7 0xb9 0xb3 0xb2 0x5f 0x5f 
-
- fucase:
-   0x80 0x9a 0x90 0xb6 0x8e 0xb7 0x8f 0x80 
-   0xd2 0xd3 0xd4 0xd8 0xd7 0xde 0x8e 0x8f 
-   0x90 0x92 0x92 0xe2 0x99 0xe3 0xea 0xeb 
-   0x59 0x99 0x9a 0x9d 0x9c 0x9d 0x9e 0x9f 
-   0xb5 0xd6 0xe0 0xe9 0xa5 0xa5 0xa6 0xa7 
-   0xa8 0xa9 0xaa 0xab 0xac 0xad 0xae 0xaf 
-   0xb0 0xb1 0xb2 0xb3 0xb4 0xb5 0xb6 0xb7 
-   0xb8 0xb9 0xba 0xbb 0xbc 0xbd 0xbe 0xbf 
-   0xc0 0xc1 0xc2 0xc3 0xc4 0xc5 0xc7 0xc7 
-   0xc8 0xc9 0xca 0xcb 0xcc 0xcd 0xce 0xcf 
-   0xd1 0xd1 0xd2 0xd3 0xd4 0x49 0xd6 0xd7 
-   0xd8 0xd9 0xda 0xdb 0xdc 0xdd 0xde 0xdf 
-   0xe0 0xe1 0xe2 0xe3 0xe5 0xe5 0xe6 0xe8 
-   0xe8 0xe9 0xea 0xeb 0xed 0xed 0xee 0xef 
-   0xf0 0xf1 0xf2 0xf3 0xf4 0xf5 0xf6 0xf7 
-   0xf8 0xf9 0xfa 0xfb 0xfc 0xfd 0xfe 0xff 
-@end example
-
-The first table maps DOS character codes to Unix character codes. For
-example, the DOS character number 129. This is a u with to dots on top
-of it. To translate it into Unix, we look at the character number 1 in
-the first table (1 = 129 - 128). This is 0xfc. (Beware, numbering
-starts at 0).
-The second table maps lower case DOS characters to upper case DOS
-characters. The same lower case u with dots maps to character 0x9a,
-which is an uppercase U with dots in DOS.
-
-@subsection Unicode characters greater than 256
-If an existing MS-DOS name contains Unicode character greater than 256,
-these are translated to underscores or to characters which are close
-in visual appearance. For example, accented consonants are translated
-into their unaccented counterparts. This translation is used for mdir
-and for the Unix filenames generated by mcopy. Linux does support
-Unicode too, but unfortunately too few applications support it yet to bother
-with it in mtools. Most importantly, xterm can't display Unicode
-yet. If there is sufficient demand, I might include support for
-Unicode in the Unix filenames as well.
-
-@strong{Caution:}
-When deleting files with mtools, the underscore matches all characters
-which can't be represented in Unix. Be careful with mdel!
-
-@node parsing order, old style config, character sets, Configuration
+@node parsing order, old style config, per drive variables, Configuration
 @section Location of configuration files and parsing order
 @cindex Parsing order
 @cindex Configuration file parsing order

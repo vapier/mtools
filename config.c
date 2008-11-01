@@ -46,6 +46,7 @@ unsigned int mtools_no_vfat=0;
 unsigned int mtools_numeric_tail=1;
 unsigned int mtools_dotted_dir=0;
 unsigned int mtools_twenty_four_hour_clock=1;
+unsigned int mtools_default_codepage=850;
 const char *mtools_date_string="yyyy-mm-dd";
 char *country_string=0;
 
@@ -68,11 +69,11 @@ static switches_t global_switches[] = {
     { "MTOOLS_RATE_ANY", (caddr_t) &mtools_rate_any, T_UINT },
     { "MTOOLS_NAME_NUMERIC_TAIL", (caddr_t) &mtools_numeric_tail, T_UINT },
     { "MTOOLS_DOTTED_DIR", (caddr_t) &mtools_dotted_dir, T_UINT },
-    { "MTOOLS_TWENTY_FOUR_HOUR_CLOCK", 
+    { "MTOOLS_TWENTY_FOUR_HOUR_CLOCK",
       (caddr_t) &mtools_twenty_four_hour_clock, T_UINT },
     { "MTOOLS_DATE_STRING",
       (caddr_t) &mtools_date_string, T_STRING },
-    { "COUNTRY", (caddr_t) &country_string, T_STRING }
+    { "DEFAULT_CODEPAGE", (caddr_t) &mtools_default_codepage, T_UINT }
 };
 
 typedef struct {
@@ -118,7 +119,7 @@ static struct {
     { "hd514",			12, 80, 2, 15 },
     { "high-density-5-1/4",	12, 80, 2, 15 },
     { "1.2m",			12, 80, 2, 15 },
-    
+
     { "hd312",			12, 80, 2, 18 },
     { "high-density-3-1/2",	12, 80, 2, 18 },
     { "1.44m",	 		12, 80, 2, 18 },
@@ -151,7 +152,8 @@ static switches_t dswitches[]= {
     { "SECTORS", OFFS(sectors), T_UINT },
     { "HIDDEN", OFFS(hidden), T_UINT },
     { "PRECMD", OFFS(precmd), T_STRING },
-    { "BLOCKSIZE", OFFS(blocksize), T_UINT }
+    { "BLOCKSIZE", OFFS(blocksize), T_UINT },
+    { "CODEPAGE", OFFS(codepage), T_UINT }
 };
 
 static void maintain_default_drive(char drive)
@@ -160,7 +162,7 @@ static void maintain_default_drive(char drive)
 	return; /* we have an image */
     if(default_drive == '\0' ||
        default_drive > drive)
-	default_drive = drive;    
+	default_drive = drive;
 }
 
 char get_default_drive(void)
@@ -385,7 +387,7 @@ static void finish_drive_clause(void)
 	   !devices[cur_dev].heads ||
 	   !devices[cur_dev].sectors)
 	    syntax("incomplete geometry: either indicate all of track/heads/sectors or none of them", 0);
-	if(!(devices[cur_dev].misc_flags & 
+	if(!(devices[cur_dev].misc_flags &
 	     (MFORMAT_ONLY_FLAG | FILTER_FLAG)))
 	    syntax("if you supply a geometry, you also must supply one of the `mformat_only' or `filter' flags", 0);
     }
@@ -411,10 +413,10 @@ static int set_var(struct switches_l *switches, int nr,
 	if(match_token(switches[i].name)) {
 	    expect_char('=');
 	    if(switches[i].type == T_UINT)
-		* ((int *)((long)switches[i].address+base_address)) = 
+		* ((int *)((long)switches[i].address+base_address)) =
 		    get_unumber();
 	    if(switches[i].type == T_INT)
-		* ((int *)((long)switches[i].address+base_address)) = 
+		* ((int *)((long)switches[i].address+base_address)) =
 		    get_number();
 	    else if (switches[i].type == T_STRING)
 		* ((char**)((long)switches[i].address+base_address))=
@@ -484,31 +486,6 @@ static int set_def_format(struct device *dev)
 	}
     }
     return 1;
-}    
-
-static void get_codepage(void)
-{
-    int i;
-    unsigned short n;
-
-    if(!Codepage)
-	Codepage = New(Codepage_t);
-    for(i=0; i<128; i++) {
-	n = get_number();
-	if(n > 0xff)
-	    n = 0x5f;
-	Codepage->tounix[i] = n;
-    }	
-}
-
-static void get_toupper(void)
-{
-    int i;
-
-    if(!mstoupper)
-	mstoupper = safe_malloc(128);
-    for(i=0; i<128; i++)
-	mstoupper[i] = get_number();
 }
 
 static int parse_one(int privilege);
@@ -633,26 +610,8 @@ static int parse_one(int privilege)
 	parse_old_device_line(token[0]);
 	return 1;
     }
-    if(match_token("default_fucase")) {
-	free(mstoupper);
-	mstoupper=0;
-    }
-    if(match_token("default_tounix")) {
-	Free(Codepage);
-	Codepage = 0;
-    }
-    if(match_token("fucase")) {
-	expect_char(':');
-	get_toupper();
-	return 1;
-    }
-    if(match_token("tounix")) {
-	expect_char(':');
-	get_codepage();
-	return 1;
-    }
-	
-    if((cur_dev < 0 || 
+
+    if((cur_dev < 0 ||
 	(set_var(dswitches,
 		 sizeof(dswitches)/sizeof(*dswitches),
 		 (caddr_t)&devices[cur_dev]) &&
@@ -716,10 +675,10 @@ void read_config(void)
 	memcpy(devices, const_devices,
 	       nr_const_devices*sizeof(struct device));
 
-    (void) ((parse(CONF_FILE,1) | 
+    (void) ((parse(CONF_FILE,1) |
 	     parse(LOCAL_CONF_FILE,1) |
 	     parse(SYS_CONF_FILE,1)) ||
-	    (parse(OLD_CONF_FILE,1) | 
+	    (parse(OLD_CONF_FILE,1) |
 	     parse(OLD_LOCAL_CONF_FILE,1)));
     /* the old-name configuration files only get executed if none of the
      * new-name config files were used */
@@ -741,14 +700,12 @@ void read_config(void)
     get_env_conf();
     if(mtools_skip_check)
 	mtools_fat_compatibility=1;
-    init_codepage();
 }
 
 void mtoolstest(int argc, char **argv, int type)
 {
     /* testing purposes only */
     struct device *dev;
-    int i,j;
     char drive='\0';
 
     if(argc > 1 && argv[1][0] && argv[1][1] == ':') {
@@ -814,25 +771,7 @@ void mtoolstest(int argc, char **argv, int type)
 
 	printf("\n");
     }
-	
-    printf("tounix:\n");
-    for(i=0; i < 16; i++) {
-	putchar('\t');
-	for(j=0; j<8; j++)
-	    printf("0x%02x ",
-		   (unsigned char)Codepage->tounix[i*8+j]);
-	putchar('\n');
-    }
-    printf("\nfucase:\n");
-    for(i=0; i < 16; i++) {
-	putchar('\t');
-	for(j=0; j<8; j++)
-	    printf("0x%02x ",
-		   (unsigned char)mstoupper[i*8+j]);
-	putchar('\n');
-    }
-    if(country_string)
-	printf("COUNTRY=%s\n", country_string);
+
     printf("mtools_fat_compatibility=%d\n",mtools_fat_compatibility);
     printf("mtools_skip_check=%d\n",mtools_skip_check);
     printf("mtools_lower_case=%d\n",mtools_ignore_short_case);

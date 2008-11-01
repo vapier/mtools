@@ -11,6 +11,7 @@
 #include "mainloop.h"
 #include "fs.h"
 #include "file.h"
+#include "file_name.h"
 
 typedef struct Arg_t {
 	int deltype;
@@ -56,10 +57,13 @@ static int del_entry(direntry_t *entry, MainParam_t *mp)
 		fputc('\n', stderr);
 	}
 
-	if ((entry->dir.attr & (ATTR_READONLY | ATTR_SYSTEM)) &&
-	    (ask_confirmation("%s: \"%s\" is read only, erase anyway (y/n) ? ",
-			      progname, entry->name)))
-		return ERROR_ONE;
+	if (entry->dir.attr & (ATTR_READONLY | ATTR_SYSTEM)) {
+		char tmp[4*MAX_VNAMELEN+1];
+		wchar_to_native(entry->name,tmp,MAX_VNAMELEN);
+		if (ask_confirmation("%s: \"%s\" is read only, erase anyway (y/n) ? ",
+				     progname, tmp))
+			return ERROR_ONE;
+	}
 	if (fatFreeWithDirentry(entry)) 
 		return ERROR_ONE;
 
@@ -75,14 +79,14 @@ static int del_file(direntry_t *entry, MainParam_t *mp)
 	Arg_t *arg = (Arg_t *) mp->arg;
 	MainParam_t sonmp;
 	int ret;
-	int r;
+	int r;	
 
 	sonmp = *mp;
 	sonmp.arg = mp->arg;
 
 	r = 0;
 	if (IS_DIR(entry)){
-		/* a directory */
+		/* a directory */		
 		SubDir = OpenFileByDirentry(entry);
 		initializeDirentry(&subEntry, SubDir);
 		ret = 0;

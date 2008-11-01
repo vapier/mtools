@@ -13,7 +13,7 @@ typedef struct MainParam_t {
 	int (*callback)(direntry_t *, struct MainParam_t *);
 	int (*unixcallback)(struct MainParam_t *mp);
 
-	void *arg; /* command-specific parameters 
+	void *arg; /* command-specific parameters
 		    * to be passed to callback */
 
        	int openflags; /* flags used to open disk */
@@ -28,7 +28,7 @@ typedef struct MainParam_t {
 	Stream_t *File;
 
 	direntry_t *direntry;  /* dir of this entry */
-	char *unixSourceName;  /* filename of the last opened Unix source 
+	char *unixSourceName;  /* filename of the last opened Unix source
 				* file (Unix equiv of Dos direntry) */
 
 	Stream_t *targetDir; /* directory where to place files */
@@ -46,6 +46,8 @@ typedef struct MainParam_t {
 	char mcwd[MAX_PATH+4];
 
 	char *fileName; /* resolved Unix filename */
+
+	char targetBuffer[4*MAX_VNAMELEN+1]; /* buffer for target name */
 } MainParam_t;
 
 void init_mp(MainParam_t *MainParam);
@@ -55,7 +57,7 @@ int target_lookup(MainParam_t *mp, const char *arg);
 
 Stream_t *open_root_dir(unsigned char drivename, int flags, int *isRop);
 
-const char *mpGetBasename(MainParam_t *mp); /* statically allocated 
+const char *mpGetBasename(MainParam_t *mp); /* statically allocated
 					     * string */
 
 void mpPrintFilename(FILE *file, MainParam_t *mp);
@@ -65,12 +67,17 @@ char *mpBuildUnixFilename(MainParam_t *mp); /* dynamically allocated, must
 					     * be freed */
 
 int isSpecial(const char *name);
+#ifdef HAVE_WCHAR_H
+int isSpecialW(const wchar_t *name);
+#else
+#define isSpecialW isSpecial
+#endif
 
 #define MISSED_ONE 2  /* set if one cmd line argument didn't match any files */
 #define GOT_ONE 4     /* set if a match was found, used for exit status */
-#define NO_CWD 8     /* file not found while looking for current working 
+#define NO_CWD 8     /* file not found while looking for current working
 		      * directory */
-#define ERROR_ONE 16 /* flat out error, such as problems with target file, 
+#define ERROR_ONE 16 /* flat out error, such as problems with target file,
 			interrupt by user, etc. */
 #define STOP_NOW 32 /* stop as soon as possible, not necessarily an error */
 

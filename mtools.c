@@ -42,8 +42,15 @@ static const struct dispatch {
 
 int main(int argc,char **argv)
 {
-	const char *name;
 	unsigned int i;
+	const char *name;
+
+#ifdef HAVE_SETLOCALE
+	char *locale;
+	locale=setlocale(LC_ALL, "");
+	if(locale == NULL || !strcmp(locale, "C"))
+		setlocale(LC_ALL, "en_US");
+#endif
 
 	init_privs();
 #ifdef __EMX__

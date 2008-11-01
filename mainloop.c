@@ -12,6 +12,7 @@
 #include "mainloop.h"
 #include "plain_io.h"
 #include "file.h"
+#include "file_name.h"
 
 
 /* Fix the info in the MCWD file to be a proper directory name.
@@ -70,7 +71,7 @@ static const char *fix_mcwd(char *ans)
 }
 
 int unix_dir_loop(Stream_t *Stream, MainParam_t *mp); 
-int unix_loop(Stream_t *Stream, MainParam_t *mp, char *arg, 
+int unix_loop(Stream_t *Stream, MainParam_t *mp, char *arg,
 	      int follow_dir_link);
 
 static int _unix_loop(Stream_t *Dir, MainParam_t *mp, const char *filename)
@@ -121,8 +122,8 @@ int unix_loop(Stream_t *Stream, MainParam_t *mp, char *arg, int follow_dir_link)
 			   S_ISLNK(buf.st_mode)) {
 				/* skip links to directories in order to avoid
 				 * infinite loops */
-				fprintf(stderr, 
-					"skipping directory symlink %s\n", 
+				fprintf(stderr,
+					"skipping directory symlink %s\n",
 					arg);
 				return 0;				
 			}
@@ -153,10 +154,22 @@ int isSpecial(const char *name)
 	return 0;			
 }
 
-
-static int checkForDot(int lookupflags, const char *name)
+#ifdef HAVE_WCHAR_H
+int isSpecialW(const wchar_t *name)
 {
-	return (lookupflags & NO_DOTS) && isSpecial(name);
+	if(name[0] == '\0')
+		return 1;
+	if(!wcscmp(name,L"."))
+		return 1;
+	if(!wcscmp(name,L".."))
+		return 1;
+	return 0;			
+}
+#endif
+
+static int checkForDot(int lookupflags, const wchar_t *name)
+{
+	return (lookupflags & NO_DOTS) && isSpecialW(name);
 }
 
 
@@ -222,19 +235,19 @@ static int _dos_loop(Stream_t *Dir, MainParam_t *mp, const char *filename)
 	direntry_t entry;
 	int ret;
 	int r;
-	
+
 	ret = 0;
 	r=0;
 	initializeDirentry(&entry, Dir);
 	while(!got_signal &&
 	      (r=vfat_lookup(&entry, filename, -1,
-			     mp->lookupflags, mp->shortname, 
+			     mp->lookupflags, mp->shortname,
 			     mp->longname)) == 0 ){
 		mp->File = NULL;
 		if(!checkForDot(mp->lookupflags,entry.name)) {
 			MyFile = 0;
 			if((mp->lookupflags & DO_OPEN) ||
-			   (IS_DIR(&entry) && 
+			   (IS_DIR(&entry) &&
 			    (mp->lookupflags & DO_OPEN_DIRS))) {
 				MyFile = mp->File = OpenFileByDirentry(&entry);
 			}
@@ -259,7 +272,7 @@ static int _dos_loop(Stream_t *Dir, MainParam_t *mp, const char *filename)
 	return ret;
 }
 
-static int recurs_dos_loop(MainParam_t *mp, const char *filename0, 
+static int recurs_dos_loop(MainParam_t *mp, const char *filename0,
 			   const char *filename1,
 			   lookupState_t *lookupState)
 {
@@ -274,7 +287,7 @@ static int recurs_dos_loop(MainParam_t *mp, const char *filename0,
 	int r;
 
 	while(1) {
-		/* strip dots and // */
+		/* strip dots and / */
 		if(!strncmp(filename0,"./", 2)) {
 			filename0 += 2;
 			continue;
@@ -297,7 +310,7 @@ static int recurs_dos_loop(MainParam_t *mp, const char *filename0,
 		break;
 	}
 
-	if(!strncmp(filename0,"../", 3) || 
+	if(!strncmp(filename0,"../", 3) ||
 	   (!strcmp(filename0, "..") && filename1)) {
 		/* up one level */
 		mp->File = getDirentry(mp->File)->Dir;
@@ -318,14 +331,14 @@ static int recurs_dos_loop(MainParam_t *mp, const char *filename0,
 	if(!ptr) {
 		if(mp->lookupflags & OPEN_PARENT) {
 			mp->targetName = filename0;
-			ret = handle_leaf(getDirentry(mp->File), mp, 
+			ret = handle_leaf(getDirentry(mp->File), mp,
 					  lookupState);
 			mp->targetName = 0;
 			return ret;
 		}
 		
 		if(!strcmp(filename0, ".") || !filename0[0]) {
-			return handle_leaf(getDirentry(mp->File), 
+			return handle_leaf(getDirentry(mp->File),
 					   mp, lookupState);
 		}
 
@@ -339,11 +352,11 @@ static int recurs_dos_loop(MainParam_t *mp, const char *filename0,
 		if(lookupState) {
 			lookupState->filename = filename0;
 			if(lookupState->nbContainers + lookupState->nbDirs > 0){
-				/* we have already one target, don't bother 
+				/* we have already one target, don't bother
 				 * with this one. */
 				FREE(&lookupState->container);
 			} else {
-				/* no match yet.  Remember this container for 
+				/* no match yet.  Remember this container for
 				 * later use */
 				lookupState->container = COPY(mp->File);
 			}
@@ -359,7 +372,7 @@ static int recurs_dos_loop(MainParam_t *mp, const char *filename0,
 	while(!(ret & STOP_NOW) &&
 	      !got_signal &&
 	      (r=vfat_lookup(&entry, filename0, length,
-			     lookupflags | NO_MSG, 
+			     lookupflags | NO_MSG,
 			     mp->shortname, mp->longname)) == 0 ){
 		if(checkForDot(lookupflags, entry.name))
 			/* while following the path, ignore the
@@ -503,7 +516,7 @@ int target_lookup(MainParam_t *mp, const char *arg)
 	if((mp->lookupflags & NO_UNIX) || (arg[0]
 #ifdef OS_mingw32msvc
 /* On Windows, support only the command-line image drive. */
-                                           && arg[0] == ':' 
+                                           && arg[0] == ':'
 #endif
                                            && arg[1] == ':' ))
 		return dos_target_lookup(mp, arg);
@@ -527,12 +540,12 @@ int main_loop(MainParam_t *mp, char **argv, int argc)
 		if ( got_signal )
 			break;
 		mp->originalArg = argv[i];
-		mp->basenameHasWildcard = strpbrk(_basename(mp->originalArg), 
+		mp->basenameHasWildcard = strpbrk(_basename(mp->originalArg),
 						  "*[?") != 0;
 		if (mp->unixcallback && (!argv[i][0]
 #ifdef OS_mingw32msvc
 /* On Windows, support only the command-line image drive. */
-                                         || argv[i][0] != ':' 
+                                         || argv[i][0] != ':'
 #endif
                                          || argv[i][1] != ':' ))
 			ret = unix_loop(0, mp, argv[i], 1);
@@ -584,9 +597,11 @@ void init_mp(MainParam_t *mp)
 
 const char *mpGetBasename(MainParam_t *mp)
 {
-	if(mp->direntry)
-		return mp->direntry->name;
-	else
+	if(mp->direntry) {
+		wchar_to_native(mp->direntry->name, mp->targetBuffer,
+				MAX_VNAMELEN+1);
+		return mp->targetBuffer;
+	} else
 		return _basename(mp->unixSourceName);
 }
 
