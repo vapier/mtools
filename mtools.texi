@@ -795,6 +795,7 @@ This is a sample drive description:
 @end example
 
 @node location information, geometry description, general information, per drive variables
+@subsection Location information
 @cindex Hdimage
 
 For each drive, you need to describe where its data is physically
