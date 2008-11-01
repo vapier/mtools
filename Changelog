@@ -1,5 +1,6 @@
-v20081101
+v4_0_0_pre1
 	Mtools-4 with Unicode support
+	Released 4.0.0_pre1
 v20071226
 	Debian build files
 	Fixed security issue with doctored file names
