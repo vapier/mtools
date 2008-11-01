@@ -61,7 +61,7 @@ typedef struct {
 
 #define min(a,b) ((a) < (b) ? (a) : (b))
 #define MAX_OFF_T_B(bits) \
-	(((mt_off_t) 1 << min(bits, sizeof(mt_off_t)*8 - 1)) - 1)
+	((((mt_off_t) 1 << min(bits-1, sizeof(mt_off_t)*8 - 2)) -1) << 1 | 1)
 
 #ifdef HAVE_LLSEEK
 # define SEEK_BITS 63
