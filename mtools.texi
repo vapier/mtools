@@ -131,28 +131,6 @@ change floppies too without unmounting and mounting.
 * Concept Index::     Concept Index
 @end menu
 
-@c MANskip 1
-
-@unnumbered Warning, beware of the cookie monster!
-
-If you are reading this documentation on the World Wide Web, this
-section might interest you.  If you are reading it using info, or as a
-printed document, or on one of our own sites
-(http://www.tux.org/pub/knaff and http://mtools.linux.lu) you do not need
-to worry.
-
-It has come to my attention that some of the Web sites which display
-this documentation deal so called "cookies".  These "cookies" are tags
-sent from the server to the browser, which enable the server to keep
-track of the sites that the user visits, and thus compromise his
-privacy.  If you use netscape, you can enable confirmation messages for
-any cookies sent to your browser by going into
-Options->Network_Preferences->Protocols and checking the box for "Show
-an Alert before Accepting a cookie". Then, when the alert box pops up,
-click "Cancel" to refuse the cookie and protect your privacy.
-
-@c MANend-skip 1
-
 @node Location, Common features, Top, Top
 @chapter Where to get mtools
 @cindex bugs
@@ -1001,7 +979,6 @@ version 4.0.0
 @item precmd
 @cindex Solaris (volcheck)
 @cindex Executing commands before opening the device
-
 On some variants of Solaris, it is necessary to call 'volcheck -v'
 before opening a floppy device, in order for the system to notice that
 there is indeed a disk in the drive. @code{precmd="volcheck -v"} in the
@@ -1011,7 +988,6 @@ drive clause establishes the desired behavior.
 @cindex raw device
 @cindex character devices
 @cindex blocksize
-
 This parameter represents a default block size to be always used on this
 device.  All I/O is done with multiples of this block size,
 independantly of the sector size registered in the filesystem's boot
