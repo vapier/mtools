@@ -975,7 +975,7 @@ architectures, and for plain files it has no effect at all.
 
 
 @node misc variables, misc flags, open flags, per drive variables
-@section General Purpose Drive Variables
+@subsection General Purpose Drive Variables
 
 The following general purpose drive variables are available.  Depending
 to their type, these variables can be set to a string (precmd) or
@@ -1027,7 +1027,7 @@ used.
 
 
 @node misc flags, multiple descriptions, misc variables, per drive variables
-@section General Purpose Drive Flags
+@subsection General Purpose Drive Flags
 
 A flag can either be set to 1 (enabled) or 0 (disabled). If the value is
 ommitted, it is enabled.  For example, @code{scsi} is equivalent to
