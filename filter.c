@@ -14,7 +14,7 @@ typedef struct Filter_t {
 	int mode;
 	int rw;
 	int lastchar;
-	int convertCharset;
+	/* int convertCharset; */
 } Filter_t;
 
 #define F_READ 1
@@ -51,7 +51,9 @@ static int read_filter(Stream_t *Stream, char *buf, mt_off_t iwhere, size_t len)
 		if (buf[i] == 0x1a)
 			break;
 		newchar = buf[i];
+		/*
 		if (This->convertCharset) newchar = contents_to_unix(newchar);
+		*/
 		This->lastchar = buf[j++] = newchar;
 	}
 
@@ -60,7 +62,7 @@ static int read_filter(Stream_t *Stream, char *buf, mt_off_t iwhere, size_t len)
 	return j;
 }
 
-static int write_filter(Stream_t *Stream, char *buf, mt_off_t iwhere, 
+static int write_filter(Stream_t *Stream, char *buf, mt_off_t iwhere,
 						size_t len)
 {
 	DeclareThis(Filter_t);
@@ -94,7 +96,9 @@ static int write_filter(Stream_t *Stream, char *buf, mt_off_t iwhere,
 			continue;
 		}
 		newchar = buf[j++];
+		/*
 		if (This->convertCharset) newchar = to_dos(newchar);
+		*/
 		buffer[i++] = newchar;
 	}
 	This->unixpos += j;
@@ -112,7 +116,7 @@ static int write_filter(Stream_t *Stream, char *buf, mt_off_t iwhere,
 
 static int free_filter(Stream_t *Stream)
 {
-	DeclareThis(Filter_t);       
+	DeclareThis(Filter_t);
 	char buffer=0x1a;
 
 	/* write end of file */
@@ -122,7 +126,7 @@ static int free_filter(Stream_t *Stream)
 		return 0;
 }
 
-static Class_t FilterClass = { 
+static Class_t FilterClass = {
 	read_filter,
 	write_filter,
 	0, /* flush */
@@ -144,7 +148,9 @@ Stream_t *open_filter(Stream_t *Next, int convertCharset)
 	This->Next = Next;
 	This->refs = 1;
 	This->Buffer = 0;
-	This->convertCharset = convertCharset;
+	/*
+	  This->convertCharset = convertCharset;
+	*/
 
 	return (Stream_t *) This;
 }
