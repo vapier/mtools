@@ -208,7 +208,6 @@ install-info: info
 	fi; \
 	if [ -n "$(INSTALL_INFO)" ] ; then \
 		$(INSTALL_INFO) --info-dir=$(DESTDIR)$(infodir) $(DESTDIR)$(infodir)/mtools.info; \
-		fi; \
 	fi
 
 uninstall-info:
