@@ -4,14 +4,6 @@
 #include "llong.h"
 #include "mtools.h"
 
-/* Warnings about integer overflow in expression can be ignored.  These are
- * due to the way that maximal values for those integers are computed: 
- * intentional overflow from smallest negative number (1000...) to highest 
- * positive number (0111...) by substraction of 1 */
-#ifdef __GNUC__
-#warning "The following warnings about integer overflow in expression can be safely ignored"
-#endif
-
 #if 1
 const mt_off_t max_off_t_31 = MAX_OFF_T_B(31); /* Floppyd */
 const mt_off_t max_off_t_41 = MAX_OFF_T_B(41); /* SCSI */
