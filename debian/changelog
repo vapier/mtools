@@ -1,3 +1,8 @@
+mtools (4.0.0-pre1) stable; urgency=low
+
+  * Unicode support
+
+ -- Alain Knaff <alain@knaff.lu>  Sat,  1 Nov 2008 20:52:58 +0100
 mtools (3.9.11-20071226) stable; urgency=low
 
   * first release of debian package
