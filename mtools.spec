@@ -18,7 +18,7 @@ disks (store up to 1992k on a high density 3 1/2 disk).
 %prep
 %setup -q
 #%patch1 -p1
-./configure --prefix=%{buildroot}%{_prefix} --sysconfdir=/etc --infodir=%{buildroot}%{_infodir} --mandir=%{buildroot}%{_mandir}
+./configure --prefix=%{buildroot}%{_prefix} --sysconfdir=/etc --infodir=%{buildroot}%{_infodir} --mandir=%{buildroot}%{_mandir} --enable-floppyd
 
 %build
 make
@@ -30,6 +30,7 @@ make
 make install
 make install-info
 strip %{buildroot}%{_bindir}/mtools %{buildroot}%{_bindir}/mkmanifest %{buildroot}%{_bindir}/floppyd
+rm %{buildroot}%{_infodir}/dir
 
 %files
 %defattr(-,root,root)
@@ -95,6 +96,7 @@ strip %{buildroot}%{_bindir}/mtools %{buildroot}%{_bindir}/mkmanifest %{buildroo
 %{_bindir}/mxtar
 %{_bindir}/tgz
 %{_bindir}/uz
+%{_bindir}/lz
 
 %pre
 groupadd floppy 2>/dev/null || echo -n ""
