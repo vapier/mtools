@@ -32,7 +32,7 @@ static void autorename(char *name,
 	tildapos = -1;
 
 	for(p=name; *p ; p++)
-		if((*p < ' ' && *p != '\005') || strchr(illegals, *p)) {
+		if (strchr(illegals, *p)) {
 			*p = '_';
 			bump = 0;
 		}
@@ -83,6 +83,9 @@ static void autorename(char *name,
 	if(dot)
 	    name[dotpos]=tmp;
 	/* replace the character if it wasn't a space */
+#ifdef DEBUG
+	printf("Out autorename for name=%s.\n", name);
+#endif
 }
 
 
