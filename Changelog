@@ -1,3 +1,6 @@
+v4_0_0_pre2
+	Use transliteration to represent characters which don't exist in
+	target set
 v4_0_0_pre1
 	Mtools-4 with Unicode support
 	Released 4.0.0_pre1
