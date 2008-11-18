@@ -1,4 +1,4 @@
-mtools (20081118) stable; urgency=low
+mtools (4.0.0-pre2) stable; urgency=low
 
   * Use transliteration to represent characters which don't exist in
   target set
