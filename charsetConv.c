@@ -22,20 +22,22 @@ struct doscp_t {
 
 doscp_t *cp_open(int codepage)
 {
-	char dosCp[6];
+	char dosCp[17];
 	doscp_t *ret;
 	iconv_t *from;
 	iconv_t *to;
 
 	if(codepage == 0)
 		codepage = mtools_default_codepage;
-	if(codepage < 0 || codepage > 999) {
+	if(codepage < 0 || codepage > 9999) {
 		fprintf(stderr, "Bad codepage %d\n", codepage);
 		return NULL;
 	}
 	sprintf(dosCp, "CP%d", codepage);
 
 	from = iconv_open("WCHAR_T", dosCp);
+
+	sprintf(dosCp, "CP%d//TRANSLIT", codepage);
 	to   =  iconv_open(dosCp, "WCHAR_T");
 	if(from == (iconv_t)-1 || to == (iconv_t)-1) {
 		fprintf(stderr, "Bad codepage %d %s\n", codepage,
@@ -51,6 +53,13 @@ doscp_t *cp_open(int codepage)
 	return ret;
 }
 
+void cp_close(doscp_t *cp)
+{
+	iconv_close(cp->to);
+	iconv_close(cp->from);
+	free(cp);
+}
+
 int dos_to_wchar(doscp_t *cp, char *dos, wchar_t *wchar, size_t len)
 {
 	int r;
@@ -64,30 +73,55 @@ int dos_to_wchar(doscp_t *cp, char *dos, wchar_t *wchar, size_t len)
 	return dptr-wchar;
 }
 
-
-void wchar_to_dos(doscp_t *cp,
-		  wchar_t *wchar, char *dos, size_t len, int *mangled)
+/**
+ * Converts len wide character to destination. Caller's responsibility to
+ * ensure that dest is large enough.
+ * mangled will be set if there has been an untranslatable character.
+ */
+static int safe_iconv(iconv_t conv, const wchar_t *wchar, char *dest,
+		      size_t len, int *mangled)
 {
 	int r;
+	int i;
 	size_t in_len=len*sizeof(wchar_t);
-	size_t out_len=len;
+	size_t out_len=len*4;
+	char *dptr = dest;
 
 	while(in_len > 0) {
-		r=iconv(cp->to, (char**)&wchar, &in_len, &dos, &out_len);
+		r=iconv(conv, (char**)&wchar, &in_len, &dptr, &out_len);
 		if(r >= 0 || errno != EILSEQ) {
 			/* everything transformed, or error that is _not_ a bad
 			 * character */
 			break;
 		}
-		*mangled = 1;
+		*mangled |= 1;
 
-		if(dos)
-			*dos++ = '_';
+		if(dptr)
+			*dptr++ = '_';
 		in_len--;
 
 		wchar++;
 		out_len--;
 	}
+
+	len = dptr-dest; /* how many dest characters have there been
+			    generated */
+
+	/* eliminate question marks which might have been formed by
+	   untransliterable characters */
+	for(i=0; i<len; i++) {
+		if(dest[i] == '?') {
+			dest[i] = '_';
+			*mangled |= 1;
+		}
+	}
+	return len;
+}
+
+void wchar_to_dos(doscp_t *cp,
+		  wchar_t *wchar, char *dos, size_t len, int *mangled)
+{
+	safe_iconv(cp->to, wchar, dos, len, mangled);
 }
 
 #else
@@ -131,6 +165,11 @@ doscp_t *cp_open(int codepage)
 		ret->to_dos[native & 0x7f] = 0x80 | i;
 	}
 	return ret;
+}
+
+void cp_close(doscp_t *cp)
+{
+	free(cp);
 }
 
 int dos_to_wchar(doscp_t *cp, char *dos, wchar_t *wchar, size_t len)
@@ -190,12 +229,47 @@ static inline size_t mbrtowc(wchar_t *pwc, const char *s,
 
 #endif
 
+#ifdef HAVE_ICONV_H
+
+#include <langinfo.h>
+
+static iconv_t to_native = NULL;
+
+static void initialize_to_native(void)
+{
+	char *li, *cp;
+	if(to_native != NULL)
+		return;
+	li = nl_langinfo(CODESET);
+	int len = strlen(li) + 11;
+	cp = safe_malloc(len);
+	strcpy(cp, li);
+	strcat(cp, "//TRANSLIT");
+	to_native = iconv_open(cp, "WCHAR_T");
+	if(to_native == NULL)
+		fprintf(stderr, "Could not allocate iconv for %s\n", cp);
+	free(cp);
+	if(to_native == NULL)
+		exit(1);
+}
+
+
+
+#endif
+
+
 /**
  * Convert wchar string to native, converting at most len wchar characters
  * Returns number of generated native characters
  */
 int wchar_to_native(const wchar_t *wchar, char *native, size_t len)
 {
+#ifdef HAVE_ICONV_H
+	int mangled;
+	initialize_to_native();
+	len = wcsnlen(wchar,len);
+	return safe_iconv(to_native, wchar, native, len, &mangled);
+#else
 	int i;
 	char *dptr = native;
 	mbstate_t ps;
@@ -212,6 +286,7 @@ int wchar_to_native(const wchar_t *wchar, char *native, size_t len)
 	}
 	*dptr='\0';
 	return dptr-native;
+#endif
 }
 
 /**

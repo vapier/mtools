@@ -3,6 +3,7 @@
 #include "stream.h"
 #include "mtools.h"
 #include "fsP.h"
+#include "file_name.h"
 
 #ifdef HAVE_LONG_LONG
 typedef long long fatBitMask;
@@ -977,6 +978,6 @@ int fs_free(Stream_t *Stream)
 		free(This->FatMap);
 	}
 	if(This->cp)
-		free(This->cp);
+		cp_close(This->cp);
 	return 0;
 }
