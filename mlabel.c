@@ -225,20 +225,19 @@ void mlabel(int argc, char **argv, int type)
 	}
 
 	if(!show || newLabel[0]){
-
-		dos_name_t shortname;
-		char *shrtLabel;
+		dos_name_t dosname;
+		const char *shrtLabel;
 		doscp_t *cp;
 		if(!newLabel[0])
 			shrtLabel = "NO NAME    ";
 		else
 			shrtLabel = newLabel;
 		cp = GET_DOSCONVERT(Fs);
-		label_name(cp, shrtLabel, verbose, &mangled, &shortname);
+		label_name(cp, shrtLabel, verbose, &mangled, &dosname);
 
 		if(have_boot && boot.descr >= 0xf0 &&
 		   labelBlock->dos4 == 0x29) {
-			strncpy(labelBlock->label, shortname.base, 11);
+			strncpy(labelBlock->label, dosname.base, 11);
 			need_write_boot = 1;
 
 		}
