@@ -780,7 +780,7 @@ int main (int argc, char** argv)
 
 	char *server_hostname=NULL;
 	char **device_name = NULL; 
-	char *floppy0 = "/dev/fd0";
+	const char *floppy0 = "/dev/fd0";
 	int n_dev;
 
 
@@ -825,7 +825,7 @@ int main (int argc, char** argv)
 		device_name = argv + optind;
 		n_dev = argc - optind;
 	} else {
-		device_name = &floppy0;
+		device_name = (char **)&floppy0;
 		n_dev = 1;
 	}
 
