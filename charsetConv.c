@@ -238,10 +238,11 @@ static iconv_t to_native = NULL;
 static void initialize_to_native(void)
 {
 	char *li, *cp;
+	int len;
 	if(to_native != NULL)
 		return;
 	li = nl_langinfo(CODESET);
-	int len = strlen(li) + 11;
+	len = strlen(li) + 11;
 	cp = safe_malloc(len);
 	strcpy(cp, li);
 	strcat(cp, "//TRANSLIT");
@@ -266,9 +267,12 @@ int wchar_to_native(const wchar_t *wchar, char *native, size_t len)
 {
 #ifdef HAVE_ICONV_H
 	int mangled;
+	int r;
 	initialize_to_native();
 	len = wcsnlen(wchar,len);
-	return safe_iconv(to_native, wchar, native, len, &mangled);
+	r=safe_iconv(to_native, wchar, native, len, &mangled);
+	native[r]='\0';
+	return r;
 #else
 	int i;
 	char *dptr = native;
