@@ -25,7 +25,8 @@ static int fast=0;
 #if 0
 static int testmode = 0;
 #endif
-static char *dirPath;
+static const char *dirPath;
+static char *dynDirPath;
 static char currentDrive;
 static Stream_t *currentDir;
 
@@ -281,7 +282,7 @@ static int enterDrive(Stream_t *Dir, char drive)
 	return 0;
 }
 
-static char *emptyString="<out-of-memory>";
+static const char *emptyString="<out-of-memory>";
 
 static void leaveDirectory(int haveError)
 {
@@ -290,7 +291,7 @@ static void leaveDirectory(int haveError)
 
 	if (!haveError) {
 		if(dirPath && dirPath != emptyString)
-			free(dirPath);
+			free(dynDirPath);
 		if(wide)
 			putchar('\n');
 		
@@ -315,11 +316,14 @@ static int enterDirectory(Stream_t *Dir)
 		return r;
 	currentDir = COPY(Dir);
 
-	dirPath = getPwd(getDirentry(Dir));
-	if(!dirPath)
+	dynDirPath = getPwd(getDirentry(Dir));
+	if(!dynDirPath)
 		dirPath=emptyString;
-	if(!dirPath[3] && concise)
-		dirPath[2]='\0';
+	else {
+		if(!dynDirPath[3] && concise)
+			dynDirPath[2]='\0';
+		dirPath=dynDirPath;
+	}
 
 	/* print directory title */
 	if(!concise)
@@ -513,8 +517,8 @@ void mdir(int argc, char **argv, int type)
 	MainParam_t mp;
 	int faked;
 	int c;
-	char *fakedArgv[] = { "." };
-	
+	const char *fakedArgv[] = { "." };
+
 	concise = 0;
 	recursive = 0;
 	wide = all = 0;
@@ -558,7 +562,7 @@ void mdir(int argc, char **argv, int type)
 	/* fake an argument */
 	faked = 0;
 	if (optind == argc) {
-		argv = fakedArgv;
+		argv = (char **)fakedArgv;
 		argc = 1;
 		optind = 0;
 	}
