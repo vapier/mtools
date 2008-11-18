@@ -1,3 +1,9 @@
+mtools (20081118) stable; urgency=low
+
+  * Use transliteration to represent characters which don't exist in
+  target set
+
+ -- Alain Knaff <alain@knaff.lu>  Tue, 18 Nov 2008 22:42:23 +0100
 mtools (4.0.0-pre1) stable; urgency=low
 
   * Unicode support
