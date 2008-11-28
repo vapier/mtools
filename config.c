@@ -490,16 +490,48 @@ static int set_def_format(struct device *dev)
 
 static int parse_one(int privilege);
 
+/* check for offset embedded in file name, in the form file@@offset[SKMG] */
+static off_t get_offset(char *name) {
+  char s, *ofsp, *endp = NULL;
+  off_t ofs;
+
+  ofsp = strstr(devices[cur_dev].name, "@@");
+  if (ofsp == NULL)
+    return 0; /* no separator */
+  ofs = strtol(ofsp+2, &endp, 0);
+  if (ofs <= 0)
+    return 0; /* invalid or missing offset */
+  s = *endp++;
+  if (s) {   /* trailing char, see if it is a size specifier */
+    endp++;
+    if (s == 's' || s == 'S')       /* sector */
+      ofs <<= 9;
+    else if (s == 'k' || s == 'K')  /* kb */
+      ofs <<= 10;
+    else if (s == 'm' || s == 'M')  /* Mb */
+      ofs <<= 20;
+    else if (s == 'g' || s == 'G')  /* Gb */
+      ofs <<= 30;
+    else
+      return 0;      /* invalid character */
+    if (*endp)
+      return 0;      /* extra char, invalid */
+  }
+  *ofsp = '\0';                              /* truncate file name */
+  return ofs;
+}
+
 void set_cmd_line_image(char *img, int flags) {
+  char *name;
   prepend();
   devices[cur_dev].drive = ':';
   default_drive = ':';
-  devices[cur_dev].name = strdup(img);
+  devices[cur_dev].name = name = strdup(img);
   devices[cur_dev].fat_bits = 0;
   devices[cur_dev].tracks = 0;
   devices[cur_dev].heads = 0;
   devices[cur_dev].sectors = 0;
-  devices[cur_dev].offset = 0;
+  devices[cur_dev].offset = get_offset(name);
   if (strchr(devices[cur_dev].name, '|')) {
     char *pipechar = strchr(devices[cur_dev].name, '|');
     *pipechar = 0;
