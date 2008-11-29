@@ -141,9 +141,9 @@ change floppies too without unmounting and mounting.
 
 Mtools can be found at the following places (and their mirrors):
 @example
-http://mtools.linux.lu/mtools-4.0.0_pre1.tar.gz
-ftp://www.tux.org/pub/knaff/mtools/mtools-4.0.0_pre1.tar.gz
-ftp://ibiblio.unc.edu/pub/Linux/utils/disk-management/mtools-4.0.0_pre1.tar.gz
+http://mtools.linux.lu/mtools-4.0.0.tar.gz
+ftp://www.tux.org/pub/knaff/mtools/mtools-4.0.0.tar.gz
+ftp://ibiblio.unc.edu/pub/Linux/utils/disk-management/mtools-4.0.0.tar.gz
 @end example
 
 Before reporting a bug, make sure that it has not yet been fixed in the
@@ -244,6 +244,17 @@ Example:
 
 This copies @code{file1} and @code{file2} from the image file
 (@code{my-image-file.bin}) to the @code{/tmp} directory.
+
+You can also supply an offset within the image file by including
+@code{@@@@}@var{offset} into the file name.
+
+Example:
+@example
+ mcopy -i my-image-file.bin@@@@1M ::file1 ::file2 .
+@end example
+
+This looks for the image at the offset of 1M in the file, rather than
+at its beginning.
 
 @node directory, long names, drive letters, Common features
 @section Current working directory
