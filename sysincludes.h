@@ -434,6 +434,22 @@ int strncasecmp(const char *s1, const char *s2, size_t n);
 char *getpass(const char *prompt);
 #endif
 
+#ifdef HAVE_WCHAR_H
+
+# ifndef HAVE_WCSDUP
+wchar_t *wcsdup(const wchar_t *wcs);
+# endif
+
+# ifndef HAVE_WCSCASECMP
+int wcscasecmp(const wchar_t *s1, const wchar_t *s2);
+# endif
+
+# ifndef HAVE_WCSNLEN
+size_t wcsnlen(const wchar_t *wcs, size_t l);
+# endif
+
+#endif
+
 #if 0
 #ifndef HAVE_BASENAME
 const char *basename(const char *filename);

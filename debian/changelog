@@ -1,3 +1,8 @@
+mtools (4.0.1) stable; urgency=low
+
+  * Missing functions on Solaris 
+
+ -- Alain Knaff <alain@knaff.lu>  Sun,  7 Dec 2008 21:38:55 +0100
 mtools (4.0.0) stable; urgency=low
 
   * Offset for -i-specified image files
