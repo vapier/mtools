@@ -145,7 +145,7 @@ void dos_name(doscp_t *toDos, const char *name, int verbose, int *mangled,
 wchar_t *unix_name(doscp_t *dosCp,
 		   const char *base, const char *ext, char Case, wchar_t *ret)
 {
-	char *s, tname[9], text[4], ans[11];
+	char *s, tname[9], text[4], ans[13];
 	int i;
 
 	strncpy(tname, base, 8);

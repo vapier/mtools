@@ -1,3 +1,5 @@
+v4_0_2
+	Off-by-2 error in unix_name in file_name.c
 v4_0_1
 	Missing functions on Solaris
 v4_0_0

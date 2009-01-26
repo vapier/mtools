@@ -1,3 +1,8 @@
+mtools (4.0.2) stable; urgency=low
+
+  * Fixed off-by-2 error in unix_name in file_name.c
+
+ -- Alain Knaff <alain@knaff.lu>  Mon, 26 Jan 2009 22:58:06 +0100
 mtools (4.0.1) stable; urgency=low
 
   * Missing functions on Solaris 
