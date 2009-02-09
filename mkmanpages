@@ -21,6 +21,7 @@ extract()
   #echo ".SH Description" >>$outfile
   
   cat man-warning.texi mtools.texi man-warning-end.texi |
+  egrep -v '@end copying|@copying|@insertcopying' |
   sed \
    -e "/^@c skipskipskip/,/^@node $command/d" \
    -e "/^@node [^,]*, [^,]*, $command, Commands$/,/^@bye/d" \
@@ -48,6 +49,7 @@ echo .TH mtools.1 3 \"$date\" $package >>mtools.1
 echo .SH Name >>mtools.1
 echo "mtools - utilities to access DOS disks in Unix." >>mtools.1
 cat mtools.texi |
+  egrep -v '@end copying|@copying|@insertcopying' |
 	sed \
 	 -e "1,/^@c MANstart 1/d" \
 	 -e '/^@c MANskip 1/,/^@c MANend-skip 1/d' \
@@ -85,6 +87,7 @@ echo .TH mtools.1 3 \"$date\" "MTOOLS" "MTOOLS" >>mtools.5
 echo .SH Name >>mtools.5
 echo "mtools.conf - mtools configuration files" >>mtools.5
 cat mtools.texi |
+  egrep -v '@end copying|@copying|@insertcopying' |
 	sed \
 		-e '1d' \
 		-e '/^@c MANskip 5/,/^@c MANend-skip 5/d' \
