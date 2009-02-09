@@ -39,6 +39,6 @@ void cp_close(doscp_t *cp);
 
 int wchar_to_native(const wchar_t *wchar, char *native, size_t len);
 int native_to_wchar(const char *native, wchar_t *wchar, size_t len,
-		    char *end, int *mangled);
+		    const char *end, int *mangled);
 
 #endif

@@ -314,7 +314,7 @@ int wchar_to_native(const wchar_t *wchar, char *native, size_t len)
  * exceeds end. Returns number of converted wchars
  */
 int native_to_wchar(const char *native, wchar_t *wchar, size_t len,
-		    char *end, int *mangled)
+		    const char *end, int *mangled)
 {
 	mbstate_t ps;
 	int i;
