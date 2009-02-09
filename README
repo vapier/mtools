@@ -13,8 +13,7 @@ a printed copy.  The info doc has a concept index.  Make use of it.
  You may get an info copy using the following command 'make info'.
 This can then be viewed using emacs' info mode, or using a standalone
 info viewer.
- Man pages are still present, but contain less information, and are
-less uptodate than the texinfo documentation.
+ Man pages are still present, but contain less information.
  If you do not have the necessary tools to view the texinfo doc, you
 may also find it on the World Wide Web at the following locations:
   http://mtools.linux.lu/mtools_toc.html
