@@ -179,6 +179,9 @@ struct bootsector {
 		struct oldboot_t old;
 	} ext;
 };
+
+#define uchr(boot) ((unsigned char*)boot)
+
 #define MAX_BOOT 4096
 
 
