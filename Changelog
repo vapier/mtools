@@ -1,3 +1,7 @@
+v4_0_3
+	Fix multipart pathname parsing bug in vfat.c (forgot limited length)
+	Supplied fallback define for putwc
+	Copyright notices in all sources
 v4_0_2
 	Off-by-2 error in unix_name in file_name.c
 v4_0_1

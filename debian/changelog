@@ -1,3 +1,10 @@
+mtools (4.0.3) stable; urgency=low
+
+  * Fix multipart pathname parsing bug in vfat.c (forgot limited length)
+  * Supplied fallback define for putwc
+  * Copyright notices in all sources
+
+ -- Alain Knaff <alain@knaff.lu>  Mon,  9 Feb 2009 21:46:01 +0100
 mtools (4.0.2) stable; urgency=low
 
   * Fixed off-by-2 error in unix_name in file_name.c
