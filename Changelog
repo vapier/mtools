@@ -1001,3 +1001,7 @@ v19950820 DCN
 	these checks, but it seems to be OK.
 
 	directory.c: dir_read()
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
