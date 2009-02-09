@@ -225,7 +225,7 @@ static int file_geom(Stream_t *Stream, struct device *dev,
 		    BootP >= InfTm + 2 && InfTm >= InfpX && InfpX >= Infp0 && 
 		    Infp0 >= 76 ){
 			for (sum=0, j=63; j < BootP; j++) 
-				sum += boot->jump[j];/* checksum */
+				sum += uchr(boot)[j];/* checksum */
 			dev->ssize = boot->jump[InfTm];
 			if (!sum && dev->ssize <= 7){
 				dev->use_2m = 0xff;

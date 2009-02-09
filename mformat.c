@@ -94,15 +94,15 @@ static int init_geometry_boot(struct bootsector *boot, struct device *dev,
 
 		/* Infp0 */
 		set_word(boot->ext.old.Infp0, i);
-		boot->jump[i++] = sectors0;
-		boot->jump[i++] = 108;
+		uchr(boot)[i++] = sectors0;
+		uchr(boot)[i++] = 108;
 		for(j=1; j<= sectors0; j++)
-			boot->jump[i++] = j;
+			uchr(boot)[i++] = j;
 
 		set_word(boot->ext.old.InfpX, i);
 		
-		boot->jump[i++] = 64;
-		boot->jump[i++] = 3;
+		uchr(boot)[i++] = 64;
+		uchr(boot)[i++] = 3;
 		nb_renum = i++;
 		sector2 = dev->sectors;
 		size2 = dev->ssize;
@@ -110,12 +110,12 @@ static int init_geometry_boot(struct bootsector *boot, struct device *dev,
 		while( sector2 ){
 			while ( sector2 < (1 << size2) >> 2 )
 				size2--;
-			boot->jump[i++] = 128 + j;
-			boot->jump[i++] = j++;
-			boot->jump[i++] = size2;
+			uchr(boot)[i++] = 128 + j;
+			uchr(boot)[i++] = j++;
+			uchr(boot)[i++] = size2;
 			sector2 -= (1 << size2) >> 2;
 		}
-		boot->jump[nb_renum] = ( i - nb_renum - 1 ) / 3;
+		uchr(boot)[nb_renum] = ( i - nb_renum - 1 ) / 3;
 
 		set_word(boot->ext.old.InfTm, i);
 
@@ -124,7 +124,7 @@ static int init_geometry_boot(struct bootsector *boot, struct device *dev,
 		while(sector2){
 			while ( sector2 < 1 << ( size2 - 2) )
 				size2--;
-			boot->jump[i++] = size2;
+			uchr(boot)[i++] = size2;
 			sector2 -= 1 << (size2 - 2 );
 		}
 		
@@ -133,7 +133,7 @@ static int init_geometry_boot(struct bootsector *boot, struct device *dev,
 
 		/* checksum */		
 		for (sum=0, j=64; j<i; j++) 
-			sum += boot->jump[j];/* checksum */
+			sum += uchr(boot)[j];/* checksum */
 		boot->ext.old.CheckSum=-sum;
 		return bootOffset;
 	} else {
