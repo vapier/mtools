@@ -304,6 +304,7 @@ typedef unsigned int uid_t;
 # define wcschr strchr
 # define wcspbrk strpbrk
 # define wchar_t char
+# define putwc putc
 #endif
 
 #ifdef HAVE_WCTYPE_H
