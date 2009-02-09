@@ -604,8 +604,8 @@ int vfat_lookup(direntry_t *direntry, const char *filename, int length,
 		length = strlen(filename);
 
 	if(filename != NULL)
-		length = native_to_wchar(filename, wfilename, MAX_VNAMELEN+1,
-					 0, 0);
+		length = native_to_wchar(filename, wfilename, MAX_VNAMELEN,
+					 filename+length, 0);
 	else {
 		wfilenamep = NULL;
 		length = 0;
