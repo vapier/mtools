@@ -1,15 +1,33 @@
 \input texinfo @c -*-texinfo-*-
-@c %**start of header
+@comment %**start of header
 @setfilename mtools.info
-@settitle Mtools
-@c UPDATE THIS DATE WHENEVER YOU MAKE CHANGES!
-@c For double-sided printing, uncomment:
-@c @setchapternewpage odd
-@setchapternewpage off
-@c %**end of header
+@include version.texi
+@settitle Mtools @value{VERSION}
+@syncodeindex pg cp
+@comment %**end of header
 
-@c MANskip 5
+@comment MANskip 5
 
+@copying
+This manual is for Mtools (version @value{VERSION}, @value{UPDATED}),
+which is a collection of tools to allow Unix systems to manipulate
+MS-DOS files
+
+Copyright @copyright{} 2007 Free Software Foundation, Inc.
+
+@quotation
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.2 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with the Front-Cover Texts being ``A GNU Manual,''
+and with the Back-Cover Texts as in (a) below.  A copy of the
+license is included in the section entitled ``GNU Free Documentation
+License.''
+
+(a) The FSF's Back-Cover Text is: ``You have the freedom to
+copy and modify this GNU manual.''
+@end quotation
+@end copying
 
 @ignore
 @unnumbered Name
@@ -17,73 +35,49 @@ mtools - utilities to access DOS disks in Unix.
 @end ignore
 
 
-@set EDITION 4.0.3
-@set VERSION 4.0.3
-@set UPDATED February 2009
 
 @iftex
 @finalout
 @end iftex
 
-@ifinfo
+@ifnottex
 @format
 START-INFO-DIR-ENTRY
 * Mtools: (mtools).        Mtools: utilities to access DOS disks in Unix.
 END-INFO-DIR-ENTRY
 @end format
-@end ifinfo
+@end ifnottex
 
-
-@ifinfo
-Mtools
-
-Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.3 or
-any later version published by the Free Software Foundation; with the
-Invariant Sections being ``GNU General Public License'', with the
-Front-Cover Texts being ``A GNU Manual'', and with the Back-Cover Texts
-as in (a) below.  A copy of the license is included in the section
-entitled ``GNU Free Documentation License''.
-     
-(a) The FSF's Back-Cover Text is: ``You have the freedom to
-copy and modify this GNU manual.
-@end ifinfo
 
 @titlepage
 @title Mtools
-@subtitle Accessing MS-DOS disks
-@subtitle Edition @value{EDITION}, for Mtools version @value{VERSION}
-@subtitle @value{UPDATED}
-@author by Alain Knaff
-@page
 
+@c The following two commands start the copyright page.
+@page
 @vskip 0pt plus 1filll
-Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.3 or
-any later version published by the Free Software Foundation; with the
-Invariant Sections being ``GNU General Public License'', with the
-Front-Cover Texts being ``A GNU Manual'', and with the Back-Cover Texts
-as in (a) below.  A copy of the license is included in the section
-entitled ``GNU Free Documentation License''.
-     
-(a) The FSF's Back-Cover Text is: ``You have the freedom to
-copy and modify this GNU manual.
+@insertcopying
 @end titlepage
 
-@ifinfo
+@c Output the table contents at the beginning
+@contents
+
+@ifnottex
 @node Top, Location, (dir), (dir)
+@top Mtools doc
 
-@end ifinfo
+This is mtools' documentation
+@end ifnottex
 
-@c MANstart 1
+@comment MANstart 1
 
 @unnumbered Introduction
-Mtools is a public domain collection of tools to allow Unix systems to
-manipulate MS-DOS files: read, write, and move around files on an MS-DOS
+Mtools is a collection of tools to allow Unix systems to manipulate
+MS-DOS files: read, write, and move around files on an MS-DOS
 filesystem (typically a floppy disk).  Where reasonable, each program
-attempts to emulate the MS-DOS equivalent command. However, unnecessary
-restrictions and oddities of DOS are not emulated. For instance, it is
-possible to move subdirectories from one subdirectory to another.
+attempts to emulate the MS-DOS equivalent command. However,
+unnecessary restrictions and oddities of DOS are not emulated. For
+instance, it is possible to move subdirectories from one subdirectory
+to another.
 
 Mtools is sufficient to give access to MS-DOS filesystems.  For
 instance, commands such as @code{mdir a:} work on the @code{a:} floppy
@@ -116,9 +110,9 @@ change floppies too without unmounting and mounting.
 
 Mtools can be found at the following places (and their mirrors):
 @example
-http://mtools.linux.lu/mtools-4.0.3.tar.gz
-ftp://www.tux.org/pub/knaff/mtools/mtools-4.0.3.tar.gz
-ftp://ibiblio.unc.edu/pub/Linux/utils/disk-management/mtools-4.0.3.tar.gz
+http://mtools.linux.lu/mtools-@value{VERSION}.tar.gz
+ftp://www.tux.org/pub/knaff/mtools/mtools-@value{VERSION}.tar.gz
+ftp://ibiblio.unc.edu/pub/Linux/utils/disk-management/mtools-@value{VERSION}.tar.gz
 @end example
 
 Before reporting a bug, make sure that it has not yet been fixed in the
@@ -565,17 +559,17 @@ mtools. Set the environmental variable MTOOLS_FAT_COMPATIBILITY (or the
 corresponding configuration file variable, @ref{global variables}) to
 bypass the fat checking.
 
-@c MANskip 1
+@comment MANskip 1
 
 @ignore
 @unnumbered Name
 mtools.conf - mtools configuration files
 
-@c MANend-skip 5
+@comment MANend-skip 5
 @section Description
 
 This manpage describes the configuration files for mtools. They 
-@c MANskip 5
+@comment MANskip 5
 @end ignore
 
 
@@ -589,7 +583,7 @@ This manpage describes the configuration files for mtools. They
 
  This sections explains the syntax of the configurations files for
 mtools. The configuration files
-@c MANend-skip 5
+@comment MANend-skip 5
 are called @file{/usr/local/etc/mtools.conf} and @file{~/.mtoolsrc}. If
 the environmental variable @code{MTOOLSRC} is set, its contents is used
 as the filename for a third configuration file. These configuration
@@ -598,7 +592,6 @@ files describe the following items:
 @itemize @bullet
 @item Global configuration flags and variables
 @item Per drive flags and variables
-@item Character translation tables
 @end itemize
 
 
@@ -1190,7 +1183,7 @@ same configuration file, in order to make upgrading easier. Support for
 the old syntax will be phased out eventually, and in order to discourage
 its use, I purposefully omit its description here.
 
-@c MANskip 5
+@comment MANskip 5
 
 @node Commands, Compiling mtools, Configuration, Top
 @chapter Command list
@@ -1764,7 +1757,7 @@ option)
 
 The following options are the same as for Dos's format command:
 
-@c xMANoptions
+@comment xMANoptions
 
 @table @code
 @item v
@@ -2582,7 +2575,7 @@ doesn't have raw devices)
  For the truly high capacity formats (XDF, 2m, etc), there is no clean
 and documented interface yet.
 
-@c MANskip 1
+@comment MANskip 1
 
 @node Command Index, Variable Index,  Porting mtools, Top
 @unnumbered Command Index
@@ -2596,8 +2589,6 @@ and documented interface yet.
 @unnumbered Concept index
 @printindex cp
 
-@contents
-
-@c MANend-skip 1
-@c MANend-skip 5
+@comment MANend-skip 1
+@comment MANend-skip 5
 @bye
