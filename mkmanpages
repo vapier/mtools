@@ -1,10 +1,14 @@
 #!/bin/bash
 
+# TODO
+VERSION=`cat version.texi | awk '$2 == "VERSION" {print $3}'`
+UPDATED=`cat version.texi | awk '$2 == "UPDATED" {print $3 " " $4}'`
+
 # extracts the manpage for a given command out of a texinfo doc
 unset LANG
 
 date=`date +%d%b%y`
-package="mtools-"`grep version patchlevel.c | sed 's/^.*"\(.*\)";/\1/'`
+package="mtools-"`grep mversion patchlevel.c | sed 's/^.*"\(.*\)";/\1/'`
 
 infile=/tmp/infile.$$
 
@@ -15,6 +19,7 @@ extract()
   outfile=`echo $command | tr '[A-Z]' '[a-z]'`.1
   
   echo \'\\\" t >>$outfile
+# '
   echo .TH\ $command\ 1\ \"$date\" $package >$outfile
   echo .SH Name >>$outfile
   grep -i $command cmdname >>$outfile
@@ -23,7 +28,7 @@ extract()
   cat man-warning.texi mtools.texi man-warning-end.texi |
   egrep -v '@end copying|@copying|@insertcopying' |
   sed \
-   -e "/^@c skipskipskip/,/^@node $command/d" \
+   -e "/^@c\(omment\)\? skipskipskip/,/^@node $command/d" \
    -e "/^@node [^,]*, [^,]*, $command, Commands$/,/^@bye/d" \
    -e "/^@node [^,]*, [^,]*, Commands/,/^@bye/d" \
    -e 's/^@section/@chapter/' \
@@ -31,8 +36,8 @@ extract()
    -e 's/^@chapter.*$/@chapter Description/' \
    -e 's/^@section/@chapter/' \
    -e 's/^@subs/@s/' \
-   -e 's/^@c xMANoptions/@chapter Options/' \
-   -e "s/^@c MAN/@MAN/"  |
+   -e 's/^@c\(omment\)\? xMANoptions/@chapter Options/' \
+   -e "s/^@c\(omment\)\? MAN/@MAN/"  |
   texi2roff -ma  |
   sed -f strip-pp.sed >>$outfile
 #  echo ".SH See Also" >>$outfile
@@ -45,17 +50,19 @@ for name in `cut -f1 -d\  cmdname` ; do
 done
 
 echo \'\\\" t >mtools.1
+# '
 echo .TH mtools.1 3 \"$date\" $package >>mtools.1
 echo .SH Name >>mtools.1
 echo "mtools - utilities to access DOS disks in Unix." >>mtools.1
 cat mtools.texi |
   egrep -v '@end copying|@copying|@insertcopying' |
 	sed \
-	 -e "1,/^@c MANstart 1/d" \
-	 -e '/^@c MANskip 1/,/^@c MANend-skip 1/d' \
-	 -e '/^@c MANend-skip 5/d' \
-	 -e '/^@c MANend 5/d' \
-	 -e "s/^@c MAN/@MAN/"  |
+	 -e "1,/^@c\(omment\)\? MANstart 1/d" \
+	 -e '/^@c\(omment\)\? MANskip 1/,/^@c\(omment\)\? MANend-skip 1/d' \
+	 -e '/^@c\(omment\)\? MANend-skip 5/d' \
+	 -e '/^@c\(omment\)\? MANend 5/d' \
+	 -e "s/^@c\(omment\)\? MAN/@MAN/" \
+	 -e "s/@value{VERSION}/$VERSION/g" |
 	texi2roff -ma  |
 	sed -f strip-pp.sed >>mtools.1
 
@@ -83,6 +90,7 @@ echo mtoolstest >>mtools.1
 echo mtype >>mtools.1
 
 echo \'\\\" t >mtools.5
+# '
 echo .TH mtools.1 3 \"$date\" "MTOOLS" "MTOOLS" >>mtools.5
 echo .SH Name >>mtools.5
 echo "mtools.conf - mtools configuration files" >>mtools.5
@@ -90,10 +98,18 @@ cat mtools.texi |
   egrep -v '@end copying|@copying|@insertcopying' |
 	sed \
 		-e '1d' \
-		-e '/^@c MANskip 5/,/^@c MANend-skip 5/d' \
-	        -e '/^@c MANend-skip 1/d' \
-	        -e '/^@c MANskip 1/d' \
-		-e "s/^@c MAN/@MAN/"  |
+		-e '/^@c\(omment\)\? MANskip 5/,/^@c\(omment\)\? MANend-skip 5/d' \
+	        -e '/^@c\(omment\)\? MANend-skip 1/d' \
+	        -e '/^@c\(omment\)\? MANskip 1/d' \
+		-e "s/^@c\(omment\)\? MAN/@MAN/"  \
+		-e "/@include/ d" \
+		-e "s/@value{VERSION}/$VERSION/g" \
+		-e "s/@value{UPDATED}/$UPDATED/g" \
+		-e "/@top/d" \
+		-e "/@format/d" \
+		-e "/@end format/d" \
+		-e "/@ifnottex/d" \
+		-e "/@end ifnottex/d" |
 	texi2roff -ma  |
 	sed -f strip-pp.sed |
 	sed 's/\.SS Description/.SH Description/' >>mtools.5
