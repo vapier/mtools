@@ -296,6 +296,9 @@ typedef unsigned int uid_t;
 
 #ifdef HAVE_WCHAR_H
 # include <wchar.h>
+# ifndef HAVE_PUTWC
+#  define putwc(c,f) fprintf((f),"%lc",(c))
+# endif
 #else
 # define wcscmp strcmp
 # define wcscasecmp strcasecmp
