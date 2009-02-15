@@ -595,7 +595,11 @@ static uid_t getuserid(char *user)
 		}
 	else
 		{
+#ifdef HAVE_GETUSERID
+			id = getuserid("nobody");
+#else
 			uid = 65535;
+#endif
 		}
 
 #if DEBUG
@@ -621,7 +625,11 @@ static uid_t getgroupid(uid_t uid)
 		}
 	else
 		{
+#ifdef HAVE_GETGROUPID
+			id = getgroupid(uid);
+#else
 			gid = 65535;
+#endif
 		}
 
 #if DEBUG
