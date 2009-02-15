@@ -68,6 +68,10 @@ struct scsi_ioctl_command {
 #include <camlib.h>
 #endif
 
+#if defined(OS_netbsd) || defined(OS_netbsdelf)
+#include <sys/scsiio.h>
+#endif
+
 int scsi_max_length(void)
 {
 #ifdef OS_linux
@@ -285,6 +289,38 @@ int scsi_cmd(int fd, unsigned char *cdb, int cmdlen, scsi_io_mode_t mode,
 	  return -1;
       }
       return 0;
+#elif defined(OS_netbsd) || defined(OS_netbsdelf)
+ 	struct scsireq sc;
+
+	memset(&sc, 0, sizeof(sc));
+	memcpy(sc.cmd, cdb, cmdlen);
+	sc.cmdlen = cmdlen;
+	sc.databuf = data;
+	sc.datalen = len;
+	sc.senselen = 0;
+	sc.timeout = 10000;
+	switch (mode) {
+	case SCSI_IO_READ:
+	  sc.flags = SCCMD_READ;
+	  break;
+	case SCSI_IO_WRITE:
+	  sc.flags = SCCMD_WRITE;
+	  break;
+	}
+
+	if (ioctl(fd, SCIOCCOMMAND, &sc) == -1) {
+                perror("SCIOCCOMMAND ioctl");
+                return -1;
+	}
+
+	if (sc.retsts) {
+                errno = EIO;
+                fprintf(stderr, "SCSI command failed, retsts %d\n", 
+sc.retsts);
+                return -1;
+	}
+
+        return 0;
 #else
       fprintf(stderr, "scsi_io not implemented\n");
       return -1;
