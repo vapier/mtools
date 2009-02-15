@@ -140,7 +140,8 @@ strdup strcspn strspn strtoul strtol memcpy strpbrk memset setenv \
 seteuid setresuid \
 tcsetattr tcflush basename fchdir media_oldaliases llseek lseek64 \
 snprintf stat64 setlocale \
-wcsdup wcscasecmp wcsnlen)
+wcsdup wcscasecmp wcsnlen putwc \
+getuserid getgroupid)
 AC_FUNC_SETPGRP
 
 dnl
