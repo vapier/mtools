@@ -1,3 +1,8 @@
+v4_0_4
+	BSD support: SCSI, use getuserid/getgroupid in floppyd
+	Another attempt at putwc fix for OS/2
+	Further GNU fixes
+	Fallback for putwc if there is wchar (OS/2)
 v4_0_3
 	Fix multipart pathname parsing bug in vfat.c (forgot limited length)
 	Supplied fallback define for putwc

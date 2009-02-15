@@ -1,3 +1,11 @@
+mtools (4.0.4) stable; urgency=low
+
+  * BSD support: SCSI, use getuserid/getgroupid in floppyd
+  * Another attempt at putwc fix for OS/2
+  * Further GNU fixes
+  * Fallback for putwc if there is wchar (OS/2)
+
+ -- Alain Knaff <alain@knaff.lu>  Sun, 15 Feb 2009 16:18:32 +0100
 mtools (4.0.3) stable; urgency=low
 
   * Fix multipart pathname parsing bug in vfat.c (forgot limited length)
