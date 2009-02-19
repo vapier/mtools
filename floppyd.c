@@ -764,7 +764,7 @@ static void server_main_loop(int sock, char **device_name, int n_dev)
 /*
  * Print some basic help information.
  */
-static void usage(char *prog, const char *opt)
+static void usage(char *prog, const char *opt, int ret)
 {
 	if (opt)
 		{
@@ -777,7 +777,7 @@ static void usage(char *prog, const char *opt)
 	fprintf(stderr, "    -r user     Run as the specified user in server mode.\n");
 	fprintf(stderr, "    -b ipaddr   Bind to the specified ipaddr in server mode.\n");
 	fprintf(stderr, "    -l          Do not attempt to connect to localhost:0 to validate connection\n");
-	exit(1);
+	exit(ret);
 }
 
 
@@ -810,7 +810,7 @@ int main (int argc, char** argv)
 	/*
 	 * Parse the command line arguments.
 	 */
-	while ((arg = getopt(argc, argv, "ds:r:b:x:")) != EOF)
+	while ((arg = getopt(argc, argv, "ds:r:b:x:h")) != EOF)
 		{
 			switch (arg)
 				{
@@ -838,8 +838,11 @@ int main (int argc, char** argv)
 						dispName = strdup(optarg);
 						break;
 
+					case 'h':
+						usage(argv[0], NULL, 0);
+						break;
 					case '?':
-						usage(argv[0], NULL);
+						usage(argv[0], NULL, 1);
 						break;
 				}
 		}
@@ -885,10 +888,10 @@ int main (int argc, char** argv)
 	 * Test to make sure required args were provided and are valid.
 	 */
 	if (run_as_server && (bind_ip == INADDR_NONE)) {
-		usage(argv[0], "The server ipaddr is invalid.");
+		usage(argv[0], "The server ipaddr is invalid.", 1);
 	}
 	if (run_as_server && (bind_port == 0))	{
-		usage(argv[0], "No server port was specified (or it was invalid).");
+		usage(argv[0], "No server port was specified (or it was invalid).", 1);
 	}
 
 
