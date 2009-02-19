@@ -221,6 +221,26 @@ AC_DEFINE([HAVE_LONG_LONG],1,[Define when the compiler supports LONG_LONG type])
 fi
 ])dnl
 
+dnl ICE_CC_OFF64_T
+dnl -------------
+dnl
+dnl If the CC compiler supports `long long' type,  define `HAVE_OFF64_T'.
+dnl
+AC_DEFUN(ICE_CC_OFF64_T,
+[
+AC_MSG_CHECKING(whether ${CC} supports off64_t type)
+AC_CACHE_VAL(ice_cv_have_off64_t,
+[
+AC_TRY_COMPILE(,[off64_t a;],
+ice_cv_have_off64_t=yes,
+ice_cv_have_off64_t=no)
+])
+AC_MSG_RESULT($ice_cv_have_off64_t)
+if test "$ice_cv_have_off64_t" = yes; then
+AC_DEFINE([HAVE_OFF64_T],1,[Define when the compiler supports OFF64_T type])
+fi
+])dnl
+
 
 SFS_CHECK_OFF_T_64
 ICE_CC_LOFF_T
