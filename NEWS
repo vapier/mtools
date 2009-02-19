@@ -1,3 +1,8 @@
+v4_0_5
+	Make setpgrp() usage in floppyd conditional
+	Re-instate PACKED around structure (ARM)
+	LSEEK64
+	
 v4_0_4
 	BSD support: SCSI, use getuserid/getgroupid in floppyd
 	Another attempt at putwc fix for OS/2
