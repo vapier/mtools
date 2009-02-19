@@ -1,7 +1,7 @@
 #ifndef LOCK_DEV
 #define LOCK_DEV
 
-/*
+/*  Copyright 2009 Alain Knaff.
  *  This file is part of mtools.
  *
  *  Mtools is free software: you can redistribute it and/or modify

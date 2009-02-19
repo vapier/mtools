@@ -1,4 +1,4 @@
-/*
+/*  Copyright 2009 Alain Knaff.
  *  This file is part of mtools.
  *                              
  *  Mtools is free software: you can redistribute it and/or modify
@@ -20,7 +20,6 @@
 #include "msdos.h"
 #include "mtools.h"
 
-#include <iconv.h>
 #include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>
