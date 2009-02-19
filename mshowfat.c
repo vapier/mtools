@@ -59,13 +59,14 @@ static int unix_showfat(MainParam_t *mp)
 }
 
 
-static void usage(void)
+static void usage(int ret) NORETURN;
+static void usage(int ret)
 {
 	fprintf(stderr,
 		"Mtools version %s, dated %s\n", mversion, mdate);
 	fprintf(stderr,
 		"Usage: %s files\n", progname);
-	exit(1);
+	exit(ret);
 }
 
 void mshowfat(int argc, char **argv, int mtype)
@@ -78,19 +79,21 @@ void mshowfat(int argc, char **argv, int mtype)
 	init_clash_handling(& arg.ch);
 
 	/* get command line options */
-	while ((c = getopt(argc, argv, "i:")) != EOF) {
+	while ((c = getopt(argc, argv, "i:h")) != EOF) {
 		switch (c) {
 			case 'i':
 				set_cmd_line_image(optarg, 0);
 				break;
+			case 'h':
+				usage(0);
 			case '?':
-				usage();
+				usage(1);
 				break;
 		}
 	}
 
 	if (argc - optind < 1)
-		usage();
+		usage(1);
 
 	/* only 1 file to copy... */
 	init_mp(&arg.mp);

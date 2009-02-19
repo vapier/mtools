@@ -214,7 +214,8 @@ static int rename_oldsyntax(direntry_t *entry, MainParam_t *mp)
 }
 
 
-static void usage(void)
+static void usage(int ret) NORETURN;
+static void usage(int ret)
 {
 	fprintf(stderr,
 		"Mtools version %s, dated %s\n", mversion, mdate);
@@ -223,7 +224,7 @@ static void usage(void)
 	fprintf(stderr,
 		"       %s [-vV] [-D clash_option] file [files...] target_directory\n", 
 		progname);
-	exit(1);
+	exit(ret);
 }
 
 void mmove(int argc, char **argv, int oldsyntax)
@@ -241,7 +242,7 @@ void mmove(int argc, char **argv, int oldsyntax)
 
 	/* get command line options */
 	arg.verbose = 0;
-	while ((c = getopt(argc, argv, "i:vD:o")) != EOF) {
+	while ((c = getopt(argc, argv, "i:vD:oh")) != EOF) {
 		switch (c) {
 			case 'i':
 				set_cmd_line_image(optarg, 0);
@@ -249,22 +250,24 @@ void mmove(int argc, char **argv, int oldsyntax)
 			case 'v':	/* dummy option for mcopy */
 				arg.verbose = 1;
 				break;
-			case '?':
-				usage();
 			case 'o':
 				handle_clash_options(&arg.ch, c);
 				break;
 			case 'D':
 				if(handle_clash_options(&arg.ch, *optarg))
-					usage();
+					usage(1);
 				break;
+			case 'h':
+				usage(0);
+			case '?':
+				usage(1);
 			default:
 				break;
 		}
 	}
 
 	if (argc - optind < 2)
-		usage();
+		usage(1);
 
 	init_mp(&arg.mp);		
 	arg.mp.arg = (void *) &arg;

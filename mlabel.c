@@ -78,12 +78,13 @@ int labelit(struct dos_name_t *dosname,
 	return 0;
 }
 
-static void usage(void)
+static void usage(int ret) NORETURN;
+static void usage(int ret)
 {
 	fprintf(stderr, "Mtools version %s, dated %s\n",
 		mversion, mdate);
 	fprintf(stderr, "Usage: %s [-vscVn] [-N serial] drive:\n", progname);
-	exit(1);
+	exit(ret);
 }
 
 
@@ -121,7 +122,7 @@ void mlabel(int argc, char **argv, int type)
 	clear = 0;
 	show = 0;
 
-	while ((c = getopt(argc, argv, "i:vcsnN:")) != EOF) {
+	while ((c = getopt(argc, argv, "i:vcsnN:h")) != EOF) {
 		switch (c) {
 			case 'i':
 				set_cmd_line_image(optarg, 0);
@@ -150,13 +151,15 @@ void mlabel(int argc, char **argv, int type)
 					exit(1);
 				}
 				break;
+			case 'h':
+				usage(0);
 			default:
-				usage();
+				usage(1);
 			}
 	}
 
 	if (argc - optind != 1 || !argv[optind][0] || argv[optind][1] != ':')
-		usage();
+		usage(1);
 
 	init_mp(&mp);
 	newLabel = argv[optind]+2;

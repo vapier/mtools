@@ -103,7 +103,8 @@ static int makeit(dos_name_t *dosname,
 }
 
 
-static void usage(void)
+static void usage(int ret) NORETURN;
+static void usage(int ret)
 {
 	fprintf(stderr,
 		"Mtools version %s, dated %s\n", mversion, mdate);
@@ -112,7 +113,7 @@ static void usage(void)
 	fprintf(stderr,
 		"       %s [-D clash_option] file [files...] target_directory\n",
 		progname);
-	exit(1);
+	exit(ret);
 }
 
 Stream_t *createDir(Stream_t *Dir, const char *filename, ClashHandling_t *ch,
@@ -161,27 +162,30 @@ void mmd(int argc, char **argv, int type)
 	init_clash_handling(& arg.ch);
 
 	/* get command line options */
-	while ((c = getopt(argc, argv, "i:D:o")) != EOF) {
+	while ((c = getopt(argc, argv, "i:D:oh")) != EOF) {
 		switch (c) {
 			case 'i':
 				set_cmd_line_image(optarg, 0);
 				break;
 			case '?':
-				usage();
+				usage(1);
 			case 'o':
 				handle_clash_options(&arg.ch, c);
 				break;
 			case 'D':
 				if(handle_clash_options(&arg.ch, *optarg))
-					usage();
+					usage(1);
 				break;
+			case 'h':
+				usage(0);
 			default:
+				usage(1);
 				break;
 		}
 	}
 
 	if (argc - optind < 1)
-		usage();
+		usage(1);
 
 	init_mp(&arg.mp);
 	arg.mp.arg = (void *) &arg;
