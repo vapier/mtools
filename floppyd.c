@@ -940,10 +940,12 @@ int main (int argc, char** argv)
 					 * Start a new session and group.
 					 */
 					setsid();
+#ifdef HAVE_SETPGRP
 #ifdef SETPGRP_VOID
 					setpgrp();
 #else
 					setpgrp(0,0);
+#endif
 #endif
 #if DEBUG
 					close(2);
