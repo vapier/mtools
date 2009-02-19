@@ -1,3 +1,10 @@
+mtools (4.0.5) stable; urgency=low
+
+  * Make setpgrp() usage in floppyd conditional
+  * Re-instate PACKED around structure (ARM)
+  * LSEEK64
+
+ -- Alain Knaff <alain@knaff.lu>  Thu, 19 Feb 2009 23:55:04 +0100
 mtools (4.0.4) stable; urgency=low
 
   * BSD support: SCSI, use getuserid/getgroupid in floppyd

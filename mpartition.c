@@ -261,7 +261,8 @@ static void setsize0(unsigned long capacity,unsigned int *cyls,
 }
 
 
-static void usage(void)
+static void usage(int ret) NORETURN;
+static void usage(int ret)
 {
 	fprintf(stderr, 
 		"Mtools version %s, dated %s\n", mversion, mdate);
@@ -270,7 +271,7 @@ static void usage(void)
 			"[-t cylinders] "
 		"[-h heads] [-T type] [-b begin] [-l length] "
 		"drive\n", progname);
-	exit(1);
+	exit(ret);
 }
 
 void mpartition(int argc, char **argv, int dummy)
@@ -404,13 +405,13 @@ void mpartition(int argc, char **argv, int dummy)
 				break;
 
 			default:
-				usage();
+				usage(1);
 		}
 	}
 
 	if (argc - optind != 1 ||
 	    !argv[optind][0] || argv[optind][1] != ':')
-		usage();
+		usage(1);
 	
 	drive = toupper(argv[optind][0]);
 
