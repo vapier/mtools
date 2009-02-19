@@ -485,8 +485,8 @@ static int unix_to_dos(MainParam_t *mp)
 	return dos_write(0, mp, 1);
 }
 
-
-static void usage(void)
+static void usage(int ret) NORETURN;
+static void usage(int ret)
 {
 	fprintf(stderr,
 		"Mtools version %s, dated %s\n", mversion, mdate);
@@ -495,7 +495,7 @@ static void usage(void)
 	fprintf(stderr,
 		"       %s [-spatnmQVBT] [-D clash_option] sourcefile [sourcefiles...] targetdirectory\n", 
 		progname);
-	exit(1);
+	exit(ret);
 }
 
 void mcopy(int argc, char **argv, int mtype)
@@ -520,7 +520,7 @@ void mcopy(int argc, char **argv, int mtype)
 	arg.convertCharset = 0;
 	arg.type = mtype;
 	fastquit = 0;
-	while ((c = getopt(argc, argv, "i:abB/sptTnmvQD:o")) != EOF) {
+	while ((c = getopt(argc, argv, "i:abB/sptTnmvQD:oh")) != EOF) {
 		switch (c) {
 			case 'i':
 				set_cmd_line_image(optarg, 0);
@@ -559,17 +559,19 @@ void mcopy(int argc, char **argv, int mtype)
 				break;
 			case 'D':
 				if(handle_clash_options(&arg.ch, *optarg))
-					usage();
+					usage(1);
 				break;
+			case 'h':
+				usage(0);
 			case '?':
-				usage();
+				usage(1);
 			default:
 				break;
 		}
 	}
 
 	if (argc - optind < 1)
-		usage();
+		usage(1);
 
 	init_mp(&arg.mp);
 	arg.mp.lookupflags = ACCEPT_PLAIN | ACCEPT_DIR | DO_OPEN | NO_DOTS;

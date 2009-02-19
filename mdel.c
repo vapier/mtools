@@ -138,14 +138,14 @@ static int del_file(direntry_t *entry, MainParam_t *mp)
 	return del_entry(entry, mp);
 }
 
-
-static void usage(void)
+static void usage(int ret) NORETURN;
+static void usage(int ret)
 {
 	fprintf(stderr, 
 		"Mtools version %s, dated %s\n", mversion, mdate);
 	fprintf(stderr, 
 		"Usage: %s [-v] msdosfile [msdosfiles...]\n", progname);
-	exit(1);
+	exit(ret);
 }
 
 void mdel(int argc, char **argv, int deltype)
@@ -155,7 +155,7 @@ void mdel(int argc, char **argv, int deltype)
 	int c,i;
 
 	arg.verbose = 0;
-	while ((c = getopt(argc, argv, "i:v")) != EOF) {
+	while ((c = getopt(argc, argv, "i:vh")) != EOF) {
 		switch (c) {
 			case 'i':
 				set_cmd_line_image(optarg, 0);
@@ -163,13 +163,15 @@ void mdel(int argc, char **argv, int deltype)
 			case 'v':
 				arg.verbose = 1;
 				break;
+			case 'h':
+				usage(0);
 			default:
-				usage();
+				usage(1);
 		}
 	}
 
 	if(argc == optind)
-		usage();
+		usage(1);
 
 	init_mp(&mp);
 	mp.callback = del_file;

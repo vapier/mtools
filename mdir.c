@@ -513,7 +513,8 @@ static int test_directory(direntry_t *entry, MainParam_t *mp)
 }
 #endif
 
-static void usage(void)
+static void usage(int ret) NORETURN;
+static void usage(int ret)
 {
 		fprintf(stderr, "Mtools version %s, dated %s\n",
 			mversion, mdate);
@@ -522,7 +523,7 @@ static void usage(void)
 		fprintf(stderr,
 			"       %s: [-V] [-w] [-a] [-b] [-s] [-f] msdosfile [msdosfiles...]\n",
 			progname);
-		exit(1);
+		exit(ret);
 }
 
 
@@ -538,7 +539,7 @@ void mdir(int argc, char **argv, int type)
 	recursive = 0;
 	wide = all = 0;
 					/* first argument */
-	while ((c = getopt(argc, argv, "i:waXbfds/")) != EOF) {
+	while ((c = getopt(argc, argv, "i:waXbfds/h")) != EOF) {
 		switch(c) {
 			case 'i':
 				set_cmd_line_image(optarg, 0);
@@ -569,8 +570,10 @@ void mdir(int argc, char **argv, int type)
 				testmode = 1;
 				break;
 #endif
+			case 'h':
+				usage(0);
 			default:
-				usage();
+				usage(1);
 		}
 	}
 

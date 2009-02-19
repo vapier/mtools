@@ -25,13 +25,14 @@
 #include "mtools.h"
 #include "nameclash.h"
 
-static void usage(void)
+static void usage(int ret) NORETURN;
+static void usage(int ret)
 {
 	fprintf(stderr, 
 		"Mtools version %s, dated %s\n", mversion, mdate);
 	fprintf(stderr, 
 		"Usage: %s [-v] drive\n", progname);
-	exit(1);
+	exit(ret);
 }
 
 
@@ -73,7 +74,7 @@ void minfo(int argc, char **argv, int type)
 	Stream_t *Stream;
 	struct label_blk_t *labelBlock;
 	
-	while ((c = getopt(argc, argv, "i:v")) != EOF) {
+	while ((c = getopt(argc, argv, "i:vh")) != EOF) {
 		switch (c) {
 			case 'i':
 				set_cmd_line_image(optarg, 0);
@@ -81,17 +82,19 @@ void minfo(int argc, char **argv, int type)
 			case 'v':
 				verbose = 1;
 				break;
+			case 'h':
+				usage(0);
 			default:
-				usage();
+				usage(1);
 		}
 	}
 
 	if(argc == optind)
-		usage();
+		usage(1);
 
 	for(;optind < argc; optind++) {
 		if(!argv[optind][0] || argv[optind][1] != ':')
-			usage();
+			usage(1);
 		drive = toupper(argv[optind][0]);
 
 		if(! (Stream = find_device(drive, O_RDONLY, &dev, boot, 

@@ -66,14 +66,14 @@ static int unix_doctorfat(MainParam_t *mp)
 	return ERROR_ONE;
 }
 
-
-static void usage(void)
+static void usage(int ret) NORETURN;
+static void usage(int ret)
 {
 	fprintf(stderr,
 		"Mtools version %s, dated %s\n", mversion, mdate);
 	fprintf(stderr,
 		"Usage: [-b] %s file fat\n", progname);
-	exit(1);
+	exit(ret);
 }
 
 void mdoctorfat(int argc, char **argv, int mtype)
@@ -95,7 +95,7 @@ void mdoctorfat(int argc, char **argv, int mtype)
 	arg.setsize = 0;
 
 	/* get command line options */
-	while ((c = getopt(argc, argv, "i:bo:s:")) != EOF) {
+	while ((c = getopt(argc, argv, "i:bo:s:h")) != EOF) {
 		switch (c) {
 			case 'i':
 				set_cmd_line_image(optarg, 0);
@@ -110,14 +110,16 @@ void mdoctorfat(int argc, char **argv, int mtype)
 				arg.setsize=1;
 				arg.size = strtoul(optarg,0,0);
 				break;
+			case 'h':
+				usage(0);
 			case '?':
-				usage();
+				usage(1);
 				break;
 		}
 	}
 
 	if (argc - optind < 2)
-		usage();
+		usage(1);
 
 
 	/* only 1 file to copy... */
