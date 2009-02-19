@@ -1,4 +1,4 @@
-/*
+/*  Copyright 2009 Alain Knaff.
  *  This file is part of mtools.
  *
  *  Mtools is free software: you can redistribute it and/or modify
@@ -144,9 +144,8 @@ int main(int argc,char **argv)
 	/* print the version */
 	if(argc >= 2 && 
 	   (strcmp(argv[1], "-V") == 0 || strcmp(argv[1], "--version") ==0)) {
-		printf("%c%s version %s, dated %s\n", 
-		       toupper(name[0]), name+1,
-		       mversion, mdate);
+		printf("%s (GNU mtools) %s\n", 
+		       name, mversion);
 		printf("configured with the following options: ");
 #ifdef USE_XDF
 		printf("enable-xdf ");
