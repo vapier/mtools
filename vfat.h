@@ -1,7 +1,7 @@
 #ifndef MTOOLS_VFAT_H
 #define MTOOLS_VFAT_H
 
-/*
+/*  Copyright 2009 Alain Knaff.
  *  This file is part of mtools.
  *
  *  Mtools is free software: you can redistribute it and/or modify
@@ -28,7 +28,7 @@
 struct unicode_char {
 	unsigned char lchar;
 	unsigned char uchar;
-};
+} PACKED;
 
 
 /* #define MAX_VFAT_SUBENTRIES 32 */ /* Theoretical max # of VSEs */
