@@ -54,11 +54,12 @@
  * @returns n.a.
  *
  */
-static void usage(void)
+static void usage(int ret) NORETURN;
+static void usage(int ret)
 {
   fprintf(stderr, "Mtools version %s, dated %s\n", mversion, mdate);
   fprintf(stderr, "Usage: %s [-d] drive:\n", progname);
-  exit(1);
+  exit(ret);
 }
 
 /**
@@ -297,11 +298,11 @@ void mclasserase(int argc, char **argv, int type)
   if ( (argc != 2) & (argc != 3) & (argc != 4))
     { /* wrong num of arguments */
     printf ("mclasserase: wrong num of args\n");
-    usage();
+    usage(1);
   }
   else
   { /* correct num of arguments */
-    while ((c = getopt(argc, argv, "+p:d")) != EOF)
+    while ((c = getopt(argc, argv, "+p:dh")) != EOF)
     {
       switch (c)
       {
@@ -316,8 +317,10 @@ void mclasserase(int argc, char **argv, int type)
 	case 'p':
            printf("option -p not implemented yet\n"); 
            break;
+	case 'h':
+	  usage(0);
         case '?':
-           usage();
+           usage(1);
         default:
            break;
        }
@@ -331,7 +334,7 @@ void mclasserase(int argc, char **argv, int type)
    {
      if(!argv[optind][0] || argv[optind][1] != ':')
      {
-       usage();
+       usage(1);
      }
      drive = toupper(argv[optind][0]);
    }
