@@ -29,7 +29,7 @@
 #endif
 
 #ifndef MT_OFF_T
-# ifdef HAVE_LLSEEK || defined(HAVE_LSEEK64)
+# if defined(HAVE_LLSEEK) || defined(HAVE_LSEEK64)
 /* we have llseek. Now, what's its type called? loff_t or offset_t ? */
 #  ifdef HAVE_LOFF_T
 #   define MT_OFF_T loff_t
@@ -85,7 +85,7 @@ typedef struct {
 #define MAX_OFF_T_B(bits) \
 	((((mt_off_t) 1 << min(bits-1, sizeof(mt_off_t)*8 - 2)) -1) << 1 | 1)
 
-#ifdef HAVE_LLSEEK
+#if defined(HAVE_LLSEEK) || defined(HAVE_LSEEK64)
 # define SEEK_BITS 63
 #else
 # define SEEK_BITS (sizeof(off_t) * 8 - 1)
