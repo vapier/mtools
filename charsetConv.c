@@ -38,8 +38,9 @@ static char *wcharCp=NULL;
 
 static char* wcharTries[] = {
 	"WCHAR_T",
-	"UTF-16", "UTF-16BE", "UTF-16LE",
-	"UTF-32", "UTF-32BE", "UTF-32LE",
+	"UTF-32BE", "UTF-32LE",
+	"UTF-16BE", "UTF-16LE",
+	"UTF-32", "UTF-16"
 };
 
 static wchar_t *testString = L"ab";
