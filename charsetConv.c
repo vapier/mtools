@@ -34,6 +34,56 @@ struct doscp_t {
 	iconv_t to;
 };
 
+static char *wcharCp=NULL;
+
+static char* wcharTries[] = {
+	"WCHAR_T",
+	"UTF-16", "UTF-16BE", "UTF-16LE",
+	"UTF-32", "UTF-32BE", "UTF-32LE",
+};
+
+static wchar_t *testString = L"ab";
+
+static int try(char *testCp) {
+	size_t res;
+	char *inbuf = (char *)testString;
+	size_t inbufLen = 2*sizeof(wchar_t);
+	char outbuf[3];
+	char *outbufP = outbuf;
+	size_t outbufLen = 2*sizeof(char);
+	iconv_t test = iconv_open("ASCII", testCp);
+	
+	if(test == (iconv_t) -1)
+		goto fail0;
+	res = iconv(test,
+		    &inbuf, &inbufLen,
+		    &outbufP, &outbufLen);
+	if(res != 0 || outbufLen != 0 || inbufLen != 0)
+		goto fail;
+	if(memcmp(outbuf, "ab", 2))
+		goto fail;
+	/* fprintf(stderr, "%s ok\n", testCp); */
+	return 1;
+ fail:
+	iconv_close(test);
+ fail0:
+	/*fprintf(stderr, "%s fail\n", testCp);*/
+	return 0;
+}
+
+static const char *getWcharCp() {
+	int i;
+	if(wcharCp != NULL)
+		return wcharCp;	
+	for(i=0; i< sizeof(wcharTries) / sizeof(wcharTries[0]); i++) {
+		if(try(wcharTries[i]))
+			return (wcharCp=wcharTries[i]);
+	}
+	fprintf(stderr, "No codepage found for wchar_t\n");
+	return NULL;
+}
+
+
 doscp_t *cp_open(int codepage)
 {
 	char dosCp[17];
@@ -47,15 +97,28 @@ doscp_t *cp_open(int codepage)
 		fprintf(stderr, "Bad codepage %d\n", codepage);
 		return NULL;
 	}
-	sprintf(dosCp, "CP%d", codepage);
 
-	from = iconv_open("WCHAR_T", dosCp);
+	getWcharCp();
+
+	sprintf(dosCp, "CP%d", codepage);
+	from = iconv_open(wcharCp, dosCp);
+	if(from == (iconv_t)-1) {
+		fprintf(stderr, "Error converting to codepage %d %s\n",
+			codepage, strerror(errno));
+		return NULL;
+	}
 
 	sprintf(dosCp, "CP%d//TRANSLIT", codepage);
-	to   =  iconv_open(dosCp, "WCHAR_T");
-	if(from == (iconv_t)-1 || to == (iconv_t)-1) {
-		fprintf(stderr, "Bad codepage %d %s\n", codepage,
-			strerror(errno));
+	to   =  iconv_open(dosCp, wcharCp);
+	if(to == (iconv_t)-1) {
+		/* Transliteration not supported? */
+		sprintf(dosCp, "CP%d", codepage);
+		to   =  iconv_open(dosCp, wcharCp);
+	}
+	if(to == (iconv_t)-1) {
+		iconv_close(from);
+		fprintf(stderr, "Error converting to codepage %d %s\n",
+			codepage, strerror(errno));
 		return NULL;
 	}
 
