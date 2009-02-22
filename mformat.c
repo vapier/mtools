@@ -683,7 +683,7 @@ static void calc_fs_parameters_32(unsigned long tot_sectors,
 
 
 
-static void usage(void)
+static void usage(int ret)
 {
 	fprintf(stderr,
 		"Mtools version %s, dated %s\n", mversion, mdate);
@@ -700,7 +700,7 @@ static void usage(void)
 		"[-S hardsectorsize] [-M softsectorsize] [-3] "
 		"[-2 track0sectors] [-0 rate0] [-A rateany] [-a]"
 		"device\n", progname);
-	exit(1);
+	exit(ret);
 }
 
 #ifdef OS_linux
@@ -827,6 +827,8 @@ void mformat(int argc, char **argv, int dummy)
 	rate_any = mtools_rate_any;
 
 	/* get command line options */
+	if(helpFlag(argc, argv))
+		usage(0);
 	while ((c = getopt(argc,argv,
 			   "i:148f:t:n:v:qub"
 			   "kB:r:L:IFCc:Xh:s:l:N:H:M:S:2:30:Aad:m:"))!= EOF) {
@@ -892,10 +894,10 @@ void mformat(int argc, char **argv, int dummy)
 			case 'S':
 				argssize = atoi(optarg) | 0x80;
 				if(argssize < 0x81)
-					usage();
+					usage(1);
 				if(argssize >= 0x87) {
 					fprintf(stderr, "argssize must be less than 6\n");
-					usage();
+					usage(1);
 				}
 				break;
 
@@ -927,7 +929,7 @@ void mformat(int argc, char **argv, int dummy)
 				   msize != 2048 &&
 				   msize != 4096) {
 				  fprintf(stderr, "Only sector sizes of 512, 1024, 2048 or 4096 bytes are allowed\n");
-				  usage();
+				  usage(1);
 				}
 				break;
 
@@ -980,13 +982,13 @@ void mformat(int argc, char **argv, int dummy)
 				mediaDesc = strtoul(optarg,0,0);
 				break;
 			default:
-				usage();
+				usage(1);
 		}
 	}
 
 	if (argc - optind != 1 ||
 	    !argv[optind][0] || argv[optind][1] != ':')
-		usage();
+		usage(1);
 
 #ifdef USE_XDF
 	if(create && format_xdf) {

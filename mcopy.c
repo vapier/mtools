@@ -520,6 +520,8 @@ void mcopy(int argc, char **argv, int mtype)
 	arg.convertCharset = 0;
 	arg.type = mtype;
 	fastquit = 0;
+	if(helpFlag(argc, argv))
+		usage(0);
 	while ((c = getopt(argc, argv, "i:abB/sptTnmvQD:oh")) != EOF) {
 		switch (c) {
 			case 'i':

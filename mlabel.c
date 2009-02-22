@@ -122,6 +122,8 @@ void mlabel(int argc, char **argv, int type)
 	clear = 0;
 	show = 0;
 
+	if(helpFlag(argc, argv))
+		usage(0);
 	while ((c = getopt(argc, argv, "i:vcsnN:h")) != EOF) {
 		switch (c) {
 			case 'i':

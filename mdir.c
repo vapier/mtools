@@ -539,6 +539,8 @@ void mdir(int argc, char **argv, int type)
 	recursive = 0;
 	wide = all = 0;
 					/* first argument */
+	if(helpFlag(argc, argv))
+		usage(0);
 	while ((c = getopt(argc, argv, "i:waXbfds/h")) != EOF) {
 		switch(c) {
 			case 'i':

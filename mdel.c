@@ -155,6 +155,8 @@ void mdel(int argc, char **argv, int deltype)
 	int c,i;
 
 	arg.verbose = 0;
+	if(helpFlag(argc, argv))
+		usage(0);
 	while ((c = getopt(argc, argv, "i:vh")) != EOF) {
 		switch (c) {
 			case 'i':

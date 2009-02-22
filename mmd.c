@@ -162,6 +162,8 @@ void mmd(int argc, char **argv, int type)
 	init_clash_handling(& arg.ch);
 
 	/* get command line options */
+	if(helpFlag(argc, argv))
+		usage(0);
 	while ((c = getopt(argc, argv, "i:D:oh")) != EOF) {
 		switch (c) {
 			case 'i':

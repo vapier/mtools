@@ -149,7 +149,7 @@ static int test_mounted ( char *dev )
 }
 
 
-static void usage(void)
+static void usage(int ret)
 {
 	fprintf(stderr, 
 		"Mtools version %s, dated %s\n", 
@@ -165,7 +165,7 @@ static void usage(void)
 		"\t-x password protected\n"
 		"\t-u unprotect till disk ejecting\n", 
 		progname);
-	exit(1);
+	exit(ret);
 }
 
 
@@ -238,13 +238,15 @@ void mzip(int argc, char **argv, int type)
 	enum mode_t oldMode = ZIP_RW;
 
 #define setMode(x) \
-	if(request & ZIP_MODE_CHANGE) usage(); \
+	if(request & ZIP_MODE_CHANGE) usage(1); \
 	request |= ZIP_MODE_CHANGE; \
 	newMode = x; \
 	break;
 	
 	/* get command line options */
-	while ((c = getopt(argc, argv, "i:efpqrwxu")) != EOF) {
+	if(helpFlag(argc, argv))
+		usage(0);
+	while ((c = getopt(argc, argv, "i:efpqrwxuh")) != EOF) {
 		switch (c) {
 			case 'i':
 				set_cmd_line_image(optarg, SCSI_FLAG);
@@ -274,8 +276,11 @@ void mzip(int argc, char **argv, int type)
 				setMode(ZIP_PW);
 			case 'u': /* password protected */
 				setMode(ZIP_UNLOCK_TIL_EJECT)
-					default:  /* unrecognized */
-						usage();
+			case 'h':
+				usage(0);
+			default:  /* unrecognized */
+				usage(1);
+			
 		}
 	}
 	
@@ -284,7 +289,7 @@ void mzip(int argc, char **argv, int type)
 	if (argc - optind > 1 || 
 	    (argc - optind == 1 &&
 	     (!argv[optind][0] || argv[optind][1] != ':')))
-		usage();
+		usage(1);
 	
 	drive = toupper(argc - optind == 1 ? argv[argc - 1][0] : ':');
 	

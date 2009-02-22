@@ -74,6 +74,8 @@ void minfo(int argc, char **argv, int type)
 	Stream_t *Stream;
 	struct label_blk_t *labelBlock;
 	
+	if(helpFlag(argc, argv))
+		usage(0);
 	while ((c = getopt(argc, argv, "i:vh")) != EOF) {
 		switch (c) {
 			case 'i':

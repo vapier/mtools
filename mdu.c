@@ -101,6 +101,8 @@ void mdu(int argc, char **argv, int type)
 	arg.all = 0;
 	arg.inDir = 0;
 	arg.summary = 0;
+	if(helpFlag(argc, argv))
+		usage(0);
 	while ((c = getopt(argc, argv, "i:ash")) != EOF) {
 		switch (c) {
 			case 'i':

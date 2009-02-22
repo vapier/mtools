@@ -194,3 +194,7 @@ int main(int argc,char **argv)
 
 	return 1;
 }
+
+int helpFlag(int argc, char **argv) {
+	return (argc >=1 && !strcmp(argv[1], "--help"));
+}

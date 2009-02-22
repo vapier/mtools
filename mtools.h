@@ -253,6 +253,8 @@ char getDrive(Stream_t *Stream);
 void printOom(void);
 int ask_confirmation(const char *, ...)  __attribute__ ((format (printf, 1, 2)));
 
+int helpFlag(int, char **);
+
 char *get_homedir(void);
 #define EXPAND_BUF 2048
 const char *expand(const char *, char *);

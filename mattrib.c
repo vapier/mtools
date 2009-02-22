@@ -176,6 +176,8 @@ void mattrib(int argc, char **argv, int type)
 	concise = 0;
 	replay = 0;
 	
+	if(helpFlag(argc, argv))
+		usage(0);
 	while ((c = getopt(argc, argv, "i:/ahrsAHRSXph")) != EOF) {
 		switch (c) {
 			default:

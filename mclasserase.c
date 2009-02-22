@@ -295,6 +295,8 @@ void mclasserase(int argc, char **argv, int type)
   printf("mclasserase: argc = %i\n",argc);
 #endif
   /* check num of arguments */
+  if(helpFlag(argc, argv))
+    usage(0);
   if ( (argc != 2) & (argc != 3) & (argc != 4))
     { /* wrong num of arguments */
     printf ("mclasserase: wrong num of args\n");

@@ -320,6 +320,8 @@ void mpartition(int argc, char **argv, int dummy)
 	argsectors = 0;
 
 	/* get command line options */
+	if(helpFlag(argc, argv))
+		usage(0);
 	while ((c = getopt(argc, argv, "i:adprcIT:t:h:s:fvpb:l:S:B:")) != EOF) {
 		switch (c) {
 			case 'i':

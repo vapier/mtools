@@ -95,6 +95,8 @@ void mdoctorfat(int argc, char **argv, int mtype)
 	arg.setsize = 0;
 
 	/* get command line options */
+	if(helpFlag(argc, argv))
+		usage(0);
 	while ((c = getopt(argc, argv, "i:bo:s:h")) != EOF) {
 		switch (c) {
 			case 'i':
