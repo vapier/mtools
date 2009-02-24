@@ -40,7 +40,10 @@ static char* wcharTries[] = {
 	"WCHAR_T",
 	"UTF-32BE", "UTF-32LE",
 	"UTF-16BE", "UTF-16LE",
-	"UTF-32", "UTF-16"
+	"UTF-32", "UTF-16",
+	"UCS-4BE", "UCS-4LE",
+	"UCS-2BE", "UCS-2LE",
+	"UCS-4", "UCS-2"
 };
 
 static wchar_t *testString = L"ab";
@@ -53,7 +56,7 @@ static int try(char *testCp) {
 	char *outbufP = outbuf;
 	size_t outbufLen = 2*sizeof(char);
 	iconv_t test = iconv_open("ASCII", testCp);
-	
+
 	if(test == (iconv_t) -1)
 		goto fail0;
 	res = iconv(test,
@@ -99,7 +102,8 @@ doscp_t *cp_open(int codepage)
 		return NULL;
 	}
 
-	getWcharCp();
+	if(getWcharCp() == NULL)
+		return NULL;
 
 	sprintf(dosCp, "CP%d", codepage);
 	from = iconv_open(wcharCp, dosCp);
@@ -321,14 +325,18 @@ static void initialize_to_native(void)
 		return;
 	li = nl_langinfo(CODESET);
 	len = strlen(li) + 11;
+	if(getWcharCp() == NULL)
+		exit(1);
 	cp = safe_malloc(len);
 	strcpy(cp, li);
 	strcat(cp, "//TRANSLIT");
-	to_native = iconv_open(cp, "WCHAR_T");
-	if(to_native == NULL)
+	to_native = iconv_open(cp, wcharCp);
+	if(to_native == (iconv_t) -1)
+		to_native = iconv_open(li, wcharCp);
+	if(to_native == (iconv_t) -1)
 		fprintf(stderr, "Could not allocate iconv for %s\n", cp);
 	free(cp);
-	if(to_native == NULL)
+	if(to_native == (iconv_t) -1)
 		exit(1);
 }
 
