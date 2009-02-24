@@ -810,7 +810,7 @@ int main (int argc, char** argv)
 	/*
 	 * Parse the command line arguments.
 	 */
-	if(argc >= 1 && !strcmp(argv[0], "--help"))
+	if(argc > 1 && !strcmp(argv[0], "--help"))
 		usage(argv[0], NULL, 0);
 	while ((arg = getopt(argc, argv, "ds:r:b:x:h")) != EOF)
 		{
