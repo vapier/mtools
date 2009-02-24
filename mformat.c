@@ -141,7 +141,7 @@ static int init_geometry_boot(struct bootsector *boot, struct device *dev,
 			boot->jump[0] = 0xeb;
 			boot->jump[1] = 0;
 			boot->jump[2] = 0x90;
-			strncpy(boot->banner, "MTOOL405", 8);
+			strncpy(boot->banner, "MTOOL406", 8);
 			/* It looks like some versions of DOS are
 			 * rather picky about this, and assume default
 			 * parameters without this, ignoring any

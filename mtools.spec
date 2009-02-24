@@ -1,6 +1,6 @@
 Summary: mtools, read/write/list/format DOS disks under Unix
 Name: mtools
-Version: 4.0.5
+Version: 4.0.6
 Release: 1
 Group: Utilities/System
 URL: http://mtools.linux.lu

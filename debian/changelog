@@ -1,3 +1,10 @@
+mtools (4.0.6) stable; urgency=low
+
+  * Fallback for missing wchar_t iconv codepage on OS/2
+  * Fixes for LSEEK64 support
+  * Support for --help that returns a 0 exit status
+
+ -- Alain Knaff <alain@knaff.lu>  Sun, 22 Feb 2009 02:04:32 +0100
 mtools (4.0.5) stable; urgency=low
 
   * Make setpgrp() usage in floppyd conditional
