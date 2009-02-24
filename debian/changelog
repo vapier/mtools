@@ -1,3 +1,9 @@
+mtools (4.0.7) stable; urgency=low
+
+  * Fixed conversion to native on OS/2
+  * Fix parsing of --help flag
+
+ -- Alain Knaff <alain@knaff.lu>  Tue, 24 Feb 2009 19:55:46 +0100
 mtools (4.0.6) stable; urgency=low
 
   * Fallback for missing wchar_t iconv codepage on OS/2
