@@ -1,7 +1,7 @@
 #ifndef MTOOLS_STREAM_H
 #define MTOOLS_STREAM_H
 
-/*  Copyright 2009 Alain Knaff.
+/*  Copyright 1996-1999,2001,2002,2005,2006,2008,2009 Alain Knaff.
  *  This file is part of mtools.
  *
  *  Mtools is free software: you can redistribute it and/or modify

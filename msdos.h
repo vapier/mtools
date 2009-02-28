@@ -1,7 +1,7 @@
 #ifndef MTOOLS_MSDOS_H
 #define MTOOLS_MSDOS_H
 
-/*  Copyright 2009 Alain Knaff.
+/*  Copyright 1996-1998,2000-2003,2006,2007,2009 Alain Knaff.
  *  This file is part of mtools.
  *
  *  Mtools is free software: you can redistribute it and/or modify

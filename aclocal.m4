@@ -1,3 +1,19 @@
+dnl Copyright 1997,2001-2003 Alain Knaff.
+dnl This file is part of mtools.
+dnl
+dnl Mtools is free software: you can redistribute it and/or modify
+dnl it under the terms of the GNU General Public License as published by
+dnl the Free Software Foundation, either version 3 of the License, or
+dnl (at your option) any later version.
+dnl
+dnl Mtools is distributed in the hope that it will be useful,
+dnl but WITHOUT ANY WARRANTY; without even the implied warranty of
+dnl MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+dnl GNU General Public License for more details.
+dnl
+dnl You should have received a copy of the GNU General Public License
+dnl along with Mtools.  If not, see <http://www.gnu.org/licenses/>.
+dnl
 dnl Check for declaration of sys_errlist in one of stdio.h and errno.h.
 dnl Declaration of sys_errlist on BSD4.4 interferes with our declaration.
 dnl Reported by Keith Bostic.

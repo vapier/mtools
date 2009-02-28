@@ -1,7 +1,7 @@
 #ifndef MTOOLS_PLAINIO_H
 #define MTOOLS_PLAINIO_H
 
-/*  Copyright 2009 Alain Knaff.
+/*  Copyright 1996,1997,1999,2001,2002,2009 Alain Knaff.
  *  This file is part of mtools.
  *
  *  Mtools is free software: you can redistribute it and/or modify

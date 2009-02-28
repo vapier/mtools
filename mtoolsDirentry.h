@@ -1,6 +1,6 @@
 #ifndef MTOOLS_DIRENTRY_H
 #define MTOOLS_DIRENTRY_H
-/*  Copyright 2009 Alain Knaff.
+/*  Copyright 1998,2000-2002,2005,2008,2009 Alain Knaff.
  *  This file is part of mtools.
  *
  *  Mtools is free software: you can redistribute it and/or modify

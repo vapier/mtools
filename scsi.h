@@ -1,6 +1,6 @@
 #ifndef __mtools_scsi_h
 #define __mtools_scsi_h
-/*  Copyright 2009 Alain Knaff.
+/*  Copyright 1997-1999,2001,2002,2009 Alain Knaff.
  *  This file is part of mtools.
  *
  *  Mtools is free software: you can redistribute it and/or modify

@@ -1,4 +1,6 @@
-/*  Copyright 2009 Alain Knaff.
+/*  Copyright 1996   Grant R. Guenther,  based on work of Itai Nahshon
+ *   http://www.torque.net/ziptool.html
+ *  Copyright 1997-1999,2001,2002,2005,2007,2009 Alain Knaff.
  *  This file is part of mtools.
  *
  *  Mtools is free software: you can redistribute it and/or modify

@@ -1,4 +1,5 @@
-/*  Copyright 2009 Alain Knaff.
+/*  Copyright 2003 Stefan Feuz, Lukas Meyer, Thomas Locher
+ *  Copyright 2004,2006,2007,2009 Alain Knaff.
  *  This file is part of mtools.
  *
  *  Mtools is free software: you can redistribute it and/or modify

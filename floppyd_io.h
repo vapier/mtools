@@ -1,7 +1,8 @@
 #ifndef MTOOLS_FLOPPYDIO_H
 #define MTOOLS_FLOPPYDIO_H
 
-/*  Copyright 2009 Alain Knaff.
+/*  Copyright 1999 Peter Schlaile.
+ *  Copyright 1998,2000-2002,2009 Alain Knaff.
  *  This file is part of mtools.
  *
  *  Mtools is free software: you can redistribute it and/or modify

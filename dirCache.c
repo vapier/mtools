@@ -1,4 +1,4 @@
-/*  Copyright 2009 Alain Knaff.
+/*  Copyright 1998,2001-2003,2007-2009 Alain Knaff.
  *  This file is part of mtools.
  *
  *  Mtools is free software: you can redistribute it and/or modify
