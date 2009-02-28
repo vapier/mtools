@@ -255,6 +255,7 @@ extern struct OldDos_t {
 
 extern const char *mversion;
 extern const char *mdate;
+extern const char *mformat_banner;
 
 extern char *Version;
 extern char *Date;
