@@ -15,10 +15,10 @@
  *  along with Mtools.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-const char *mversion="4.0.8";
+const char *mversion="4.0.9";
 
 /* Multiple releases on same day should be marked with (b), (cd), (d) after
  * date string below */
-const char *mdate = "March 1st, 2009";
+const char *mdate = "March 2nd, 2009";
 
-const char *mformat_banner = "MTOOL408";
+const char *mformat_banner = "MTOOL409";
