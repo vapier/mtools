@@ -38,7 +38,7 @@ extract()
 # '
   echo .TH\ $command\ 1\ \"$date\" $package >$outfile
   echo .SH Name >>$outfile
-  grep -i $command cmdname >>$outfile
+  grep -i $command cmdname | fgrep -v '#' >>$outfile
   #echo ".SH Description" >>$outfile
   
   cat man-warning.texi mtools.texi man-warning-end.texi |
@@ -61,7 +61,7 @@ extract()
 }
 
 
-for name in `cut -f1 -d\  cmdname` ; do
+for name in `fgrep -v '#' cmdname | cut -f1 -d\  ` ; do
   extract $name
 done
 
