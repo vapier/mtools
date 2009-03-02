@@ -1,3 +1,8 @@
+mtools (4.0.8) stable; urgency=low
+
+  * Copyright notices
+
+ -- Alain Knaff <alain@knaff.lu>  Sun,  1 Mar 2009 00:36:22 +0100
 mtools (4.0.7) stable; urgency=low
 
   * Fixed conversion to native on OS/2

@@ -1,3 +1,3 @@
-@set EDITION 4.0.7
-@set VERSION 4.0.7
-@set UPDATED February 2009
+@set EDITION 4.0.8
+@set VERSION 4.0.8
+@set UPDATED March 2009
