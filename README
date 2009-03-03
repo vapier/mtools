@@ -52,8 +52,9 @@ Stable release 4.0.x
 
 Copying
 -------
-Mtools is published under GPL v3.0 (code) and GNU Free Documentation
-License.
+Mtools is a GNU program published under GPL v3.0 (code) and GNU Free
+Documentation License.
+
 Most files of mtools bears a notice describing the copyright, and
 whether it is covered by GPL or GFDL
 
