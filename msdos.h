@@ -1,7 +1,7 @@
 #ifndef MTOOLS_MSDOS_H
 #define MTOOLS_MSDOS_H
 
-/*  Copyright 1992 Emmet P. Gray.
+/*  Copyright 1986-1992 Emmet P. Gray.
  *  Copyright 1996-1998,2000-2003,2006,2007,2009 Alain Knaff.
  *  This file is part of mtools.
  *

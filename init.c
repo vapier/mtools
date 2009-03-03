@@ -1,4 +1,4 @@
-/*  Copyright 1992 Emmet P. Gray.
+/*  Copyright 1986-1992 Emmet P. Gray.
  *  Copyright 1996-2002,2006-2009 Alain Knaff.
  *  This file is part of mtools.
  *
