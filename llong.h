@@ -96,6 +96,7 @@ extern const mt_off_t max_off_t_41;
 extern const mt_off_t max_off_t_seek;
 
 extern off_t truncBytes32(mt_off_t off);
+extern int fileTooBig(mt_off_t off);
 mt_off_t sectorsToBytes(Stream_t *This, off_t off);
 
 mt_size_t getfree(Stream_t *Stream);

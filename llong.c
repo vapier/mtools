@@ -32,9 +32,13 @@ const mt_off_t max_off_t_41 = MAX_OFF_T_B(10); /* SCSI */
 const mt_off_t max_off_t_seek = MAX_OFF_T_B(10); /* SCSI */
 #endif
 
+int fileTooBig(mt_off_t off) {
+	return (off & ~max_off_t_32) != 0;
+}
+
 off_t truncBytes32(mt_off_t off)
 {
-	if (off & ~max_off_t_32) {
+	if (fileTooBig(off)) {
 		fprintf(stderr, "Internal error, offset too big\n");
 		exit(1);
 	}

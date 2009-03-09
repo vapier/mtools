@@ -306,6 +306,11 @@ static int writeit(struct dos_name_t *dosname,
 		return -1;
 	}
 
+	if(fileTooBig(filesize)) {
+		fprintf(stderr, "File \"%s\" too big\n", longname);
+		return 1;
+	}
+
 	if (type){
 		if (arg->verbose)
 			fprintf(stderr, "\"%s\" is a directory\n", longname);
