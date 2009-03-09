@@ -87,6 +87,7 @@ static int recalcPreallocSize(File_t *This)
 	Fs_t *Fs = This->Fs;
 	int r;
 
+#if 0
 	if(This->FileSize & 0xc0000000) {
 		fprintf(stderr, "Bad filesize\n");
 	}
@@ -94,7 +95,7 @@ static int recalcPreallocSize(File_t *This)
 		fprintf(stderr, "Bad preallocated size %x\n",
 				(int) This->preallocatedSize);
 	}
-
+#endif
 	clus_size = Fs->cluster_size * Fs->sector_size;
 
 	currentClusters = (This->FileSize + clus_size - 1) / clus_size;
