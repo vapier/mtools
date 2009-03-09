@@ -69,5 +69,5 @@ int copyfile(Stream_t *Source, Stream_t *Target)
 		}
 		pos += ret;
 	}
-	return pos;
+	return 0;
 }
