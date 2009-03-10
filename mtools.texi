@@ -103,6 +103,7 @@ change floppies too without unmounting and mounting.
 
 Mtools can be found at the following places (and their mirrors):
 @example
+http://ftp.gnu.org/gnu/mtools/mtools-@value{VERSION}.tar.gz
 http://mtools.linux.lu/mtools-@value{VERSION}.tar.gz
 ftp://www.tux.org/pub/knaff/mtools/mtools-@value{VERSION}.tar.gz
 ftp://ibiblio.unc.edu/pub/Linux/utils/disk-management/mtools-@value{VERSION}.tar.gz
@@ -111,6 +112,7 @@ ftp://ibiblio.unc.edu/pub/Linux/utils/disk-management/mtools-@value{VERSION}.tar
 Before reporting a bug, make sure that it has not yet been fixed in the
 Alpha patches which can be found at:
 @example
+http://ftp.gnu.org/gnu/mtools/
 http://mtools.linux.lu/
 ftp://www.tux.org/pub/knaff/mtools
 @end example
@@ -128,7 +130,7 @@ body to majordomo @@ tux.org . (N.B. Please remove the spaces
 around the "@@" both times. I left them there in order to fool
 spambots.)  Announcements of new mtools versions will also be sent to
 the list, in addition to the linux announce newsgroups.  The mailing
-list is archived at http://www.tux.org/hypermail/mtools/latest
+list is archived at http://lists.gnu.org/pipermail/info-mtools/
 
 
 @node Common features, Configuration, Location, Top
