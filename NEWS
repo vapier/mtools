@@ -1,4 +1,8 @@
 v4_0_9
+	More copyright stuff...
+	Fixed issues with max filesize (was 2GB instead of 4GB, and
+	warned only after copying the beginning)
+v4_0_9
 	More copyright stuff
 v4_0_8
 	Corrected copyright attributions in the various files
@@ -98,7 +102,7 @@ v20040228
 	(redefined same symbol twice)
 	Fix a variable initialization problem in plain_io.c
 	New mclasserase command to erase memory cards
-	C99 "compatibility" (cf http://www.mtools.linux.lu/download.html)
+	C99 "compatibility"
 v20030718
 	Fix rootskip and rate of XDF disks
 v20030705
