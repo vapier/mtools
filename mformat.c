@@ -387,8 +387,8 @@ static void calc_fat_size(Fs_t *Fs, unsigned long tot_sectors)
 
 
 	/* See fat_size_calculation.tex or
-	   (http://www.mtools.linux.lu/fat_size_calculation.pdf) for an
-	   explantation about why the stuff below works...
+	   (http://ftp.gnu.org/software/mtools/manual/fat_size_calculation.pdf)
+	   for an explantation about why the stuff below works...
 	*/
 
 	fat_nybbles = Fs->fat_bits / 4;
