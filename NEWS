@@ -1,4 +1,4 @@
-v4_0_9
+v4_0_10
 	More copyright stuff...
 	Fixed issues with max filesize (was 2GB instead of 4GB, and
 	warned only after copying the beginning)
