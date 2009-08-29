@@ -1,4 +1,4 @@
-mtools (20090829) stable; urgency=low
+mtools (4.0.11) stable; urgency=low
 
   * Fixed compiler in mlabel.c and elsewhere
   * Fixed h flag in mattrib.c
