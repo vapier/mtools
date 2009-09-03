@@ -9,10 +9,10 @@ Source0: mtools-%{version}.tar.gz
 Buildroot: %{_tmppath}/%{name}-%{version}-buildroot
 License: GPL
 %description
-Mtools is a collection of utilities to access MS-DOS disks
-from Unix without mounting them. It supports Win'95 style
-long file names, OS/2 Xdf disks, ZIP/JAZ disks and 2m
-disks (store up to 1992k on a high density 3 1/2 disk).
+Mtools is a collection of utilities to access MS-DOS disks from GNU
+and Unix without mounting them. It supports Win'95 style long file
+names, OS/2 Xdf disks, ZIP/JAZ disks and 2m disks (store up to 1992k
+on a high density 3 1/2 disk).
 
 
 %prep
