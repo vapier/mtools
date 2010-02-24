@@ -31,6 +31,8 @@ Texts.  A copy of the license is included in the section entitled
 mtools - utilities to access DOS disks in Unix.
 @end ignore
 
+@include sysconfdir.texi
+
 @iftex
 @finalout
 @end iftex
@@ -74,7 +76,7 @@ to another.
 Mtools is sufficient to give access to MS-DOS file systems.  For
 instance, commands such as @code{mdir a:} work on the @code{a:} floppy
 without any preliminary mounting or initialization (assuming the default
-@file{/etc/mtools.conf} works on your machine).  With mtools, one can
+@file{@value{SYSCONFDIR}mtools.conf} works on your machine).  With mtools, one can
 change floppies too without unmounting and mounting.
 
 @insertcopying
@@ -499,12 +501,12 @@ data than the others. Unfortunately, DOS can only handle disks where
 each track contains the same amount of data. Thus 2m hides the fact that
 the first track contains less data by using a @dfn{shadow
 FAT}. (Usually, DOS stores the FAT in two identical copies, for
-additional safety.  XDF stores only one copy, and it tells DOS that it
-stores two. Thus the same that would be taken up by the second FAT copy
-is saved.) This also means that your should @strong{never use a 2m disk
+additional safety.  XDF stores only one copy, but tells DOS that it
+stores two. Thus the space that would be taken up by the second FAT copy
+is saved.) This also means that you should @strong{never use a 2m disk
 to store anything else than a DOS file system}.
 
-Mtools supports these format only on Linux.
+Mtools supports these formats only on Linux.
 
 @node XDF, , 2m, high capacity formats
 @subsection XDF
@@ -579,7 +581,7 @@ This manual page describes the configuration files for mtools. They
  This sections explains the syntax of the configurations files for
 mtools. The configuration files
 @comment MANend-skip 5
-are called @file{/usr/local/etc/mtools.conf} and @file{~/.mtoolsrc}. If
+are called @file{@value{SYSCONFDIR}mtools.conf} and @file{~/.mtoolsrc}. If
 the environmental variable @code{MTOOLSRC} is set, its contents is used
 as the filename for a third configuration file. These configuration
 files describe the following items:
@@ -607,7 +609,7 @@ files describe the following items:
 @cindex Name of configuration files
 @cindex Location of configuration files
 
-@file{/usr/local/etc/mtools.conf} is the system-wide configuration file,
+@file{@value{SYSCONFDIR}mtools.conf} is the system-wide configuration file,
 and @file{~/.mtoolsrc} is the user's private configuration file.
 
 On some systems, the system-wide configuration file is called
@@ -1020,7 +1022,7 @@ implied, unless explicitly disabled by @code{privileged=0}
 Mtools uses its root privileges to open the device, and to issue the
 actual SCSI I/O calls.  Moreover, root privileges are only used for
 drives described in a system-wide configuration file such as
-@file{/usr/local/etc/mtools.conf}, and not for those described in
+@file{@value{SYSCONFDIR}mtools.conf}, and not for those described in
 @file{~/.mtoolsrc} or @file{$MTOOLSRC}.  
 
 @item privileged
@@ -1029,7 +1031,7 @@ drives described in a system-wide configuration file such as
 When set to 1, this instructs mtools to use its setuid and setgid
 privileges for opening the given drive.  This option is only valid for
 drives described in the system-wide configuration files (such as
-@file{/usr/local/etc/mtools.conf}, not @file{~/.mtoolsrc} or
+@file{@value{SYSCONFDIR}mtools.conf}, not @file{~/.mtoolsrc} or
 @file{$MTOOLSRC}).  Obviously, this option is also a no op if mtools is
 not installed setuid or setgid.  This option is implied by 'scsi=1', but
 again only for drives defined in system-wide configuration files.
@@ -1140,12 +1142,7 @@ The configuration files are parsed in the following order:
 @item
 compiled-in defaults
 @item
-@file{/usr/local/etc/mtools.conf}
-@item
-@file{/etc/mtools}
-This is for backwards compatibility only, and is only parsed if
-@file{mtools.conf}
-doesn't exist.
+@file{@value{SYSCONFDIR}mtools.conf}
 @item
 @file{~/.mtoolsrc}.
 @item
@@ -1156,10 +1153,10 @@ variable)
 Options described in the later files override those described in the
 earlier files. Drives defined in earlier files persist if they are not
 overridden in the later files. For instance, drives A and B may be
-defined in @file{/usr/local/etc/mtools.conf} and drives C and D may be
+defined in @file{@value{SYSCONFDIR}mtools.conf} and drives C and D may be
 defined in @file{~/.mtoolsrc} However, if @file{~/.mtoolsrc} also
 defines drive A, this new description would override the description of
-drive A in @file{/usr/local/etc/mtools.conf} instead of adding to it. If
+drive A in @file{@value{SYSCONFDIR}mtools.conf} instead of adding to it. If
 you want to add a new description to a drive already described in an
 earlier file, you need to use either the @code{+drive} or @code{drive+}
 keyword.
@@ -2512,7 +2509,7 @@ images (which may represent a partitioned device.
 same devices are found on a large number of hosts of this type. In that
 case, could you also let me know about your new definitions, so that I
 can include them into the next release.  For purely local file, I
-recommend that you use the @code{/usr/local/etc/mtools.conf} and
+recommend that you use the @code{@value{SYSCONFDIR}mtools.conf} and
 @code{~/.mtoolsrc} configuration files.
 
  However, the devices files also allows to supply geometry setting
