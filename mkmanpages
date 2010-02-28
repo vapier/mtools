@@ -69,6 +69,7 @@ for name in `fgrep -v '#' cmdname | cut -f1 -d\  ` ; do
   extract $name
 done
 
+rm mtools.tmpl.1
 exec >mtools.tmpl.1
 echo \'\\\" t
 # '
@@ -112,6 +113,7 @@ echo mren
 echo mtoolstest
 echo mtype
 
+rm mtools.tmpl.5
 exec >mtools.tmpl.5
 echo \'\\\" t
 # '
