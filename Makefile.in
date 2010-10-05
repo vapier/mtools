@@ -118,7 +118,7 @@ unixdir.o tty.o vfat.o xdf_io.o
 
 OBJS2 = missFuncs.o mkmanifest.o misc.o patchlevel.o
 
-SRCS3 = floppyd.c
+OBJS3 = floppyd.o llong.o
 
 OBJS4 = floppyd_installtest.o misc.o expand.o privileges.o
 
@@ -167,14 +167,14 @@ mkmanifest: $(OBJS2)
 floppyd.o: floppyd.c
 	$(CC) $(X_CCFLAGS) -c $?
 
-floppyd: floppyd.o
-	$(LINK) $? -o $@ $(X_LDFLAGS)
+floppyd: $(OBJS3)
+	$(LINK) $(OBJS3) -o $@ $(X_LDFLAGS)
 floppyd_installtest: $(OBJS4)
 	$(LINK) $(OBJS4) -o $@ $(ALLLIBS)
 
 
 $(LINKS): mtools
-	rm -f $@ && $(LN_S) mtools$(EXE) $@
+	rm -f $@ && $(LN_S) mtools $@
 
 mostlyclean:
 	-rm -f *~ *.orig *.o a.out core 2>/dev/null

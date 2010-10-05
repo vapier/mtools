@@ -1032,10 +1032,7 @@ void mformat(int argc, char **argv, int dummy)
 #ifdef USE_FLOPPYD
 			Fs.Direct = FloppydOpen(&used_dev, dev, name,
 						O_RDWR | create,
-						errmsg, 0, 1);
-			if(Fs.Direct) {
-				maxSize = max_off_t_31;
-			}
+						errmsg, 0, 1, &maxSize);
 #endif
 			if(!Fs.Direct) {			
 				Fs.Direct = SimpleFileOpen(&used_dev, dev, name,
