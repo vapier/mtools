@@ -1210,6 +1210,7 @@ description of those.
 * mrd::               remove an MS-DOS subdirectory
 * mmove::             move or rename an MS-DOS file or subdirectory
 * mren::              rename an existing MS-DOS file
+* mshortname::        shows the short name of a file
 * mshowfat::          shows the FAT map of a file
 * mtoolstest::        tests and displays the configuration
 * mtype::             display contents of an MS-DOS file
@@ -2209,7 +2210,7 @@ syntax is:
 @code{Mrd} removes a directory from an MS-DOS file system. An error occurs
 if the directory does not exist or is not empty.
 
-@node mren, mshowfat, mrd, Commands
+@node mren, mshortname, mrd, Commands
 @section Mren
 @pindex mren
 @cindex Renaming files (mren)
@@ -2235,7 +2236,21 @@ is renamed in the same directory, instead of being moved to the current
 MS-DOS version of @code{REN}, @code{mren} can be used to rename
 directories.
 
-@node mshowfat, mtoolstest, mren, Commands
+@node mshortname, mshowfat, mren, Commands
+@section Mshortname
+@pindex mshortname
+
+The @code{mshortname} command is used to display the short name of a
+file.  Syntax:
+
+@display
+@code{$ mshortname files}
+@end display
+
+The shortname is displayed as it is stored in raw format on disk,
+without any character set conversion.
+
+@node mshowfat, mtoolstest, mshortname, Commands
 @section Mshowfat
 @pindex mshowfat
 @cindex Clusters of a file
