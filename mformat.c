@@ -1168,6 +1168,7 @@ void mformat(int argc, char **argv, int dummy)
 			exit(1);
 		}
 		keepBoot = 1;
+		close(fd);
 	}
 	if(!keepBoot && !(used_dev.use_2m & 0x7f)) {
 		memset(boot.characters, '\0', Fs.sector_size);
