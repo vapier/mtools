@@ -1735,6 +1735,7 @@ low-level formatted diskette. Its syntax is:
   [@code{-r} @var{root_sectors}] [@code{-L} @var{fat_len}] 
   [@code{-B} @var{boot_sector}] [@code{-k}]
   [@code{-m} @var{media_descriptor}]
+  [@code{-K} @var{backup_boot}]
   @var{drive:}
 @end display
 
@@ -1873,6 +1874,9 @@ parameters.
 Keep the existing boot sector as much as possible.  Only the geometry
 fields and other similar file system data are updated to match the target
 disks parameters.
+@item K
+Sets the sector number where the backup of the boot sector should be
+stored (only relevant on FAT32).
 
 @item m
 Use a non-standard media descriptor byte for this disk. The media

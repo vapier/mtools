@@ -724,7 +724,7 @@ static int get_block_geom(int fd, struct MT_STAT *buf, struct device *dev,
 			strerror(errno));
 		return -1;
 	}
-	
+
 	if(!heads)
 		heads = geom.heads;
 	if(!sectors)
@@ -798,6 +798,8 @@ void mformat(int argc, char **argv, int dummy)
 
 	int Atari = 0; /* should we add an Atari-style serial number ? */
 
+	int backupBoot = 6;
+
 	hs = hs_set = 0;
 	argtracks = 0;
 	argheads = 0;
@@ -833,7 +835,7 @@ void mformat(int argc, char **argv, int dummy)
 		usage(0);
 	while ((c = getopt(argc,argv,
 			   "i:148f:t:n:v:qub"
-			   "kB:r:L:I:FCc:Xh:s:l:N:H:M:S:2:30:Aad:m:"))!= EOF) {
+			   "kK:B:r:L:I:FCc:Xh:s:l:N:H:M:S:2:30:Aad:m:"))!= EOF) {
 		switch (c) {
 			case 'i':
 				set_cmd_line_image(optarg, 0);
@@ -973,6 +975,13 @@ void mformat(int argc, char **argv, int dummy)
 				break;
 			case 'k':
 				keepBoot = 1;
+				break;
+			case 'K':
+				backupBoot = atoi(optarg);
+				if(backupBoot < 2 || backupBoot >= 32) {
+				  fprintf(stderr, "Backupboot must be comprised between 2 and 32\n");
+				  exit(1);
+				}
 				break;
 			case 'h':
 				argheads = atoi(optarg);
@@ -1211,7 +1220,7 @@ void mformat(int argc, char **argv, int dummy)
 		Fs.infoSectorLoc = 1;
 
 		/* no backup boot sector */
-		set_word(boot.boot.ext.fat32.backupBoot, 6);
+		set_word(boot.boot.ext.fat32.backupBoot, backupBoot);
 		
 		labelBlock = & boot.boot.ext.fat32.labelBlock;
 	} else {
@@ -1296,6 +1305,12 @@ void mformat(int argc, char **argv, int dummy)
 	format_root(&Fs, label, &boot);
 	WRITES((Stream_t *)&Fs, boot.characters,
 	       (mt_off_t) 0, Fs.sector_size);
+
+	if(used_dev.fat_bits == 32) {
+	  WRITES((Stream_t *)&Fs, boot.characters,
+		 (mt_off_t) backupBoot * Fs.sector_size, Fs.sector_size);
+	}
+
 	if(Fs.fat_bits == 32 && WORD_S(ext.fat32.backupBoot) != MAX16) {
 		WRITES((Stream_t *)&Fs, boot.characters,
 		       sectorsToBytes((Stream_t*)&Fs,
