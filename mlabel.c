@@ -35,7 +35,7 @@ void label_name(doscp_t *cp, const char *filename, int verbose,
 	int have_lower, have_upper;
 	wchar_t wbuffer[12];
 
-	memset(ans, ' ', sizeof(ans)-1);
+	memset(ans, ' ', sizeof(*ans)-1);
 	ans->sentinel = '\0';
 	len = native_to_wchar(filename, wbuffer, 11, 0, 0);
 	if(len > 11){
@@ -147,7 +147,7 @@ void mlabel(int argc, char **argv, int type)
 				break;
 			case 'N':
 				set_serial = SER_SET;
-				serial = strtol(optarg, &eptr, 16);
+				serial = strtoul(optarg, &eptr, 16);
 				if(*eptr) {
 					fprintf(stderr,
 						"%s not a valid serial number\n",
@@ -278,6 +278,13 @@ void mlabel(int argc, char **argv, int type)
 
 	if(need_write_boot) {
 		force_write(Fs, (char *)&boot, 0, sizeof(boot));
+		/* If this is fat 32, write backup boot sector too */
+		if(!WORD_S(fatlen)) {
+			int backupBoot = WORD_S(ext.fat32.backupBoot);
+			force_write(Fs, (char *)&boot, 
+				    backupBoot * WORD_S(secsiz),
+				    sizeof(boot));
+		}
 	}
 
 	FREE(&RootDir);
