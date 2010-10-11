@@ -178,6 +178,12 @@ void mlabel(int argc, char **argv, int type)
 	if(!clear && !newLabel[0]) {
 		isRop = &isRo;
 	}
+	if(clear && newLabel[0]) {
+		/* Clear and new label specified both */
+		fprintf(stderr, "Both clear and new label specified\n");
+		FREE(&RootDir);
+		exit(1);
+	}		
 	RootDir = open_root_dir(argv[optind][0], isRop ? 0 : O_RDWR, isRop);
 	if(isRo) {
 		show = 1;
@@ -253,6 +259,8 @@ void mlabel(int argc, char **argv, int type)
 		dos_name_t dosname;
 		const char *shrtLabel;
 		doscp_t *cp;
+		fprintf(stderr, "NewLabel=%s\n", newLabel);
+
 		if(!newLabel[0])
 			shrtLabel = "NO NAME    ";
 		else
