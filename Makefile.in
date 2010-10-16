@@ -62,7 +62,6 @@ LIBS        = @LIBS@
 SHLIB       = @SHLIB@
 MACHDEPLIBS = @MACHDEPLIBS@	
 LN_S        = @LN_S@
-EXE         = @EXEEXT@
 
 INSTALL         = @INSTALL@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -270,7 +269,7 @@ $(DESTDIR)$(bindir)/mkmanifest: mkmanifest
 install-links: $(DESTDIR)$(bindir)/mtools
 	@for j in $(LINKS); do \
 		rm -f $(DESTDIR)$(bindir)/$$j ; \
-		$(LN_S) mtools$(EXE) $(DESTDIR)$(bindir)/$$j ; \
+		$(LN_S) mtools $(DESTDIR)$(bindir)/$$j ; \
 		echo $(DESTDIR)$(bindir)/$$j ; \
 	done
 
