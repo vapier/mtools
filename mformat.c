@@ -1013,6 +1013,11 @@ void mformat(int argc, char **argv, int dummy)
 	    !argv[optind][0] || argv[optind][1] != ':')
 		usage(1);
 
+	if(argtracks && tot_sectors) {
+		fprintf(stderr, "Only one of -t or -T may be specified\n");
+		usage(1);
+	}
+
 #ifdef USE_XDF
 	if(create && format_xdf) {
 		fprintf(stderr,"Create and XDF can't be used together\n");
