@@ -225,6 +225,12 @@ void mlabel(int argc, char **argv, int type)
 			newLabel[strlen(newLabel)-1] = '\0';
 	}
 
+	if(strlen(newLabel) > 11) {
+		fprintf(stderr,"New label too long\n");
+		FREE(&RootDir);
+		exit(1);
+	}
+
 	if((!show || newLabel[0]) && !isNotFound(&entry)){
 		/* if we have a label, wipe it out before putting new one */
 		if(interactive && newLabel[0] == '\0')
