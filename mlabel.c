@@ -265,8 +265,6 @@ void mlabel(int argc, char **argv, int type)
 		dos_name_t dosname;
 		const char *shrtLabel;
 		doscp_t *cp;
-		fprintf(stderr, "NewLabel=%s\n", newLabel);
-
 		if(!newLabel[0])
 			shrtLabel = "NO NAME    ";
 		else
