@@ -31,7 +31,7 @@ make
 
 %clean
 echo rm -rf $RPM_BUILD_ROOT
-[ X%{buildroot} != X ] && [ X%{buildroot} != X/ ] && rm -r %{buildroot}
+[ X%{buildroot} != X ] && [ X%{buildroot} != X/ ] && rm -fr %{buildroot}
 
 %install
 make install
