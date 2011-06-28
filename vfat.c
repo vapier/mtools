@@ -26,6 +26,7 @@
 #include "vfat.h"
 #include "file.h"
 #include "dirCache.h"
+#include "dirCacheP.h"
 #include "file_name.h"
 
 /* #define DEBUG */
@@ -228,7 +229,7 @@ int clear_vses(Stream_t *Dir, int entrySlot, size_t last)
 #endif
 		dir_read(&entry, &error);
 		if(error)
-		    return error;
+			return error;
 		if(!entry.dir.name[0] || entry.dir.name[0] == DELMARK)
 			break;
 		entry.dir.name[0] = DELMARK;
@@ -421,7 +422,7 @@ static dirCacheEntry_t *vfat_lookup_loop_common(doscp_t *cp,
 	struct vfat_state vfat;
 	wchar_t *longname;
 	int error;
-	int delmarkSeen = 0;
+	int endmarkSeen = 0;
 
 	/* not yet cached */
 	*io_error = 0;
@@ -433,14 +434,15 @@ static dirCacheEntry_t *vfat_lookup_loop_common(doscp_t *cp,
 			    *io_error = error;
 			    return NULL;
 			}
-			addFreeEntry(cache, initpos, direntry->entry);
+			addFreeEndEntry(cache, initpos, direntry->entry,
+					endmarkSeen);
 			return addEndEntry(cache, direntry->entry);
 		}
 		
-		if (delmarkSeen || direntry->dir.name[0] == ENDMARK){
+		if (endmarkSeen || direntry->dir.name[0] == ENDMARK){
 				/* the end of the directory */
 			if(lookForFreeSpace) {
-				delmarkSeen = 1;
+				endmarkSeen = 1;
 				continue;
 			}
 			return addEndEntry(cache, direntry->entry);
