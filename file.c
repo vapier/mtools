@@ -473,9 +473,10 @@ static __inline__ time_t conv_stamp(struct directory *dir)
 	/* correct for Daylight Saving Time */
 	tmp = accum;
 	tmbuf = localtime(&tmp);
-	dst = (tmbuf->tm_isdst) ? (-60L * 60L) : 0L;
-	accum += dst;
-	
+	if(tmbuf) {
+		dst = (tmbuf->tm_isdst) ? (-60L * 60L) : 0L;
+		accum += dst;
+	}
 	return accum;
 }
 
