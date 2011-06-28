@@ -204,19 +204,19 @@ static int freeDirCacheRange(dirCache_t *cache,
 		entry->beginSlot = clearEnd;
 
 		if(entry->beginSlot == entry->endSlot) {
-			int isAtEnd = entry->isAtEnd;
+			int needWriteEnd = 0;
+			if(entry->endMarkPos != -1 &&
+			   entry->endMarkPos < beginSlot)
+				needWriteEnd = 1;
+
 			if(entry->longName)
 				free(entry->longName);
 			if(entry->shortName)
 				free(entry->shortName);
 			free(entry);
-			if(isAtEnd == 3) {
+			if(needWriteEnd) {
 				return beginSlot;
 			}
-		} else {
-			/* Mark range as having been shortened => end-mark
-			   moved, if one was present */
-			entry->isAtEnd |= 2;
 		}
 
 		beginSlot = clearEnd;
@@ -242,6 +242,7 @@ static dirCacheEntry_t *allocDirCacheEntry(dirCache_t *cache, int beginSlot,
 	entry->shortName = 0;
 	entry->beginSlot = beginSlot;
 	entry->endSlot = endSlot;
+	entry->endMarkPos = -1;
 
 	freeDirCacheRange(cache, beginSlot, endSlot);
 	for(i=beginSlot; i<endSlot; i++) {
@@ -297,7 +298,7 @@ static void mergeFreeSlots(dirCache_t *cache, int slot)
 		for(i=next->beginSlot; i < next->endSlot; i++)
 			cache->entries[i] = previous;
 		previous->endSlot = next->endSlot;
-		previous->isAtEnd |= next->isAtEnd;
+		previous->endMarkPos = next->endMarkPos;
 		free(next);		
 	}
 }
@@ -323,7 +324,8 @@ dirCacheEntry_t *addFreeEndEntry(dirCache_t *cache,
 	if(endSlot == beginSlot)
 		return 0;
 	entry = allocDirCacheEntry(cache, beginSlot, endSlot, DCET_FREE);
-	entry->isAtEnd = isAtEnd;
+	if(isAtEnd)
+		entry->endMarkPos = beginSlot;
 	mergeFreeSlots(cache, beginSlot);
 	mergeFreeSlots(cache, endSlot);
 	return cache->entries[beginSlot];

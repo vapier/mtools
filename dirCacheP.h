@@ -8,7 +8,7 @@ struct dirCacheEntry_t {
 	wchar_t *shortName;
 	wchar_t *longName;
 	struct directory dir;
-	int isAtEnd;
+	int endMarkPos;
 } ;
 
 #endif /* DIRCACHEP_H */
