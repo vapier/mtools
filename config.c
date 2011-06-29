@@ -505,30 +505,27 @@ static int set_def_format(struct device *dev)
 
 static int parse_one(int privilege);
 
-/* check for offset embedded in file name, in the form file@@offset[SKMG] */
-static off_t get_offset(char *name) {
-  char *ofsp;
-  off_t ofs;
-
-  ofsp = strstr(devices[cur_dev].name, "@@");
-  if (ofsp == NULL)
-    return 0; /* no separator */
-  ofs = str_to_offset(ofsp+2);
-  *ofsp = '\0';                              /* truncate file name */
-  return ofs;
-}
-
 void set_cmd_line_image(char *img) {
-  char *name;
+  char *ofsp;
+
   prepend();
   devices[cur_dev].drive = ':';
   default_drive = ':';
-  devices[cur_dev].name = name = strdup(img);
+
+  ofsp = strstr(img, "@@");
+  if (ofsp == NULL) {
+    /* no separator => no offset */
+    devices[cur_dev].name = strdup(img);
+    devices[cur_dev].offset = 0;
+  } else {
+    devices[cur_dev].name = strndup(img, ofsp - img);
+    devices[cur_dev].offset = str_to_offset(ofsp+2);
+  }
+
   devices[cur_dev].fat_bits = 0;
   devices[cur_dev].tracks = 0;
   devices[cur_dev].heads = 0;
   devices[cur_dev].sectors = 0;
-  devices[cur_dev].offset = get_offset(name);
   if (strchr(devices[cur_dev].name, '|')) {
     char *pipechar = strchr(devices[cur_dev].name, '|');
     *pipechar = 0;
