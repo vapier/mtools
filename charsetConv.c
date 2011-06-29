@@ -34,9 +34,9 @@ struct doscp_t {
 	iconv_t to;
 };
 
-static char *wcharCp=NULL;
+static const char *wcharCp=NULL;
 
-static char* wcharTries[] = {
+static const char* wcharTries[] = {
 	"WCHAR_T",
 	"UTF-32BE", "UTF-32LE",
 	"UTF-16BE", "UTF-16LE",
@@ -46,9 +46,9 @@ static char* wcharTries[] = {
 	"UCS-4", "UCS-2"
 };
 
-static wchar_t *testString = L"ab";
+static const wchar_t *testString = L"ab";
 
-static int try(char *testCp) {
+static int try(const char *testCp) {
 	size_t res;
 	char *inbuf = (char *)testString;
 	size_t inbufLen = 2*sizeof(wchar_t);
@@ -75,7 +75,7 @@ static int try(char *testCp) {
 	return 0;
 }
 
-static const char *getWcharCp() {
+static const char *getWcharCp(void) {
 	int i;
 	if(wcharCp != NULL)
 		return wcharCp;	
