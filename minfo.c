@@ -76,6 +76,8 @@ void minfo(int argc, char **argv, int type)
 	unsigned long sect_per_track;
 	int tracks_match=0;
 	int hidden;
+
+	char *imgFile=NULL;
 	
 	if(helpFlag(argc, argv))
 		usage(0);
@@ -83,6 +85,7 @@ void minfo(int argc, char **argv, int type)
 		switch (c) {
 			case 'i':
 				set_cmd_line_image(optarg, 0);
+				imgFile=optarg;
 				break;
 			case 'v':
 				verbose = 1;
@@ -130,10 +133,12 @@ void minfo(int argc, char **argv, int type)
 			if(tot_sectors ==
 			   dev.tracks * sect_per_track - hidden % sect_per_track) {
 				tracks_match=1;
-				printf("-t %d", dev.tracks);
+				printf("-t %d ", dev.tracks);
 			} else {
-				printf("-T %ld", tot_sectors);
+				printf("-T %ld ", tot_sectors);
 			}
+			if(imgFile != NULL)
+				printf("-i %s ", imgFile);
 			printf (" -h %d -s %d ", dev.heads, dev.sectors);
 			if(hidden || !tracks_match)
 				printf("-H %d ", hidden);
