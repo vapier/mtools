@@ -389,12 +389,10 @@ static void append(void)
 
 static void finish_drive_clause(void)
 {
-    char drive;
     if(cur_dev == -1) {
 	trusted = 0;
 	return;
     }
-    drive = devices[cur_dev].drive;
     if(!devices[cur_dev].name)
 	syntax("missing filename", 0);
     if(devices[cur_dev].tracks ||

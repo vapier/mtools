@@ -415,7 +415,6 @@ void fat_write(Fs_t *This)
 {
 	unsigned int i, j, dups, bit, slot;
 	int ret;
-	int fat_start;
 
 	/*fprintf(stderr, "Fat write\n");*/
 
@@ -429,7 +428,6 @@ void fat_write(Fs_t *This)
 
 	for(i=0; i<dups; i++){
 		j = 0;
-		fat_start = This->fat_start + i*This->fat_len;
 		for(slot=0;j<This->fat_len;slot++) {
 			if(!This->FatMap[slot].dirty) {
 				j += SECT_PER_ENTRY;

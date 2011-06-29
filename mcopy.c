@@ -508,7 +508,6 @@ void mcopy(int argc, char **argv, int mtype)
 {
 	Arg_t arg;
 	int c, ret, fastquit;
-	int todir;
 	
 
 	/* get command line options */
@@ -516,7 +515,6 @@ void mcopy(int argc, char **argv, int mtype)
 	init_clash_handling(& arg.ch);
 
 	/* get command line options */
-	todir = 0;
 	arg.recursive = 0;
 	arg.preserveTime = 0;
 	arg.preserveAttributes = 0;

@@ -234,7 +234,6 @@ Stream_t *fs_init(char drive, int mode, int *isRop)
 {
 	int blocksize;
 	int media,i;
-	int nhs;
 	int disk_size = 0;	/* In case we don't happen to set this below */
 	size_t tot_sectors;
 	char name[EXPAND_BUF];
@@ -298,7 +297,6 @@ Stream_t *fs_init(char drive, int mode, int *isRop)
 		This->sectorShift = 9;
 		This->sectorMask = 511;
 		This->fat_bits = 12;
-		nhs = 0;
 	} else {
 		struct label_blk_t *labelBlock;
 		/*
@@ -306,12 +304,8 @@ Stream_t *fs_init(char drive, int mode, int *isRop)
 		 * (which is in clusters)
 		 */
 		tot_sectors = WORD_S(psect);
-		if(!tot_sectors) {
+		if(!tot_sectors)
 			tot_sectors = DWORD_S(bigsect);	
-			nhs = DWORD_S(nhs);
-		} else
-			nhs = WORD_S(nhs);
-
 
 		This->cluster_size = boot.boot.clsiz;
 		This->fat_start = WORD_S(nrsvsect);

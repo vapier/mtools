@@ -534,7 +534,6 @@ void mdir(int argc, char **argv, int type)
 {
 	int ret;
 	MainParam_t mp;
-	int faked;
 	int c;
 	const char *fakedArgv[] = { "." };
 
@@ -583,7 +582,6 @@ void mdir(int argc, char **argv, int type)
 	}
 
 	/* fake an argument */
-	faked = 0;
 	if (optind == argc) {
 		argv = (char **)fakedArgv;
 		argc = 1;
