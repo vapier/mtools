@@ -1,3 +1,4 @@
+%define _binary_payload w9.gzdio
 Name:           mtools
 Summary:        mtools, read/write/list/format DOS disks under Unix
 Version:        4.0.17
