@@ -714,8 +714,7 @@ static void usage(int ret)
 }
 
 #ifdef OS_linux
-static int get_block_geom(int fd, struct MT_STAT *buf, struct device *dev,
-			  char *errmsg) {
+static int get_block_geom(int fd, struct device *dev, char *errmsg) {
 	struct hd_geometry geom;
 	long size;
 	int heads=dev->heads;
@@ -846,7 +845,7 @@ void mformat(int argc, char **argv, int dummy)
 			   "kK:B:r:L:I:FCc:Xh:s:T:l:N:H:M:S:2:30:Aad:m:"))!= EOF) {
 		switch (c) {
 			case 'i':
-				set_cmd_line_image(optarg, 0);
+				set_cmd_line_image(optarg);
 				break;
 
 			/* standard DOS flags */
@@ -1056,9 +1055,9 @@ void mformat(int argc, char **argv, int dummy)
 #endif
 			Fs.Direct = 0;
 #ifdef USE_FLOPPYD
-			Fs.Direct = FloppydOpen(&used_dev, dev, name,
+			Fs.Direct = FloppydOpen(&used_dev, name,
 						O_RDWR | create,
-						errmsg, 0, 1, &maxSize);
+						errmsg, &maxSize);
 #endif
 			if(!Fs.Direct) {			
 				Fs.Direct = SimpleFileOpen(&used_dev, dev, name,
@@ -1093,7 +1092,7 @@ void mformat(int argc, char **argv, int dummy)
 			}
 
 			if (S_ISBLK(stbuf.st_mode) &&
-			    get_block_geom(fd, &stbuf, &used_dev, errmsg) < 0)
+			    get_block_geom(fd, &used_dev, errmsg) < 0)
 				continue;
 		}
 #endif

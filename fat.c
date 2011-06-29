@@ -705,8 +705,7 @@ static int fat_32_read(Fs_t *This, union bootsector *boot,
 
 
 static int old_fat_read(Fs_t *This, union bootsector *boot, 
-						int config_fat_bits,
-						size_t tot_sectors, int nodups)
+			size_t tot_sectors, int nodups)
 {
 	This->writeAllFats = 1;
 	This->primaryFat = 0;
@@ -735,7 +734,7 @@ static int old_fat_read(Fs_t *This, union bootsector *boot,
  * Read the first sector of the  FAT table into memory and initialize 
  * structures.
  */
-int fat_read(Fs_t *This, union bootsector *boot, int fat_bits,
+int fat_read(Fs_t *This, union bootsector *boot,
 	   size_t tot_sectors, int nodups)
 {
 	This->fat_error = 0;
@@ -746,7 +745,7 @@ int fat_read(Fs_t *This, union bootsector *boot, int fat_bits,
 	This->lastFatSectorData = 0;
 
 	if(This->fat_len)
-		return old_fat_read(This, boot, fat_bits, tot_sectors, nodups);
+		return old_fat_read(This, boot, tot_sectors, nodups);
 	else
 		return fat_32_read(This, boot, tot_sectors);
 }

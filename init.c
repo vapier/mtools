@@ -142,8 +142,8 @@ Stream_t *find_device(char drive, int mode, struct device *out_dev,
 		if(out_dev->misc_flags & FLOPPYD_FLAG) {
 		    Stream = 0;
 #ifdef USE_FLOPPYD
-		    Stream = FloppydOpen(out_dev, dev, name, mode,
-					 errmsg, 0, 1, maxSize);
+		    Stream = FloppydOpen(out_dev, name, mode,
+					 errmsg, maxSize);
 #endif
 		} else {
 
@@ -387,7 +387,7 @@ Stream_t *fs_init(char drive, int mode, int *isRop)
 	}
 
 	/* read the FAT sectors */
-	if(fat_read(This, &boot, dev.fat_bits, tot_sectors, dev.use_2m&0x7f)){
+	if(fat_read(This, &boot, tot_sectors, dev.use_2m&0x7f)){
 		This->num_fat = 1;
 		FREE(&This->Next);
 		Free(This->Next);

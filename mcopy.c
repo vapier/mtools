@@ -78,16 +78,15 @@ typedef struct Arg_t {
 	int noClobber;
 } Arg_t;
 
-static int _unix_write(direntry_t *entry, MainParam_t *mp, int needfilter,
-		       const char *unixFile);
+static int _unix_write(MainParam_t *mp, int needfilter, const char *unixFile);
 
 /* Write the Unix file */
-static int unix_write(direntry_t *entry, MainParam_t *mp, int needfilter)
+static int unix_write(MainParam_t *mp, int needfilter)
 {
 	Arg_t *arg=(Arg_t *) mp->arg;
 
 	if(arg->type)
-		return _unix_write(entry, mp, needfilter, "-");
+		return _unix_write(mp, needfilter, "-");
 	else {
 		char *unixFile = mpBuildUnixFilename(mp);
 		int ret;
@@ -95,7 +94,7 @@ static int unix_write(direntry_t *entry, MainParam_t *mp, int needfilter)
 			printOom();
 			return ERROR_ONE;
 		}
-		ret = _unix_write(entry, mp, needfilter, unixFile);
+		ret = _unix_write(mp, needfilter, unixFile);
 		free(unixFile);
 		return ret;
 	}
@@ -103,8 +102,7 @@ static int unix_write(direntry_t *entry, MainParam_t *mp, int needfilter)
 
 
 /* Write the Unix file */
-static int _unix_write(direntry_t *entry, MainParam_t *mp, int needfilter,
-		       const char *unixFile)
+static int _unix_write(MainParam_t *mp, int needfilter, const char *unixFile)
 {
 	Arg_t *arg=(Arg_t *) mp->arg;
 	time_t mtime;
@@ -267,13 +265,13 @@ static int unix_copydir(direntry_t *entry, MainParam_t *mp)
 
 static  int dos_to_unix(direntry_t *entry, MainParam_t *mp)
 {
-	return unix_write(entry, mp, 1);
+	return unix_write(mp, 1);
 }
 
 
 static  int unix_to_unix(MainParam_t *mp)
 {
-	return unix_write(0, mp, 0);
+	return unix_write(mp, 0);
 }
 
 
@@ -529,7 +527,7 @@ void mcopy(int argc, char **argv, int mtype)
 	while ((c = getopt(argc, argv, "i:abB/sptTnmvQD:oh")) != EOF) {
 		switch (c) {
 			case 'i':
-				set_cmd_line_image(optarg, 0);
+				set_cmd_line_image(optarg);
 				break;
 			case 's':
 			case '/':

@@ -518,7 +518,7 @@ static off_t get_offset(char *name) {
   return ofs;
 }
 
-void set_cmd_line_image(char *img, int flags) {
+void set_cmd_line_image(char *img) {
   char *name;
   prepend();
   devices[cur_dev].drive = ':';

@@ -187,7 +187,7 @@ extern int mtools_raw_tty;
 extern int batchmode;
 
 char get_default_drive(void);
-void set_cmd_line_image(char *img, int flags);
+void set_cmd_line_image(char *img);
 void read_config(void);
 off_t str_to_offset(char *str);
 extern struct device *devices;
@@ -241,7 +241,7 @@ char *getVoldName(struct device *dev, char *name);
 #endif
 
 
-Stream_t *OpenDir(Stream_t *Parent, const char *filename);
+Stream_t *OpenDir(const char *filename);
 /* int unix_dir_loop(Stream_t *Stream, MainParam_t *mp); 
 int unix_loop(MainParam_t *mp, char *arg); */
 

@@ -546,7 +546,7 @@ void mdir(int argc, char **argv, int type)
 	while ((c = getopt(argc, argv, "i:waXbfds/h")) != EOF) {
 		switch(c) {
 			case 'i':
-				set_cmd_line_image(optarg, 0);
+				set_cmd_line_image(optarg);
 				break;
 			case 'w':
 				wide = 1;

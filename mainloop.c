@@ -145,7 +145,7 @@ int unix_loop(Stream_t *Stream, MainParam_t *mp, char *arg, int follow_dir_link)
 #endif
 			if(! (mp->lookupflags & ACCEPT_DIR))
 				return 0;
-			mp->File = OpenDir(Stream, arg);
+			mp->File = OpenDir(arg);
 		}
 	}
 

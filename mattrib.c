@@ -190,7 +190,7 @@ void mattrib(int argc, char **argv, int type)
 				arg.remove &= ~letterToCode(c);
 				break;
 			case 'i':
-				set_cmd_line_image(optarg, 0);
+				set_cmd_line_image(optarg);
 				break;
 			case 'p':
 				replay = 1;

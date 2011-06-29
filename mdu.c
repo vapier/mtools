@@ -106,7 +106,7 @@ void mdu(int argc, char **argv, int type)
 	while ((c = getopt(argc, argv, "i:ash")) != EOF) {
 		switch (c) {
 			case 'i':
-				set_cmd_line_image(optarg, 0);
+				set_cmd_line_image(optarg);
 				break;
 			case 'a':
 				arg.all = 1;

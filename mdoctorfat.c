@@ -100,7 +100,7 @@ void mdoctorfat(int argc, char **argv, int mtype)
 	while ((c = getopt(argc, argv, "i:bo:s:h")) != EOF) {
 		switch (c) {
 			case 'i':
-				set_cmd_line_image(optarg, 0);
+				set_cmd_line_image(optarg);
 				break;
 			case 'b':
 				arg.markbad = 1;
