@@ -263,7 +263,7 @@ static int unix_copydir(direntry_t *entry, MainParam_t *mp)
 	}
 }
 
-static  int dos_to_unix(direntry_t *entry, MainParam_t *mp)
+static  int dos_to_unix(direntry_t *entry UNUSEDP, MainParam_t *mp)
 {
 	return unix_write(mp, 1);
 }
