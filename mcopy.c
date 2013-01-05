@@ -505,7 +505,7 @@ static void usage(int ret)
 void mcopy(int argc, char **argv, int mtype)
 {
 	Arg_t arg;
-	int c, ret, fastquit;
+	int c, fastquit;
 	
 
 	/* get command line options */
@@ -609,7 +609,7 @@ void mcopy(int argc, char **argv, int mtype)
 			target = argv[argc];
 		}
 
-		ret = target_lookup(&arg.mp, target);
+		target_lookup(&arg.mp, target);
 		if(!arg.mp.targetDir && !arg.mp.unixTarget) {
 			fprintf(stderr,"Bad target %s\n", target);
 			exit(1);
