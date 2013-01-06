@@ -1,3 +1,10 @@
+v4_0_18	
+	Fix mformat'ing of FAT12 filesystems with huge cluster sizes
+	Minfo prints image file name in mformat command line if an image
+	file name was given
+	Always generate gzip-compressed RPMs, in order to remain
+	compatible with older distributions
+	Fixed buffer overflow with drive letter in mclasserase
 v4_0_17
 	mbadblocks now takes a list of bad blocks (either as sectors
 	or as clusters)

@@ -215,11 +215,17 @@ void mlabel(int argc, char **argv, int type)
 
 	/* ask for new label */
 	if(interactive){
+		saved_sig_state ss; 
 		newLabel = longname;
+		allow_interrupts(&ss);
 		fprintf(stderr,"Enter the new volume label : ");
 		if(fgets(newLabel, VBUFSIZE, stdin) == NULL) {
-			newLabel[0] = '\0';
 			fprintf(stderr, "\n");
+			if(errno == EINTR) {
+				FREE(&RootDir);
+				exit(1);
+			}
+			newLabel[0] = '\0';
 		}
 		if(newLabel[0])
 			newLabel[strlen(newLabel)-1] = '\0';

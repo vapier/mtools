@@ -155,7 +155,8 @@ seteuid setresuid setpgrp \
 tcsetattr tcflush basename fchdir media_oldaliases llseek lseek64 \
 snprintf stat64 setlocale \
 wcsdup wcscasecmp wcsnlen putwc \
-getuserid getgroupid)
+getuserid getgroupid \
+sigaction)
 AC_FUNC_SETPGRP
 
 dnl

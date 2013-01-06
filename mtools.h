@@ -155,7 +155,14 @@ extern int got_signal;
 #define got_signal do_gotsignal(__FILE__, __LINE__) */
 
 void setup_signal(void);
+#ifdef HAVE_SIGACTION
+typedef struct { struct sigaction sa[4]; } saved_sig_state;
+#else
+typedef int saved_sig_state;
+#endif
 
+void allow_interrupts(saved_sig_state *ss);
+void restore_interrupts(saved_sig_state *ss);
 
 #define SET_INT(target, source) \
 if(source)target=source
