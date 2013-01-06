@@ -728,7 +728,7 @@ void read_config(void)
 	mtools_fat_compatibility=1;
 }
 
-void mtoolstest(int argc, char **argv, int type)
+void mtoolstest(int argc, char **argv, int type  UNUSEDP)
 {
     /* testing purposes only */
     struct device *dev;
