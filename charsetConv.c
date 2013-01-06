@@ -76,7 +76,7 @@ static int try(const char *testCp) {
 }
 
 static const char *getWcharCp(void) {
-	int i;
+	unsigned int i;
 	if(wcharCp != NULL)
 		return wcharCp;	
 	for(i=0; i< sizeof(wcharTries) / sizeof(wcharTries[0]); i++) {
@@ -164,7 +164,7 @@ static int safe_iconv(iconv_t conv, const wchar_t *wchar, char *dest,
 		      size_t len, int *mangled)
 {
 	int r;
-	int i;
+	unsigned int i;
 	size_t in_len=len*sizeof(wchar_t);
 	size_t out_len=len*4;
 	char *dptr = dest;
@@ -388,7 +388,7 @@ int native_to_wchar(const char *native, wchar_t *wchar, size_t len,
 		    const char *end, int *mangled)
 {
 	mbstate_t ps;
-	int i;
+	unsigned int i;
 	memset(&ps, 0, sizeof(ps));
 
 	for(i=0; i<len && (native < end || !end); i++) {
