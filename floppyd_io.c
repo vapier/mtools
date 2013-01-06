@@ -398,8 +398,8 @@ static int floppyd_free(Stream_t *Stream)
 }
 
 static int floppyd_geom(Stream_t *Stream, struct device *dev, 
-		     struct device *orig_dev,
-		     int media, union bootsector *boot)
+			struct device *orig_dev UNUSEDP,
+			int media, union bootsector *boot)
 {
 	size_t tot_sectors;
 	int sect_per_track;

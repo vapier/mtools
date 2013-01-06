@@ -109,7 +109,7 @@ static int scan(Fs_t *Fs, Stream_t *dev,
 	return 0;
 }
 
-void mbadblocks(int argc, char **argv, int type)
+void mbadblocks(int argc, char **argv, int type UNUSEDP)
 {
 	unsigned int i;
 	unsigned int startSector=2;

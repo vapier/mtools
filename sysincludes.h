@@ -104,12 +104,15 @@ typedef void *caddr_t;
 # if __GNUC__ == 2 && __GNUC_MINOR__ > 6 || __GNUC__ >= 3
 /* gcc 2.6.3 doesn't have "unused" */		/* mool */
 #  define UNUSED(x) x __attribute__ ((unused));x
+#  define UNUSEDP __attribute__ ((unused))
 # else
 #  define UNUSED(x) x
+#  define UNUSEDP /* */
 # endif
 # define NORETURN __attribute__ ((noreturn))
 #else
 # define UNUSED(x) x
+#  define UNUSEDP /* */
 # define PACKED /* */
 # define NORETURN /* */
 #endif
