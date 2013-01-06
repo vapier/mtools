@@ -52,7 +52,7 @@ static size_t bufLen(size_t blocksize, mt_size_t totalSize, mt_off_t address)
 	return blocksize;
 }
 
-void mcat(int argc, char **argv, int type)
+void mcat(int argc, char **argv, int type UNUSEDP)
 {
 	struct device *dev;
 	struct device out_dev;
