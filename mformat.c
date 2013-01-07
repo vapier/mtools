@@ -812,6 +812,8 @@ void mformat(int argc, char **argv, int dummy)
 
 	int backupBoot = 6;
 
+	char *endptr;
+
 	hs = hs_set = 0;
 	argtracks = 0;
 	argheads = 0;
@@ -848,6 +850,7 @@ void mformat(int argc, char **argv, int dummy)
 	while ((c = getopt(argc,argv,
 			   "i:148f:t:n:v:qub"
 			   "kK:B:r:L:I:FCc:Xh:s:T:l:N:H:M:S:2:30:Aad:m:"))!= EOF) {
+		endptr = NULL;
 		switch (c) {
 			case 'i':
 				set_cmd_line_image(optarg);
@@ -954,7 +957,7 @@ void mformat(int argc, char **argv, int dummy)
 				break;
 
 			case 'N':
- 				serial = strtoul(optarg,0,16);
+ 				serial = strtoul(optarg,&endptr,16);
  				serial_set = 1;
  				break;
 			case 'a': /* Atari style serial number */
@@ -971,7 +974,7 @@ void mformat(int argc, char **argv, int dummy)
 				break;
 
 			case 'I':
-				fsVersion = strtoul(optarg,0,0);
+				fsVersion = strtoul(optarg,&endptr,0);
 				break;
 
 			case 'c':
@@ -979,10 +982,10 @@ void mformat(int argc, char **argv, int dummy)
 				break;
 
 			case 'r':
-				Fs.dir_len = strtoul(optarg,0,0);
+				Fs.dir_len = strtoul(optarg,&endptr,0);
 				break;
 			case 'L':
-				Fs.fat_len = strtoul(optarg,0,0);
+				Fs.fat_len = strtoul(optarg,&endptr,0);
 				break;
 
 
@@ -1006,10 +1009,16 @@ void mformat(int argc, char **argv, int dummy)
 				Fs.num_fat = atoi(optarg);
 				break;
 			case 'm':
-				mediaDesc = strtoul(optarg,0,0);
+				mediaDesc = strtoul(optarg,&endptr,0);
+				if(*endptr)
+					mediaDesc = strtoul(optarg,&endptr,16);
 				break;
 			default:
 				usage(1);
+		}
+		if(endptr && *endptr) {
+			fprintf(stderr, "Bad number %s\n", optarg);
+			exit(1);
 		}
 	}
 
