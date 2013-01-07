@@ -916,7 +916,7 @@ void mformat(int argc, char **argv, int dummy)
 
 			case 'S':
 				argssize = atoi(optarg) | 0x80;
-				if(argssize < 0x81)
+				if(argssize < 0x80)
 					usage(1);
 				if(argssize >= 0x87) {
 					fprintf(stderr, "argssize must be less than 6\n");
