@@ -100,6 +100,7 @@ iconv.h wctype.h wchar.h locale.h linux/fs.h)
 AC_CHECK_HEADERS(termio.h sys/termio.h, [break])
 AC_CHECK_HEADERS(termios.h sys/termios.h, [break])
 
+AC_CHECK_TYPES(caddr_t,,includes = AC_INCLUDES_DEFAULT)
 
 dnl
 dnl Check to see if llseek() is declared in unistd.h.  On some libc's
@@ -157,7 +158,6 @@ snprintf stat64 setlocale \
 wcsdup wcscasecmp wcsnlen putwc \
 getuserid getgroupid \
 sigaction)
-AC_FUNC_SETPGRP
 
 dnl
 dnl Check for 64-bit off_t
@@ -376,6 +376,7 @@ if test X$use_floppyd = Xyes; then
     FLOPPYD="floppyd floppyd_installtest"
     BINFLOPPYD="\$(DESTDIR)\$(bindir)/floppyd \$(DESTDIR)\$(bindir)/floppyd_installtest"
     AC_DEFINE([USE_FLOPPYD],1,[Define when you want to include floppyd support])
+    AC_FUNC_SETPGRP
 else
     FLOPPYD=
     BINFLOPPYD=

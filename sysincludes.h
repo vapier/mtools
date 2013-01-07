@@ -86,7 +86,7 @@ ac_cv_func_setpgrp_void=yes ../mtools/configure --build=i386-linux-gnu --host=i3
 #endif
 #endif
 
-#ifdef OS_mingw32msvc
+#ifndef HAVE_CADDR_T
 typedef void *caddr_t;
 #endif
 
