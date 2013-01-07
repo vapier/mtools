@@ -2010,7 +2010,7 @@ with MS-DOS 1.0 file systems
 @code{minfo} @var{drive}:
 @end display
 
-Mlabel supports the following option:
+Minfo supports the following option:
 @table @code
 @item v
 Prints a hexdump of the boot sector, in addition to the other information
