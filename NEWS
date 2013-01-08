@@ -1,4 +1,5 @@
 v4_0_18	
+	Fix mt_size_t on NetBSD
 	Fixed compilation on Mingw
 	Fixed doc (especially mformat)
 	Fix mformat'ing of FAT12 filesystems with huge cluster sizes
