@@ -175,8 +175,11 @@ UNUSED(static __inline__ int compare (long ref, long testee))
 
 Stream_t *GetFs(Stream_t *Fs);
 
-void label_name(doscp_t *cp, const char *filename, int verbose, 
-		int *mangled, dos_name_t *ans);
+void label_name_uc(doscp_t *cp, const char *filename, int verbose, 
+		   int *mangled, dos_name_t *ans);
+
+void label_name_pc(doscp_t *cp, const char *filename, int verbose, 
+		   int *mangled, dos_name_t *ans);
 
 /* environmental variables */
 extern unsigned int mtools_skip_check;

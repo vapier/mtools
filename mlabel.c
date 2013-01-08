@@ -27,8 +27,8 @@
 #include "nameclash.h"
 #include "file_name.h"
 
-void label_name(doscp_t *cp, const char *filename, int verbose,
-		int *mangled, dos_name_t *ans)
+static void _label_name(doscp_t *cp, const char *filename, int verbose,
+			int *mangled, dos_name_t *ans, int preserve_case)
 {
 	int len;
 	int i;
@@ -50,7 +50,8 @@ void label_name(doscp_t *cp, const char *filename, int verbose,
 			have_lower = 1;
 		if(isupper(wbuffer[i]))
 			have_upper = 1;
-		wbuffer[i] = towupper(wbuffer[i]);
+		if(!preserve_case)
+			wbuffer[i] = towupper(wbuffer[i]);
 		if(
 #ifdef HAVE_WCHAR_H
 		   wcschr(L"^+=/[]:,?*\\<>|\".", wbuffer[i])
@@ -65,6 +66,18 @@ void label_name(doscp_t *cp, const char *filename, int verbose,
 	if (have_lower && have_upper)
 		*mangled = 1;
 	wchar_to_dos(cp, wbuffer, ans->base, len, mangled);
+}
+
+void label_name_uc(doscp_t *cp, const char *filename, int verbose,
+		   int *mangled, dos_name_t *ans)
+{
+	_label_name(cp, filename, verbose, mangled, ans, 0);
+}
+
+void label_name_pc(doscp_t *cp, const char *filename, int verbose,
+		   int *mangled, dos_name_t *ans)
+{
+	_label_name(cp, filename, verbose, mangled, ans, 1);
 }
 
 int labelit(struct dos_name_t *dosname,
@@ -118,7 +131,7 @@ void mlabel(int argc, char **argv, int type)
 	char drive;
 
 	init_clash_handling(&ch);
-	ch.name_converter = label_name;
+	ch.name_converter = label_name_uc;
 	ch.ignore_entry = -2;
 
 	verbose = 0;
@@ -284,7 +297,7 @@ void mlabel(int argc, char **argv, int type)
 		else
 			shrtLabel = newLabel;
 		cp = GET_DOSCONVERT(Fs);
-		label_name(cp, shrtLabel, verbose, &mangled, &dosname);
+		label_name_pc(cp, shrtLabel, verbose, &mangled, &dosname);
 
 		if(have_boot && boot.boot.descr >= 0xf0 &&
 		   labelBlock->dos4 == 0x29) {

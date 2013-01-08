@@ -290,7 +290,7 @@ static __inline__ void format_root(Fs_t *Fs, char *label, union bootsector *boot
 	int dirlen;
 
 	init_clash_handling(&ch);
-	ch.name_converter = label_name;
+	ch.name_converter = label_name_uc;
 	ch.ignore_entry = -2;
 
 	buf = safe_malloc(Fs->sector_size);
@@ -1295,8 +1295,9 @@ void mformat(int argc, char **argv, int dummy)
 	if (!serial_set)
 		serial=random();
 	set_dword(labelBlock->serial, serial);
-	label_name(GET_DOSCONVERT((Stream_t *)&Fs),
-		   label[0] ? label : "NO NAME    ", 0, &mangled, &shortlabel);
+	label_name_pc(GET_DOSCONVERT((Stream_t *)&Fs),
+		      label[0] ? label : "NO NAME    ", 0,
+		      &mangled, &shortlabel);
 	strncpy(labelBlock->label, shortlabel.base, 11);
 	sprintf(labelBlock->fat_type, "FAT%2.2d  ", Fs.fat_bits);
 	labelBlock->fat_type[7] = ' ';
