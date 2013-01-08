@@ -1022,9 +1022,15 @@ void mformat(int argc, char **argv, int dummy)
 		}
 	}
 
-	if (argc - optind != 1 ||
-	    !argv[optind][0] || argv[optind][1] != ':')
+	if (argc - optind > 1)
 		usage(1);
+	if(argc - optind == 1) {
+	    if(!argv[optind][0] || argv[optind][1] != ':')
+		usage(1);
+	    drive = toupper(argv[argc -1][0]);
+	} else {
+	    drive = get_default_drive();
+	}
 
 	if(argtracks && tot_sectors) {
 		fprintf(stderr, "Only one of -t or -T may be specified\n");
@@ -1037,8 +1043,6 @@ void mformat(int argc, char **argv, int dummy)
 		exit(1);
 	}
 #endif
-
-	drive = toupper(argv[argc -1][0]);
 
 	/* check out a drive whose letter and parameters match */
 	sprintf(errmsg, "Drive '%c:' not supported", drive);
