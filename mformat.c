@@ -1030,6 +1030,12 @@ void mformat(int argc, char **argv, int dummy)
 	    drive = toupper(argv[argc -1][0]);
 	} else {
 	    drive = get_default_drive();
+	    if(drive != ':') {
+	      /* Use default drive only if it is ":" (image file), as else
+		 it would be too dangerous... */
+	      fprintf(stderr, "Drive letter missing\n");
+	      exit(1);
+	    }
 	}
 
 	if(argtracks && tot_sectors) {
