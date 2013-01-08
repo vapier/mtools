@@ -93,7 +93,7 @@ static void usage(int ret)
 void mlabel(int argc, char **argv, int type)
 {
 
-	char *newLabel;
+	const char *newLabel="";
 	int verbose, clear, interactive, show;
 	direntry_t entry;
 	int result=0;
@@ -115,6 +115,7 @@ void mlabel(int argc, char **argv, int type)
 	struct label_blk_t *labelBlock;
 	int isRo=0;
 	int *isRop=NULL;
+	char drive;
 
 	init_clash_handling(&ch);
 	ch.name_converter = label_name;
@@ -162,11 +163,18 @@ void mlabel(int argc, char **argv, int type)
 			}
 	}
 
-	if (argc - optind != 1 || !argv[optind][0] || argv[optind][1] != ':')
+	if (argc - optind > 1)
 		usage(1);
+	if(argc - optind == 1) {
+	    if(!argv[optind][0] || argv[optind][1] != ':')
+		usage(1);
+	    drive = toupper(argv[argc -1][0]);
+	    newLabel = argv[optind]+2;
+	} else {
+	    drive = get_default_drive();
+	}
 
 	init_mp(&mp);
-	newLabel = argv[optind]+2;
 	if(strlen(newLabel) > VBUFSIZE) {
 		fprintf(stderr, "Label too long\n");
 		FREE(&RootDir);
@@ -184,7 +192,7 @@ void mlabel(int argc, char **argv, int type)
 		FREE(&RootDir);
 		exit(1);
 	}		
-	RootDir = open_root_dir(argv[optind][0], isRop ? 0 : O_RDWR, isRop);
+	RootDir = open_root_dir(drive, isRop ? 0 : O_RDWR, isRop);
 	if(isRo) {
 		show = 1;
 		interactive = 0;
@@ -219,16 +227,16 @@ void mlabel(int argc, char **argv, int type)
 		newLabel = longname;
 		allow_interrupts(&ss);
 		fprintf(stderr,"Enter the new volume label : ");
-		if(fgets(newLabel, VBUFSIZE, stdin) == NULL) {
+		if(fgets(longname, VBUFSIZE, stdin) == NULL) {
 			fprintf(stderr, "\n");
 			if(errno == EINTR) {
 				FREE(&RootDir);
 				exit(1);
 			}
-			newLabel[0] = '\0';
+			longname[0] = '\0';
 		}
-		if(newLabel[0])
-			newLabel[strlen(newLabel)-1] = '\0';
+		if(longname[0])
+			longname[strlen(newLabel)-1] = '\0';
 	}
 
 	if(strlen(newLabel) > 11) {
