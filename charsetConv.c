@@ -46,6 +46,10 @@ static const char* wcharTries[] = {
 	"UCS-4", "UCS-2"
 };
 
+static const char *asciiTries[] = {
+	"ASCII", "ASCII-GR", "ISO8859-1"
+};
+
 static const wchar_t *testString = L"ab";
 
 static int try(const char *testCp) {
@@ -55,8 +59,14 @@ static int try(const char *testCp) {
 	char outbuf[3];
 	char *outbufP = outbuf;
 	size_t outbufLen = 2*sizeof(char);
-	iconv_t test = iconv_open("ASCII", testCp);
-
+	iconv_t test;
+	int i;
+	
+	for(i=0; i < sizeof(asciiTries) / sizeof(asciiTries[0]); i++) {
+		test = iconv_open(asciiTries[i], testCp);
+		if(test != (iconv_t) -1)
+			break;
+	}
 	if(test == (iconv_t) -1)
 		goto fail0;
 	res = iconv(test,
