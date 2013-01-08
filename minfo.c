@@ -72,6 +72,7 @@ void minfo(int argc, char **argv, int type)
 	int c;
 	Stream_t *Stream;
 	struct label_blk_t *labelBlock;
+	int have_drive = 0;
 
 	unsigned long sect_per_track;
 	int tracks_match=0;
@@ -97,13 +98,17 @@ void minfo(int argc, char **argv, int type)
 		}
 	}
 
-	if(argc == optind)
-		usage(1);
-
-	for(;optind < argc; optind++) {
-		if(!argv[optind][0] || argv[optind][1] != ':')
-			usage(1);
-		drive = toupper(argv[optind][0]);
+	for(;optind <= argc; optind++) {
+		if(optind == argc) {
+			if(have_drive)
+				break;
+			drive = get_default_drive();
+		} else {
+			if(!argv[optind][0] || argv[optind][1] != ':')
+				usage(1);
+			drive = toupper(argv[optind][0]);
+		}
+		have_drive = 1;
 
 		if(! (Stream = find_device(drive, O_RDONLY, &dev, &boot, 
 					   name, &media, 0, NULL)))
@@ -149,7 +154,7 @@ void minfo(int argc, char **argv, int type)
 		}
 		printf("bootsector information\n");
 		printf("======================\n");
-		printf("banner:\"%8s\"\n", boot.boot.banner);
+		printf("banner:\"%.8s\"\n", boot.boot.banner);
 		printf("sector size: %d bytes\n", WORD_S(secsiz));
 		printf("cluster size: %d sectors\n", boot.boot.clsiz);
 		printf("reserved (boot) sectors: %d\n", WORD_S(nrsvsect));
