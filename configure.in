@@ -100,7 +100,7 @@ iconv.h wctype.h wchar.h locale.h linux/fs.h)
 AC_CHECK_HEADERS(termio.h sys/termio.h, [break])
 AC_CHECK_HEADERS(termios.h sys/termios.h, [break])
 
-AC_CHECK_TYPES(caddr_t,,includes = AC_INCLUDES_DEFAULT)
+AC_CHECK_TYPES(caddr_t)
 
 dnl
 dnl Check to see if llseek() is declared in unistd.h.  On some libc's
