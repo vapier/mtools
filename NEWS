@@ -1,4 +1,5 @@
 v4_0_18	
+	Fix for names of iconv encodings on AIX
 	Fix mt_size_t on NetBSD
 	Fixed compilation on Mingw
 	Fixed doc (especially mformat)

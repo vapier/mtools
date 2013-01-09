@@ -14,7 +14,7 @@ which is a collection of tools to allow Unix systems to manipulate
 MS-DOS files.
 
 Copyright @copyright{} 2007, 2009 Free Software Foundation, Inc.
-Copyright @copyright{} 1996-2005,2007-2011 Alain Knaff.
+Copyright @copyright{} 1996-2005,2007-2011,2013 Alain Knaff.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
