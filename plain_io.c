@@ -150,7 +150,7 @@ static int file_write(Stream_t *Stream, char *buf, mt_off_t where, size_t len)
 	}
 }
 
-static int file_flush(Stream_t *Stream)
+static int file_flush(Stream_t *Stream UNUSEDP)
 {
 #if 0
 	DeclareThis(SimpleFile_t);
@@ -705,7 +705,7 @@ APIRET rc;
 	This->swap = DO_SWAP( dev );
 
 	if(!(mode2 & NO_OFFSET) &&
-	   dev && (dev->partition > 4 || dev->partition < 0))
+	   dev && (dev->partition > 4))
 	    fprintf(stderr, 
 		    "Invalid partition %d (must be between 0 and 4), ignoring it\n", 
 		    dev->partition);

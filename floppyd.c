@@ -154,7 +154,7 @@ static void free_io_buffer(io_buffer buffer) {
 
 
 static size_t buf_read (io_buffer buf, Byte* buffer, size_t nbytes) {
-	size_t rval;
+	ssize_t rval;
 	
 	if (nbytes <= buf->in_valid) {
 		memcpy(buffer, buf->in_buffer+buf->in_start, nbytes);
@@ -323,7 +323,7 @@ static char send_packet(Packet packet, io_buffer fp)
 
 static char recv_packet(Packet packet, io_buffer fp, Dword maxlength)
 {
-	int start;
+	Dword start;
 	int l;
 	Dword length = read_dword(fp);
 #if DEBUG
@@ -725,7 +725,7 @@ static int sockethandle_now = -1;
 /*
  * Catch alarm signals and exit.
  */
-static void alarm_signal(int a)
+static void alarm_signal(int a UNUSEDP)
 {
 	if (sockethandle_now != -1) {
 		close(sockethandle_now);
@@ -1037,7 +1037,7 @@ static void send_reply64(int rval, io_buffer sock, mt_off_t len) {
 	destroyPacket(reply);
 }
 
-static void cleanup(int x) {
+static void cleanup(int x UNUSEDP) {
 	unlink(XauFileName());
 	exit(-1);
 }
@@ -1186,8 +1186,7 @@ void serve_client(int sockhandle, char **device_name, int n_dev,
 #endif
 				read_packet(parm, devFd, get_dword(parm, 0));
 				send_reply(devFd, sock, get_length(parm));
-				if(get_length(parm) >= 0)
-					send_packet(parm, sock);
+				send_packet(parm, sock);
 				break;
 			case OP_WRITE:
 #if DEBUG

@@ -27,7 +27,7 @@
 #include "nameclash.h"
 #include "file_name.h"
 
-static void _label_name(doscp_t *cp, const char *filename, int verbose,
+static void _label_name(doscp_t *cp, const char *filename, int verbose UNUSEDP,
 			int *mangled, dos_name_t *ans, int preserve_case)
 {
 	int len;
@@ -81,8 +81,8 @@ void label_name_pc(doscp_t *cp, const char *filename, int verbose,
 }
 
 int labelit(struct dos_name_t *dosname,
-	    char *longname,
-	    void *arg0,
+	    char *longname UNUSEDP,
+	    void *arg0 UNUSEDP,
 	    direntry_t *entry)
 {
 	time_t now;
@@ -103,7 +103,7 @@ static void usage(int ret)
 }
 
 
-void mlabel(int argc, char **argv, int type)
+void mlabel(int argc, char **argv, int type UNUSEDP)
 {
 
 	const char *newLabel="";

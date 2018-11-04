@@ -56,7 +56,7 @@ static void displayInfosector(Stream_t *Stream, union bootsector *boot)
 }
 
 
-void minfo(int argc, char **argv, int type)
+void minfo(int argc, char **argv, int type UNUSEDP)
 {
 	union bootsector boot;
 

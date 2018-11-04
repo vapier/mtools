@@ -94,6 +94,12 @@ typedef struct doscp_t doscp_t;
 extern const char *short_illegals, *long_illegals;
 
 #define maximize(target, max) do { \
+  if(target > max) { \
+    target = max; \
+  } \
+} while(0)
+
+#define smaximize(target, max) do {		\
   if(max < 0) { \
     if(target > 0) \
       target = 0; \

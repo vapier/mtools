@@ -61,7 +61,7 @@ int setresuid(int a, int b, int c)
 }
 #endif
 
-static __inline__ void print_privs(const char *message)
+static __inline__ void print_privs(const char *message UNUSEDP)
 {
 #ifdef PRIV_DEBUG
 	/* for debugging purposes only */

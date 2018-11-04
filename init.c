@@ -86,6 +86,7 @@ Class_t FsClass = {
 	get_data_pass_through,
 	0, /* pre allocate */
 	get_dosConvert, /* dosconvert */
+	0 /* discard */
 };
 
 static int get_media_type(Stream_t *St, union bootsector *boot)

@@ -461,7 +461,10 @@ static Class_t FloppydFileClass = {
 	floppyd_flush,
 	floppyd_free,
 	floppyd_geom,
-	floppyd_data
+	floppyd_data,
+	0, /* pre_allocate */
+	0, /* get_dosConvert */
+	0  /* discard */
 };
 
 /* ######################################################################## */

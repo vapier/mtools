@@ -885,7 +885,7 @@ static int get_lba_geom(Stream_t *Direct, unsigned long tot_sectors, struct devi
 	return 0;
 }
 
-void mformat(int argc, char **argv, int dummy)
+void mformat(int argc, char **argv, int dummy UNUSEDP)
 {
 	int r; /* generic return value */
 	Fs_t Fs;
