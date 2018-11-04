@@ -1321,7 +1321,7 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 		tot_sectors = used_dev.tracks*sect_per_track - used_dev.hidden%sect_per_track;
 		/* Number of sectors must fit into 32bit value */
 		if (tot_sectors > 0xFFFFFFFF) {
-			fprintf(stderr, "Too few sectors\n");
+			fprintf(stderr, "Too many sectors\n");
 			exit(1);
 		}
 	}
