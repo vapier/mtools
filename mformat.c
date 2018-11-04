@@ -933,7 +933,10 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 	int Atari = 0; /* should we add an Atari-style serial number ? */
 
 	int backupBoot = 6;
+	int backupBootSet = 0;
 
+	int resvSects = 0;
+	
 	char *endptr;
 
 	hs = hs_set = 0;
@@ -971,7 +974,7 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 		usage(0);
 	while ((c = getopt(argc,argv,
 			   "i:148f:t:n:v:qub"
-			   "kK:B:r:L:I:FCc:Xh:s:T:l:N:H:M:S:2:30:Aad:m:"))!= EOF) {
+			   "kK:R:B:r:L:I:FCc:Xh:s:T:l:N:H:M:S:2:30:Aad:m:"))!= EOF) {
 		endptr = NULL;
 		switch (c) {
 			case 'i':
@@ -1119,10 +1122,14 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 				break;
 			case 'K':
 				backupBoot = atoi(optarg);
-				if(backupBoot < 2 || backupBoot >= 32) {
-				  fprintf(stderr, "Backupboot must be comprised between 2 and 32\n");
+				backupBootSet=1;
+				if(backupBoot < 2) {
+				  fprintf(stderr, "Backupboot must be greater than 2\n");
 				  exit(1);
 				}
+				break;
+			case 'R':
+				resvSects = atoi(optarg);
 				break;
 			case 'h':
 				argheads = atoi(optarg);
@@ -1385,7 +1392,26 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 	if(used_dev.fat_bits == 32) {
 		Fs.primaryFat = 0;
 		Fs.writeAllFats = 1;
-		Fs.fat_start = 32;
+		if(resvSects) {
+			if(resvSects < 3) {
+				fprintf(stderr,
+					"For FAT 32, reserved sectors need to be at least 3\n");
+				resvSects = 32;
+			}
+
+			if(resvSects <= backupBoot && !backupBootSet)
+				backupBoot = resvSects - 1;
+			Fs.fat_start = resvSects;
+		} else 
+			Fs.fat_start = 32;
+
+		if(resvSects <= backupBoot) {
+			fprintf(stderr,
+				"Reserved sectors must be more than backupBoot\n");
+			backupBoot = 6;
+			Fs.fat_start = 32;
+		}
+
 		calc_fs_parameters_32(tot_sectors, &Fs, &boot);
 
 		Fs.clus_start = Fs.num_fat * Fs.fat_len + Fs.fat_start;
@@ -1409,7 +1435,15 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 		labelBlock = & boot.boot.ext.fat32.labelBlock;
 	} else {
 		Fs.infoSectorLoc = 0;
-		Fs.fat_start = 1;
+		if(resvSects) {
+			if(resvSects < 1) {
+				fprintf(stderr,
+					"Reserved sectors need to be at least 1\n");
+				resvSects = 1;
+			}
+			Fs.fat_start = resvSects;
+		} else 
+			Fs.fat_start = 1;
 		calc_fs_parameters(&used_dev, tot_sectors, &Fs, &boot);
 		Fs.dir_start = Fs.num_fat * Fs.fat_len + Fs.fat_start;
 		Fs.clus_start = Fs.dir_start + Fs.dir_len;
