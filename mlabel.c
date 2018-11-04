@@ -133,6 +133,7 @@ void mlabel(int argc, char **argv, int type UNUSEDP)
 	init_clash_handling(&ch);
 	ch.name_converter = label_name_uc;
 	ch.ignore_entry = -2;
+	ch.is_label = 1;
 
 	verbose = 0;
 	clear = 0;
