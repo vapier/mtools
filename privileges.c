@@ -173,7 +173,10 @@ void init_privs(void)
 		exit(1);
 	}
 #endif
-	
+
+	if(euid != ruid) {
+		unsetenv("SOURCE_DATE_EPOCH");
+	}
 	if(euid == 0 && ruid != 0) {
 #ifdef HAVE_SETEUID
 		setuid(0); /* set real uid to 0 */
