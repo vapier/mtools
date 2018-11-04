@@ -658,6 +658,10 @@ DOSEMU image files.
 @vindex MTOOLS_FAT_COMPATIBILITY
 @vindex MTOOLS_LOWER_CASE
 @vindex MTOOLS_NO_VFAT
+@vindex MTOOLS_DOTTED_DIR
+@vindex MTOOLS_NAME_NUMERIC_TAIL
+@vindex MTOOLS_TWENTY_FOUR_HOUR_CLOCK
+@vindex MTOOLS_LOCK_TIMEOUT
 @cindex FreeDOS
 
 Global flags may be set to 1 or to 0.
@@ -692,6 +696,9 @@ clash would have happened.
 @item MTOOLS_TWENTY_FOUR_HOUR_CLOCK
 If 1, uses the European notation for times (twenty four hour clock),
 else uses the UK/US notation (am/pm)
+@item MTOOLS_LOCK_TIMEOUT
+How long, in seconds, to wait for a locked device to become free.
+Defaults to 30.
 @end table
 
 Example:

@@ -110,6 +110,7 @@ typedef mt_off_t Qword;
 #define MAX_DATA_REQUEST         3000000
 #define BUFFERED_IO_SIZE         16348
 
+unsigned int mtools_lock_timeout=30;
 
 void serve_client(int sock, char **device_name, int n_dev, int close_stderr);
 

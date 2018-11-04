@@ -194,6 +194,7 @@ extern unsigned int mtools_ignore_short_case;
 extern unsigned int mtools_no_vfat;
 extern unsigned int mtools_numeric_tail;
 extern unsigned int mtools_dotted_dir;
+extern unsigned int mtools_lock_timeout;
 extern unsigned int mtools_twenty_four_hour_clock;
 extern const char *mtools_date_string;
 extern unsigned int mtools_rate_0, mtools_rate_any;

@@ -158,7 +158,7 @@ tcsetattr tcflush basename fchdir media_oldaliases llseek lseek64 \
 snprintf stat64 setlocale \
 wcsdup wcscasecmp wcsnlen putwc \
 getuserid getgroupid \
-sigaction)
+sigaction usleep)
 
 dnl
 dnl Check for 64-bit off_t
