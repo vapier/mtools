@@ -586,17 +586,21 @@ static void calc_cluster_size(struct Fs_t *Fs, unsigned long tot_sectors,
 	}
 }
 
-
 struct OldDos_t old_dos[]={
-{   40,  9,  1, 4, 1, 2, 0xfc },
-{   40,  9,  2, 7, 2, 2, 0xfd },
-{   40,  8,  1, 4, 1, 1, 0xfe },
-{   40,  8,  2, 7, 2, 1, 0xff },
-{   80,  9,  2, 7, 2, 3, 0xf9 },
-{   80, 15,  2,14, 1, 7, 0xf9 },
-{   80, 18,  2,14, 1, 9, 0xf0 },
-{   80, 36,  2,15, 2, 9, 0xf0 },
-{    1,  8,  1, 1, 1, 1, 0xf0 },
+{   40,  9,  1, 4, 1, 2, 0xfc }, /*  180 KB */
+{   40,  9,  2, 7, 2, 2, 0xfd }, /*  360 KB */
+{   40,  8,  1, 4, 1, 1, 0xfe }, /*  160 KB */
+{   40,  8,  2, 7, 2, 1, 0xff }, /*  320 KB */
+{   80,  9,  2, 7, 2, 3, 0xf9 }, /*  720 KB */
+{   80, 15,  2,14, 1, 7, 0xf9 }, /* 1200 KB */
+{   80, 18,  2,14, 1, 9, 0xf0 }, /* 1440 KB */
+{   80, 36,  2,15, 2, 9, 0xf0 }, /* 2880 KB */
+
+/* Source: https://en.wikipedia.org/w/index.php?title=File_Allocation_Table&oldid=560606333#Exceptions : */
+/* https://www.win.tue.nl/~aeb/linux/fs/fat/fat-1.html */
+{   80,  8,  2, 7, 2, 2, 0xfb }, /* 640 KB */
+{   80,  8,  1, 7, 2, 2, 0xfa }, /* 320 KB */
+{   80,  9,  1, 7, 2, 2, 0xf8 }, /* 360 KB */
 };
 
 static int old_dos_size_to_geom(size_t size, int *cyls, int *heads, int *sects)
