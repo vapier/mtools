@@ -82,7 +82,7 @@ static void displayBPB(Stream_t *Stream, union bootsector *boot) {
 		labelBlock = &boot->boot.ext.fat32.labelBlock;
 	}
 
-	if(labelBlock->dos4 == 0x28 || labelBlock->dos4 == 0x29) {
+	if(has_BPB4) {
 		printf("physical drive id: 0x%x\n", 
 		       labelBlock->physdrive);
 		printf("reserved=0x%x\n", 

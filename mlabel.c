@@ -300,8 +300,7 @@ void mlabel(int argc, char **argv, int type UNUSEDP)
 		cp = GET_DOSCONVERT(Fs);
 		label_name_pc(cp, shrtLabel, verbose, &mangled, &dosname);
 
-		if(have_boot && boot.boot.descr >= 0xf0 &&
-		   labelBlock->dos4 == 0x29) {
+		if(have_boot && boot.boot.descr >= 0xf0 && has_BPB4) {
 			strncpy(labelBlock->label, dosname.base, 11);
 			need_write_boot = 1;
 
@@ -309,8 +308,7 @@ void mlabel(int argc, char **argv, int type UNUSEDP)
 	}
 
 	if((set_serial != SER_NONE) & have_boot) {
-		if(have_boot && boot.boot.descr >= 0xf0 &&
-		   labelBlock->dos4 == 0x29) {
+		if(have_boot && boot.boot.descr >= 0xf0 && has_BPB4) {
 			set_dword(labelBlock->serial, serial);	
 			need_write_boot = 1;
 		}

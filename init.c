@@ -347,7 +347,7 @@ Stream_t *fs_init(char drive, int mode, int *isRop)
 			labelBlock = &boot.boot.ext.fat32.labelBlock;
 		}
 
-		if(labelBlock->dos4 == 0x28 || labelBlock->dos4 == 0x29) {
+		if(has_BPB4) {
 			This->serialized = 1;
 			This->serial_number = _DWORD(labelBlock->serial);
 		}

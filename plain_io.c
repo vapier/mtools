@@ -223,7 +223,7 @@ static int file_geom(Stream_t *Stream, struct device *dev,
 		}
 
 		if (boot->boot.descr >= 0xf0 &&
-		    labelBlock->dos4 == 0x29 &&
+		    has_BPB4 &&
 		    strncmp( boot->boot.banner,"2M", 2 ) == 0 &&
 		    BootP < 512 && Infp0 < 512 && InfpX < 512 && InfTm < 512 &&
 		    BootP >= InfTm + 2 && InfTm >= InfpX && InfpX >= Infp0 && 

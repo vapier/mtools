@@ -130,6 +130,8 @@ typedef struct label_blk_t {
 	char fat_type[8];		/* 54 FAT type */
 } label_blk_t;
 
+#define has_BPB4 (labelBlock->dos4 == 0x28 || labelBlock->dos4 == 0x29)
+
 /* FAT32 specific info in the bootsector */
 struct fat32_t {
 	unsigned char bigFat[4];	/* 36 nb of sectors per FAT */
