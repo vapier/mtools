@@ -244,7 +244,7 @@ static int file_geom(Stream_t *Stream, struct device *dev,
 		dev->ssize = 0x80;
 		dev->use_2m = ~1;
 	} else {
-		fprintf(stderr,"Unknown media type\n");
+		fprintf(stderr,"Unknown media type %02x\n", media);
 		exit(1);
 	}
 
