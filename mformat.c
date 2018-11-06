@@ -1409,9 +1409,9 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 		} else 
 			Fs.fat_start = 32;
 
-		if(resvSects <= backupBoot) {
+		if(Fs.fat_start <= backupBoot) {
 			fprintf(stderr,
-				"Reserved sectors must be more than backupBoot\n");
+				"Reserved sectors (%d) must be more than backupBoot (%d)\n", Fs.fat_start, backupBoot);
 			backupBoot = 6;
 			Fs.fat_start = 32;
 		}
