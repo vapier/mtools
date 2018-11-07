@@ -111,9 +111,9 @@ file_name.o filter.o floppyd_io.o force_io.o hash.o init.o llong.o lockdev.o \
 match.o mainloop.o mattrib.o mbadblocks.o mcat.o mcd.o mclasserase.o mcopy.o \
 mdel.o mdir.o mdoctorfat.o mdu.o \
 mformat.o minfo.o misc.o missFuncs.o mk_direntry.o mlabel.o mmd.o mmount.o \
-mmove.o mpartition.o mshortname.o mshowfat.o mzip.o mtools.o patchlevel.o \
-plain_io.o precmd.o privileges.o scsi.o signal.o stream.o streamcache.o \
-subdir.o unixdir.o tty.o vfat.o xdf_io.o
+mmove.o mpartition.o mshortname.o mshowfat.o mzip.o mtools.o old_dos.o \
+patchlevel.o plain_io.o precmd.o privileges.o scsi.o signal.o stream.o \
+streamcache.o subdir.o unixdir.o tty.o vfat.o xdf_io.o
 
 OBJS2 = missFuncs.o mkmanifest.o misc.o patchlevel.o
 
@@ -127,7 +127,8 @@ file_read.c filter.c floppyd_io.c force_io.c hash.c init.c lockdev.c match.c \
 mainloop.c mattrib.c mbadblocks.c mcat.c mcd.c mclasserase.c mcopy.c mdel.c \
 mdir.c mdu.c mdoctorfat.c mformat.c minfo.c misc.c \
 missFuncs.c mk_direntry.c mlabel.c mmd.c mmount.c mmove.c mpartition.c \
-mshortname.c mshowfat.c mzip.c mtools.c plain_io.c precmd.c privileges.c \
+mshortname.c mshowfat.c mzip.c mtools.c old_dos.c plain_io.c precmd.c \
+privileges.c \
 scsi.c signal.c stream.c streamcache.c subdir.c unixdir.c tty.o vfat.c \
 xdf_io.c mkmanifest.c
 

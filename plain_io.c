@@ -236,17 +236,9 @@ static int file_geom(Stream_t *Stream, struct device *dev,
 				dev->ssize |= 0x80; /* is set */
 			}
 		}
-	} else if (media >= 0xf8){
-		media &= 3;
-		dev->heads = old_dos[media].heads;
-		dev->tracks = old_dos[media].tracks;
-		dev->sectors = old_dos[media].sectors;
-		dev->ssize = 0x80;
-		dev->use_2m = ~1;
-	} else {
-		fprintf(stderr,"Unknown media type %02x\n", media);
-		exit(1);
-	}
+	} else
+		if(setDeviceFromOldDos(media, dev) < 0)
+			exit(1);
 
 	sectors = dev->sectors;
 	dev->sectors = dev->sectors * WORD(secsiz) / 512;

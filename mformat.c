@@ -586,70 +586,41 @@ static void calc_cluster_size(struct Fs_t *Fs, unsigned long tot_sectors,
 	}
 }
 
-struct OldDos_t old_dos[]={
-{   40,  9,  1, 4, 1, 2, 0xfc }, /*  180 KB */
-{   40,  9,  2, 7, 2, 2, 0xfd }, /*  360 KB */
-{   40,  8,  1, 4, 1, 1, 0xfe }, /*  160 KB */
-{   40,  8,  2, 7, 2, 1, 0xff }, /*  320 KB */
-{   80,  9,  2, 7, 2, 3, 0xf9 }, /*  720 KB */
-{   80, 15,  2,14, 1, 7, 0xf9 }, /* 1200 KB */
-{   80, 18,  2,14, 1, 9, 0xf0 }, /* 1440 KB */
-{   80, 36,  2,15, 2, 9, 0xf0 }, /* 2880 KB */
-
-/* Source: https://en.wikipedia.org/w/index.php?title=File_Allocation_Table&oldid=560606333#Exceptions : */
-/* https://www.win.tue.nl/~aeb/linux/fs/fat/fat-1.html */
-{   80,  8,  2, 7, 2, 2, 0xfb }, /* 640 KB */
-{   80,  8,  1, 7, 2, 2, 0xfa }, /* 320 KB */
-{   80,  9,  1, 7, 2, 2, 0xf8 }, /* 360 KB */
-};
 
 static int old_dos_size_to_geom(size_t size, int *cyls, int *heads, int *sects)
 {
-	unsigned int i;
-	size = size * 2;
-	for(i=0; i < sizeof(old_dos) / sizeof(old_dos[0]); i++){
-		if (old_dos[i].sectors *
-		    old_dos[i].tracks *
-		    old_dos[i].heads == size) {
-			*cyls = old_dos[i].tracks;
-			*heads = old_dos[i].heads;
-			*sects = old_dos[i].sectors;
-			return 0;
-		}
-	}
-	return 1;
+	struct OldDos_t *params = getOldDosBySize(size);
+	if(params != NULL) {
+		*cyls = params->tracks;
+		*heads = params->heads;
+		*sects = params->sectors;
+		return 0;
+	} else
+		return 1;
 }
 
 
 static void calc_fs_parameters(struct device *dev, unsigned long tot_sectors,
 			       struct Fs_t *Fs, union bootsector *boot)
 {
-	unsigned int i;
-
-	for(i=0; i < sizeof(old_dos) / sizeof(old_dos[0]); i++){
-		if (dev->sectors == old_dos[i].sectors &&
-		    dev->tracks == old_dos[i].tracks &&
-		    dev->heads == old_dos[i].heads &&
-		    (dev->fat_bits == 0 || abs(dev->fat_bits) == 12) &&
-		    (Fs->dir_len == 0 || Fs->dir_len == old_dos[i].dir_len) &&
-		    (Fs->cluster_size == 0 ||
-		     Fs->cluster_size == old_dos[i].cluster_size)) {
-			boot->boot.descr = old_dos[i].media;
-			Fs->cluster_size = old_dos[i].cluster_size;
-			Fs->dir_len = old_dos[i].dir_len;
-			Fs->fat_len = old_dos[i].fat_len;
-			Fs->fat_bits = 12;
-			break;
-		}
-	}
-	if (i == sizeof(old_dos) / sizeof(old_dos[0]) ){
+	struct OldDos_t *params=NULL;
+	if(dev->fat_bits == 0 || abs(dev->fat_bits) == 12)
+		params = getOldDosByParams(dev->tracks,dev->heads,dev->sectors,
+					   Fs->dir_len, Fs->cluster_size);
+	if(params != NULL) {
+		boot->boot.descr = params->media;
+		Fs->cluster_size = params->cluster_size;
+		Fs->dir_len = params->dir_len;
+		Fs->fat_len = params->fat_len;
+		Fs->fat_bits = 12;
+	} else {
 		int may_change_cluster_size = (Fs->cluster_size == 0);
 		int may_change_root_size = (Fs->dir_len == 0);
 
 		/* a non-standard format */
 		if(DWORD(nhs) || tot_sectors % (dev->sectors * dev->heads))
 			boot->boot.descr = 0xf8;
-		  else
+		else
 			boot->boot.descr = 0xf0;
 
 

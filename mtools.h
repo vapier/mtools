@@ -79,6 +79,24 @@ typedef struct device {
 	const char *cfg_filename; /* used for debugging purposes */
 } device_t;
 
+struct OldDos_t {
+	unsigned int tracks;
+	unsigned int sectors;
+	unsigned int heads;
+	
+	unsigned int dir_len;
+	unsigned int cluster_size;
+	unsigned int fat_len;
+
+	int media;
+};
+
+extern struct OldDos_t *getOldDosBySize(size_t size);
+extern struct OldDos_t *getOldDosByMedia(int media);
+extern struct OldDos_t *getOldDosByParams(int tracks, int heads, int sectors,
+					  int dir_len, int cluster_size);
+int setDeviceFromOldDos(int media, struct device *dev);
+
 
 #ifndef OS_linux
 #define BOOTSIZE 512

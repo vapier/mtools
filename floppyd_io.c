@@ -417,17 +417,9 @@ static int floppyd_geom(Stream_t *Stream, struct device *dev,
 		tot_sectors += sect_per_track - 1; /* round size up */
 		dev->tracks = tot_sectors / sect_per_track;
 
-	} else if (media >= 0xf8){
-		media &= 3;
-		dev->heads = old_dos[media].heads;
-		dev->tracks = old_dos[media].tracks;
-		dev->sectors = old_dos[media].sectors;
-		dev->ssize = 0x80;
-		dev->use_2m = ~1;
-	} else {
-		fprintf(stderr,"Unknown media type\n");
-		exit(1);
-	}
+	} else
+		if(setDeviceFromOldDos(media, dev) < 0)
+			exit(1);
 
 	This->size = (mt_off_t) 512 * dev->sectors * dev->tracks * dev->heads;
 

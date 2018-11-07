@@ -201,19 +201,6 @@ union bootsector {
 
 #define OFFSET(x) (((char *) (boot->x)) - ((char *)(boot->jump)))
 
-
-extern struct OldDos_t {
-	unsigned int tracks;
-	unsigned int sectors;
-	unsigned int heads;
-	
-	unsigned int dir_len;
-	unsigned int cluster_size;
-	unsigned int fat_len;
-
-	int media;
-} old_dos[];
-
 /* max FAT12/FAT16 sizes, according to
    
  https://staff.washington.edu/dittrich/misc/fatgen103.pdf

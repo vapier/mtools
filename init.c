@@ -255,7 +255,7 @@ Stream_t *find_device(char drive, int mode, struct device *out_dev,
 Stream_t *fs_init(char drive, int mode, int *isRop)
 {
 	int blocksize;
-	int media,i;
+	int media;
 	int disk_size = 0;	/* In case we don't happen to set this below */
 	size_t tot_sectors;
 	char name[EXPAND_BUF];
@@ -294,13 +294,14 @@ Stream_t *fs_init(char drive, int mode, int *isRop)
 		/* This bit of code is only entered if there is no BPB, or
 		 * else result of the AND would be 0x1xx
 		 */
-
-		i = media & 3;
-		This->cluster_size = old_dos[i].cluster_size;
-		tot_sectors = cylinder_size * old_dos[i].tracks;
+		struct OldDos_t *params=getOldDosByMedia(media);
+		if(params == NULL)
+			return NULL;
+		This->cluster_size = params->cluster_size;
+		tot_sectors = cylinder_size * params->tracks;
 		This->fat_start = 1;
-		This->fat_len = old_dos[i].fat_len;
-		This->dir_len = old_dos[i].dir_len;
+		This->fat_len = params->fat_len;
+		This->dir_len = params->dir_len;
 		This->num_fat = 2;
 		This->sector_size = 512;
 		This->sectorShift = 9;
