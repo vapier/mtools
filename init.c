@@ -359,17 +359,6 @@ Stream_t *fs_init(char drive, int mode, int *isRop)
 		exit(1);
 	}
 
-	if(!mtools_skip_check && (tot_sectors % dev.sectors)){
-		fprintf(stderr,
-			"Total number of sectors (%d) not a multiple of"
-			" sectors per track (%d)!\n", (int) tot_sectors,
-			dev.sectors);
-		fprintf(stderr,
-			"Add mtools_skip_check=1 to your .mtoolsrc file "
-			"to skip this test\n");
-		exit(1);
-	}
-
 	/* full cylinder buffering */
 #ifdef FULL_CYL
 	disk_size = (dev.tracks) ? cylinder_size : 512;
