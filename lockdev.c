@@ -23,7 +23,7 @@
 #include "mtools.h"
 #include "lockdev.h"
 
-#ifdef HAVE_SIGACTION
+#if (defined HAVE_SIGACTION && defined HAVE_ALARM)
 # define ALRM
 #endif
 
@@ -61,11 +61,6 @@
 #endif /* FCNTL */
 #endif /* LOCKF */
 #endif /* FLOCK */
-
-
-#undef USE_FLOCK_W
-
-#define USE_SETLK_W
 
 #if  defined(USE_FLOCK_W) || defined(USE_LOCKF_W) || defined (USE_SETLK_W)
 static void alrm(int a UNUSEDP) {

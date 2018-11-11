@@ -266,7 +266,7 @@ void cp_close(doscp_t *cp)
 	free(cp);
 }
 
-int dos_to_wchar(doscp_t *cp, char *dos, wchar_t *wchar, size_t len)
+int dos_to_wchar(doscp_t *cp, const char *dos, wchar_t *wchar, size_t len)
 {
 	int i;
 

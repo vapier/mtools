@@ -279,6 +279,10 @@ typedef unsigned int uid_t;
 # include <malloc.h>
 #endif
 
+#ifdef HAVE_IO_H
+# include <io.h>
+#endif
+
 #ifdef HAVE_SIGNAL_H
 # include <signal.h>
 #else
