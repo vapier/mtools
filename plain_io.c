@@ -275,13 +275,15 @@ static int file_data(Stream_t *Stream, time_t *date, mt_size_t *size,
 
 static int file_discard(Stream_t *Stream)
 {
+#ifdef BLKFLSBUF
 	int ret;
 	DeclareThis(SimpleFile_t);
-#ifdef BLKFLSBUF
 	ret= ioctl(This->fd, BLKFLSBUF);
 	if(ret < 0)
 		perror("BLKFLSBUF");
 	return ret;
+#else
+	return 0;
 #endif
 }
 
