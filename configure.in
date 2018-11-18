@@ -102,6 +102,9 @@ AC_CHECK_HEADERS(termios.h sys/termios.h, [break])
 
 AC_CHECK_TYPES(caddr_t)
 AC_CHECK_SIZEOF(size_t)
+AC_CHECK_SIZEOF(time_t)
+AC_CHECK_SIZEOF(long)
+AC_CHECK_SIZEOF(long long)
 
 dnl
 dnl Check to see if llseek() is declared in unistd.h.  On some libc's
@@ -152,8 +155,8 @@ dnl Checks for library functions.
 AC_TYPE_SIGNAL
 AC_CHECK_FUNCS(strerror random srandom strchr strrchr lockf flock \
 strcasecmp strncasecmp strnlen atexit on_exit getpass memmove \
-strdup strndup strcspn strspn strtoul strtol memcpy strpbrk memset setenv \
-seteuid setresuid setpgrp \
+strdup strndup strcspn strspn strtoul strtol strtoll memcpy strpbrk memset \
+setenv seteuid setresuid setpgrp \
 tcsetattr tcflush basename fchdir media_oldaliases llseek lseek64 \
 snprintf stat64 setlocale \
 wcsdup wcscasecmp wcsnlen putwc \
