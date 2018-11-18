@@ -60,7 +60,7 @@ static int try(const char *testCp) {
 	char *outbufP = outbuf;
 	size_t outbufLen = 2*sizeof(char);
 	iconv_t test = 0;
-	int i;
+	size_t i;
 	
 	for(i=0; i < sizeof(asciiTries) / sizeof(asciiTries[0]); i++) {
 		test = iconv_open(asciiTries[i], testCp);

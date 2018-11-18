@@ -20,8 +20,6 @@
  */
 
 
-#define LOWERCASE
-
 #include "sysincludes.h"
 #include "msdos.h"
 #include "mtools.h"
@@ -227,6 +225,7 @@ static void usage(int ret)
 	exit(ret);
 }
 
+void mmove(int argc, char **argv, int oldsyntax) NORETURN;
 void mmove(int argc, char **argv, int oldsyntax)
 {
 	Arg_t arg;

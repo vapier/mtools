@@ -123,7 +123,7 @@ static __inline__ void print_time(struct directory *dir)
  */
 static const char *dotted_num(mt_size_t num, int width, char **buf)
 {
-	int len;
+	size_t len;
 	register char *srcp, *dstp;
 	int size;
 
@@ -530,6 +530,7 @@ static void usage(int ret)
 		exit(ret);
 }
 
+void mdir(int argc, char **argv, int type UNUSEDP) NORETURN;
 void mdir(int argc, char **argv, int type UNUSEDP)
 {
 	int ret;

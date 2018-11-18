@@ -69,7 +69,7 @@ static void alrm(int a UNUSEDP) {
 
 int lock_dev(int fd, int mode, struct device *dev)
 {
-	int retries = 0;
+	unsigned int retries = 0;
 	if(IS_NOLOCK(dev))
 		return 0;
 

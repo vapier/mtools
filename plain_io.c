@@ -304,8 +304,6 @@ static int file_discard(Stream_t *Stream)
    group called, say, "ziprw" which has rw permission on /dev/rsd5c, is fine.
  */
 
-#define MAXBLKSPERCMD 255
-
 static void scsi_init(SimpleFile_t *This)
 {
    int fd = This->fd;
@@ -670,7 +668,7 @@ APIRET rc;
 		} else {
 			*maxSize = max_off_t_seek;
 		}
-		if(This->offset > *maxSize) {
+		if(This->offset > (mt_off_t) *maxSize) {
 			close(This->fd);
 			Free(This);
 			if(errmsg)

@@ -15,6 +15,9 @@
  *  along with Mtools.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "sysincludes.h"
+#include "msdos.h"
+
 const char *mversion="pre-4.0.20";
 
 /* Multiple releases on same day should be marked with (b), (cd), (d) after
