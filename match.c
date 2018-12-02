@@ -81,12 +81,12 @@ static int parse_range(const wchar_t **p, const wchar_t *s, wchar_t *out,
 		return reverse;
 	if(is_in_range((wchar_t)towlower((wint_t)*s), &p0, &reverse)) {
 		if(out)
-			*out = tolower(*s);
+			*out = (wchar_t)tolower((wchar_t)*s);
 		return 1 ^ reverse;
 	}
 	if(is_in_range((wchar_t)towupper((wint_t)*s), &p1, &reverse)) {
 		if(out)
-			*out = toupper(*s);
+			*out = (wchar_t)toupper((wint_t)*s);
 		return 1 ^ reverse;
 	}
 	return reverse;
