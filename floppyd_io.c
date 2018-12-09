@@ -38,10 +38,6 @@
 /* ######################################################################## */
 
 
-typedef uint8_t Byte;
-typedef uint32_t Dword;
-typedef mt_off_t Qword;
-
 static const char* AuthErrors[] = {
 	"Auth success",
 	"Auth failed: Packet oversized",

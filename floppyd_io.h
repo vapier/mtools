@@ -23,6 +23,12 @@
 
 #include "stream.h"
 
+typedef uint8_t Byte;
+typedef uint32_t Dword;
+typedef uint64_t Qword;
+
+#define DWORD_ERR ((Dword) -1)
+
 /*extern int ConnectToFloppyd(const char* name, Class_t** ioclass);*/
 Stream_t *FloppydOpen(struct device *dev, 
 		      char *name, int mode, char *errmsg,

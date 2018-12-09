@@ -101,11 +101,6 @@
 	    
 */
 
-typedef uint8_t Byte;
-typedef uint32_t Dword;
-typedef uint64_t Qword;
-
-#define DWORD_ERR ((Dword) -1)
 
 #define MAX_XAUTHORITY_LENGTH    3000
 #define MAX_DATA_REQUEST         3000000
