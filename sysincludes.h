@@ -105,18 +105,29 @@ typedef void *caddr_t;
 /* gcc 2.6.3 doesn't have "unused" */		/* mool */
 #  define UNUSED(x) x __attribute__ ((unused));x
 #  define UNUSEDP __attribute__ ((unused))
-# else
-#  define UNUSED(x) x
-#  define UNUSEDP /* */
 # endif
 # define NORETURN __attribute__ ((noreturn))
-#else
+# if __GNUC__ >= 8
+#  define NONULLTERM __attribute__ ((nonstring))
+# endif
+#endif
+
+#ifndef UNUSED
 # define UNUSED(x) x
-#  define UNUSEDP /* */
+# define UNUSEDP /* */
+#endif
+
+#ifndef PACKED
 # define PACKED /* */
+#endif
+
+#ifndef NORETURN
 # define NORETURN /* */
 #endif
 
+#ifndef NONULLTERM
+# define NONULLTERM /* */
+#endif
 
 /***********************************************************************/
 /*                                                                     */

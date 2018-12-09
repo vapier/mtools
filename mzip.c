@@ -459,7 +459,7 @@ void mzip(int argc, char **argv, int type UNUSEDP)
 		}
 		
 		if (newMode & 0x1) {
-			char first_try[_PASSWORD_LEN];
+			char first_try[_PASSWORD_LEN+1];
 			
 			passwd = getpass("Enter new password:");
 			strncpy(first_try, passwd,_PASSWORD_LEN);

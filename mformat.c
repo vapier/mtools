@@ -909,7 +909,7 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 
 	dos_name_t shortlabel;
 	struct device *dev;
-	char errmsg[200];
+	char errmsg[2100];
 
 	uint32_t serial;
  	int serial_set;
@@ -1294,9 +1294,15 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 		if (!create &&
 		    READS(Fs.Direct, &boot.characters, 0, Fs.sector_size) !=
 		    (signed int) Fs.sector_size) {
+#ifdef HAVE_SNPRINTF
+			snprintf(errmsg, sizeof(errmsg)-1,
+				 "Error reading from '%s', wrong parameters?",
+				 name);
+#else
 			sprintf(errmsg,
 				"Error reading from '%s', wrong parameters?",
 				name);
+#endif
 			continue;
 		}
 		break;
@@ -1459,7 +1465,8 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 	label_name_pc(GET_DOSCONVERT((Stream_t *)&Fs),
 		      label[0] ? label : "NO NAME    ", 0,
 		      &mangled, &shortlabel);
-	strncpy(labelBlock->label, shortlabel.base, 11);
+	strncpy(labelBlock->label, shortlabel.base, 8);
+	strncpy(labelBlock->label+8, shortlabel.ext, 3);
 	sprintf(labelBlock->fat_type, "FAT%2.2d  ", Fs.fat_bits);
 	labelBlock->fat_type[7] = ' ';
 

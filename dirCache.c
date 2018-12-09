@@ -151,9 +151,9 @@ dirCache_t *allocDirCache(Stream_t *Stream, unsigned int slot)
 			return 0;
 		}
 		(*dcp)->nr_entries = (slot+1) * 2;
-		memset( (*dcp)->bm0, 0, DC_BITMAP_SIZE);
-		memset( (*dcp)->bm1, 0, DC_BITMAP_SIZE);
-		memset( (*dcp)->bm2, 0, DC_BITMAP_SIZE);
+		memset( (*dcp)->bm0, 0, sizeof((*dcp)->bm0));
+		memset( (*dcp)->bm1, 0, sizeof((*dcp)->bm1));
+		memset( (*dcp)->bm2, 0, sizeof((*dcp)->bm1));
 		(*dcp)->nrHashed = 0;
 	} else
 		if(growDirCache(*dcp, slot) < 0)

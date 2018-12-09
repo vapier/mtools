@@ -54,7 +54,7 @@ static const char *fix_mcwd(char *ans)
 					/* drive letter present? */
 	s = buf;
 	if (buf[0] && buf[1] == ':') {
-		strncpy(ans, buf, 2);
+		memcpy(ans, buf, 2);
 		ans[2] = '\0';
 		s = &buf[2];
 	} else {

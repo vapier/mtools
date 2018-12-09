@@ -164,7 +164,7 @@ typedef struct oldboot_t {
 
 struct bootsector_s {
 	unsigned char jump[3];		/* 0  Jump to boot code */
-	char banner[8];	       		/* 3  OEM name & version */
+	char banner[8] NONULLTERM; 	/* 3  OEM name & version */
 	unsigned char secsiz[2];	/* 11 Bytes per sector hopefully 512 */
 	unsigned char clsiz;    	/* 13 Cluster size in sectors */
 	unsigned char nrsvsect[2];	/* 14 Number of reserved (boot) sectors */

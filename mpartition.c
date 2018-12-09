@@ -252,8 +252,8 @@ int consistencyCheck(struct partition *partTable, int doprint, int verbose,
  * accommodated. This algorithm does not use physical geometry.
  */
 
-static int setsize(unsigned long capacity,unsigned int *cyls,unsigned int *hds,
-    unsigned int *secs) {
+static int setsize(unsigned long capacity,unsigned int *cyls,
+		   uint16_t *hds,  uint16_t *secs) {
     unsigned int rv = 0;
     unsigned long heads, sectors, cylinders, temp;
 
@@ -282,7 +282,7 @@ static int setsize(unsigned long capacity,unsigned int *cyls,unsigned int *hds,
 }
 
 static void setsize0(unsigned long capacity,unsigned int *cyls,
-		     unsigned int *hds, unsigned int *secs)
+		     uint16_t *hds, uint16_t *secs)
 {
 	int r;
 
@@ -358,7 +358,7 @@ void mpartition(int argc, char **argv, int dummy UNUSEDP)
 	unsigned char buf[512];
 	struct partition *partTable=(struct partition *)(buf+ 0x1ae);
 	struct device *dev;
-	char errmsg[200];
+	char errmsg[2100];
 	char *bootSector=0;
 
 	argtracks = 0;
@@ -499,7 +499,8 @@ void mpartition(int argc, char **argv, int dummy UNUSEDP)
 
 		if (!Stream) {
 #ifdef HAVE_SNPRINTF
-			snprintf(errmsg,199,"init: open: %s", strerror(errno));
+			snprintf(errmsg,sizeof(errmsg)-1,
+				 "init: open: %s", strerror(errno));
 #else
 			sprintf(errmsg,"init: open: %s", strerror(errno));
 #endif
@@ -537,7 +538,7 @@ void mpartition(int argc, char **argv, int dummy UNUSEDP)
 		/* read the partition table */
 		if (READS(Stream, (char *) buf, 0, 512) != 512 && !initialize){
 #ifdef HAVE_SNPRINTF
-			snprintf(errmsg, 199,
+			snprintf(errmsg, sizeof(errmsg)-1,
 				"Error reading from '%s', wrong parameters?",
 				name);
 #else
@@ -653,7 +654,7 @@ void mpartition(int argc, char **argv, int dummy UNUSEDP)
 	if(!used_dev.sectors && !used_dev.heads) {
 		if(tot_sectors)
 			setsize0(tot_sectors,&dummy2,&used_dev.heads,
-					 &used_dev.sectors);
+				 &used_dev.sectors);
 		else {
 			used_dev.heads = 64;
 			used_dev.sectors = 32;

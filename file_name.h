@@ -26,8 +26,8 @@
  * MYFILE  TXT
  */
 struct dos_name_t {
-  char base[8];
-  char ext[3];
+  char base[8] NONULLTERM;
+  char ext[3] NONULLTERM;
   char sentinel;
 };
 

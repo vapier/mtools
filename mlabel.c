@@ -303,7 +303,8 @@ void mlabel(int argc, char **argv, int type UNUSEDP)
 		label_name_pc(cp, shrtLabel, verbose, &mangled, &dosname);
 
 		if(have_boot && boot.boot.descr >= 0xf0 && has_BPB4) {
-			strncpy(labelBlock->label, dosname.base, 11);
+			strncpy(labelBlock->label, dosname.base, 8);
+			strncpy(labelBlock->label+8, dosname.ext, 3);
 			need_write_boot = 1;
 
 		}
