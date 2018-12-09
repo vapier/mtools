@@ -24,7 +24,7 @@
 #include "file_name.h"
 
 /* Write a DOS name + extension into a legal unix-style name.  */
-char *unix_normalize (doscp_t *cp, char *ans, dos_name_t *dn)
+char *unix_normalize (doscp_t *cp, char *ans, dos_name_t *dn, size_t ans_size)
 {
 	char buffer[13];
 	wchar_t wbuffer[13];
@@ -40,7 +40,7 @@ char *unix_normalize (doscp_t *cp, char *ans, dos_name_t *dn)
 	}
 	*a++ = '\0';
 	dos_to_wchar(cp, buffer, wbuffer, 13);
-	wchar_to_native(wbuffer, ans, 13);
+	wchar_to_native(wbuffer, ans, 13, ans_size);
 	return ans;
 }
 

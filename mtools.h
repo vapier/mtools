@@ -158,7 +158,8 @@ int readwrite_sectors(int fd, /* file descriptor */
 
 int lock_dev(int fd, int mode, struct device *dev);
 
-char *unix_normalize (doscp_t *cp, char *ans, struct dos_name_t *dn);
+char *unix_normalize (doscp_t *cp, char *ans, struct dos_name_t *dn,
+		      size_t ans_size);
 void dos_name(doscp_t *cp, const char *filename, int verbose, int *mangled,
 	      struct dos_name_t *);
 struct directory *mk_entry(const dos_name_t *filename, unsigned char attr,

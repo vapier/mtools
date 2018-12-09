@@ -258,8 +258,9 @@ static int _dos_loop(Stream_t *Dir, MainParam_t *mp, const char *filename)
 	initializeDirentry(&entry, Dir);
 	while(!got_signal &&
 	      (r=vfat_lookup(&entry, filename, -1,
-			     mp->lookupflags, mp->shortname,
-			     mp->longname)) == 0 ){
+			     mp->lookupflags,
+			     mp->shortname.data, mp->shortname.len,
+			     mp->longname.data, mp->longname.len)) == 0 ){
 		mp->File = NULL;
 		if(!checkForDot(mp->lookupflags,entry.name)) {
 			MyFile = 0;
@@ -390,7 +391,8 @@ static int recurs_dos_loop(MainParam_t *mp, const char *filename0,
 	      !got_signal &&
 	      (r=vfat_lookup(&entry, filename0, length,
 			     lookupflags | NO_MSG,
-			     mp->shortname, mp->longname)) == 0 ){
+			     mp->shortname.data, mp->shortname.len,
+			     mp->longname.data, mp->longname.len)) == 0 ){
 		if(checkForDot(lookupflags, entry.name))
 			/* while following the path, ignore the
 			 * special entries if they were not
@@ -602,7 +604,8 @@ void init_mp(MainParam_t *mp)
 	mp->unixTarget = 0;
 	mp->dirCallback = dispatchToFile;
 	mp->unixcallback = NULL;
-	mp->shortname = mp->longname = 0;
+	mp->shortname.data = mp->longname.data = 0;
+	mp->shortname.len = mp->longname.len = 0;
 	mp->File = 0;
 	mp->fast_quit = 0;
 }
@@ -611,7 +614,7 @@ const char *mpGetBasename(MainParam_t *mp)
 {
 	if(mp->direntry) {
 		wchar_to_native(mp->direntry->name, mp->targetBuffer,
-				MAX_VNAMELEN+1);
+				MAX_VNAMELEN+1, sizeof(mp->targetBuffer));
 		return mp->targetBuffer;
 	} else
 		return _basename(mp->unixSourceName);

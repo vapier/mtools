@@ -1,3 +1,5 @@
+	- Explicitly pass available target buffer size for character
+	set conversions
 v4_0_22
 	- Fixed -f flag for mformat (size is KBytes, rather than sectors)
 	- Fixed toupper/tolower usage (unsigned char rather than plain signed)

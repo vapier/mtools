@@ -219,7 +219,8 @@ void mlabel(int argc, char **argv, int type UNUSEDP)
 
 	initializeDirentry(&entry, RootDir);
 	r=vfat_lookup(&entry, 0, 0, ACCEPT_LABEL | MATCH_ANY,
-		      shortname, longname);
+		      shortname, sizeof(shortname),
+		      longname, sizeof(longname));
 	if (r == -2) {
 		FREE(&RootDir);
 		exit(1);
