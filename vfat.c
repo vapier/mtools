@@ -806,7 +806,7 @@ int lookupForInsert(Stream_t *Dir,
 					/* long match is a reason for
 					 * immediate stop */
 					direntry->beginSlot = dce->beginSlot;
-					direntry->endSlot = dce->endSlot-1;
+					direntry->endSlot = dce->endSlot - 1;
 					return 1;
 				}
 
