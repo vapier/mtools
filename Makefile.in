@@ -329,7 +329,7 @@ depend: $(SRCS)
 
 check:
 	echo No self tests included
-# check target needed even if empty, in order to make life easyer for
+# check target needed even if empty, in order to make life easier for
 # automatic tools to install GNU soft
 
 

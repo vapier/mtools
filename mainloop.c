@@ -223,7 +223,7 @@ static int handle_leaf(direntry_t *direntry, MainParam_t *mp,
 				return 0;
 			case 1: /* we have already a directory */
 				FREE(&lookupState->Dir);
-				fprintf(stderr,"Ambigous\n");
+				fprintf(stderr,"Ambiguous\n");
 				return STOP_NOW | ERROR_ONE;
 			default:
 				return STOP_NOW | ERROR_ONE;
@@ -506,7 +506,7 @@ static int dos_target_lookup(MainParam_t *mp, const char *arg)
 			return ret;
 		default:
 			/* too much */
-			fprintf(stderr, "Ambigous %s\n", arg);
+			fprintf(stderr, "Ambiguous %s\n", arg);
 			return ERROR_ONE;			
 	}
 }

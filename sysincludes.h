@@ -35,7 +35,7 @@
 
 /***********************************************************************/
 /*                                                                     */
-/* OS dependancies which cannot be covered by the autoconfigure script */
+/* OS dependencies which cannot be covered by the autoconfigure script */
 /*                                                                     */
 /***********************************************************************/
 
@@ -93,7 +93,7 @@ typedef void *caddr_t;
 
 /***********************************************************************/
 /*                                                                     */
-/* Compiler dependancies                                               */
+/* Compiler dependencies                                               */
 /*                                                                     */
 /***********************************************************************/
 

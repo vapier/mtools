@@ -411,7 +411,7 @@ int native_to_wchar(const char *native, wchar_t *wchar, size_t len,
 		int r = mbrtowc(wchar+i, native, len, &ps);
 		if(r < 0) {
 			/* Unconvertible character. Just pretend it's Latin1
-			   encoded (if valid Latin1 character) or substitue
+			   encoded (if valid Latin1 character) or substitute
 			   with an underscore if not
 			*/
 			char c = *native;
