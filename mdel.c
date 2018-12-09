@@ -196,8 +196,7 @@ void mdel(int argc, char **argv, int deltype)
 	}
 	mp.lookupflags |= NO_DOTS;
 	for(i=optind;i<argc;i++) {
-		int b;
-		size_t l;
+		size_t b, l;
 		if(argv[i][0] && argv[i][1] == ':')
 			b = 2;
 		else
