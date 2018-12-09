@@ -59,7 +59,23 @@ enum AuthErrorsEnum {
 	AUTH_IO_ERROR
 };
 
-typedef unsigned long IPaddr_t;
+
+UNUSED(static inline void cork(int sockhandle, int on))
+{
+#ifdef TCP_CORK
+	if(setsockopt(sockhandle, IPPROTO_TCP, 
+		      TCP_CORK, (char *)&on, sizeof(on)) < 0) {
+		perror("setsockopt cork");
+	}
+#else
+	on = 1 ^ on;
+	if(setsockopt(sockhandle, IPPROTO_TCP, 
+		      TCP_NODELAY, (char *)&on, sizeof(on)) < 0) {
+		perror("setsockopt nodelay");
+	}
+#endif
+}
+
 
 #endif
 #endif
