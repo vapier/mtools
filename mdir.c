@@ -391,7 +391,7 @@ static int list_file(direntry_t *entry, MainParam_t *mp UNUSEDP)
 	dos_to_wchar(cp, entry->dir.ext, ext, 3);
 	if(Case & EXTCASE){
 		for(i=0; i<3;i++)
-			ext[i] = towlower(ext[i]);
+			ext[i] = ch_towlower(ext[i]);
 	}
 	ext[3] = '\0';
 	if (entry->dir.name[0] == '\x05') {
@@ -402,7 +402,7 @@ static int list_file(direntry_t *entry, MainParam_t *mp UNUSEDP)
 	}
 	if(Case & BASECASE){
 		for(i=0; i<8;i++)
-			name[i] = towlower(name[i]);
+			name[i] = ch_towlower(name[i]);
 	}
 	name[8]='\0';
 	if(wide){

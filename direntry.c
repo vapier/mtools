@@ -42,9 +42,9 @@ direntry_t *getParent(direntry_t *entry)
 }
 
 
-static int getPathLen(direntry_t *entry)
+static size_t getPathLen(direntry_t *entry)
 {
-	int length=0;
+	size_t length=0;
 
 	while(1) {
 		if(entry->entry == -3) /* rootDir */
@@ -74,7 +74,7 @@ static char *sprintPwd(direntry_t *entry, char *ptr, size_t *len_available)
 		ptr += bytes_converted;
 		(*len_available) -= bytes_converted;
 	}
-	return ptr;		
+	return ptr;
 }
 
 
@@ -147,7 +147,7 @@ void fprintShortPwd(FILE *f, direntry_t *entry)
 
 char *getPwd(direntry_t *entry)
 {
-	int size;
+	size_t size;
 	char *ret;
 	char *end;
 	size_t buf_size;

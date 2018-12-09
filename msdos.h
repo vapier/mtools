@@ -33,8 +33,8 @@
 #define NEW		1
 #define OLD		0
 
-#define _WORD(x) ((unsigned short)((unsigned char)(x)[0] + (((unsigned char)(x)[1]) << 8)))
-#define _DWORD(x) ((unsigned int)(_WORD(x) + (_WORD((x)+2) << 16)))
+#define _WORD(x) ((uint16_t)((unsigned char)(x)[0] + (((unsigned char)(x)[1]) << 8)))
+#define _DWORD(x) ((uint32_t)(_WORD(x) + (_WORD((x)+2) << 16)))
 
 #define DELMARK ((char) 0xe5)
 #define ENDMARK ((char) 0x00)
@@ -67,7 +67,7 @@ struct directory {
 #define STARTHI(dir) (_WORD((dir)->startHi))
 
 /* ASSUMPTION: long is at least 32 bits */
-UNUSED(static __inline__ void set_dword(unsigned char *data, unsigned long value))
+UNUSED(static __inline__ void set_dword(unsigned char *data, uint32_t value))
 {
 	data[3] = (value >> 24) & 0xff;
 	data[2] = (value >> 16) & 0xff;

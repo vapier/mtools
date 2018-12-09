@@ -411,7 +411,7 @@ void mpartition(int argc, char **argv, int dummy UNUSEDP)
 				/* could be abused to "manually" create
 				 * extended partitions */
 				open2flags |= NO_PRIV;
-				type = strtoul(optarg,0,0);
+				type = strtoi(optarg,0,0);
 				break;
 
 			case 't':
@@ -440,16 +440,16 @@ void mpartition(int argc, char **argv, int dummy UNUSEDP)
 				 * extending beyond the actual size of the
 				 * device */
 				open2flags |= NO_PRIV;
-				tot_sectors = strtoul(optarg,0,0);
+				tot_sectors = strtoui(optarg,0,0);
 				sizetest = 1;
 				break;
 			case 'b':
 				begin_set = 1;
-				begin = strtoul(optarg, NULL, 10);
+				begin = strtoui(optarg, NULL, 10);
 				break;
 			case 'l':
 				size_set = 1;
-				length = strtoul(optarg, NULL, 10);
+				length = strtoui(optarg, NULL, 10);
 				break;
 
 			default:
