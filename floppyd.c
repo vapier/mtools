@@ -1148,7 +1148,20 @@ void serve_client(int sockhandle, char **device_name, unsigned int n_dev,
 /*		if(opcode->data[0] != OP_CLOSE)*/
 		    recv_packet(parm, sock, MAX_DATA_REQUEST);
 
+		/* on its own, floppyd does several small writes,
+		 * running into the performance issue described in
+		 * https://eklitzke.org/the-caveats-of-tcp-nodelay
+		 * Cork fixes this by stalling the small writes until
+		 * floppyd has assembled its entire message, thus
+		 * preventing the bad interaction between Nagle's
+		 * algorithm and Linux' delayed ACKs. Another fix
+		 * would be to not send the small batches immediately,
+		 * but instead keep them around and submit them to the
+		 * kernel in one go using writev. However, writev is
+		 * not available everywhere
+		 */
 		cork(sock->handle, 1);
+
 		switch(opcode->data[0]) {
 			case OP_OPRO:
 				if(get_length(parm) >= 4)
