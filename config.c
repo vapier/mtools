@@ -219,16 +219,13 @@ static void get_env_conf(void)
 	s = getenv(global_switches[i].name);
 	if(s) {
 	    if(global_switches[i].type == T_INT)
-		* ((int *)global_switches[i].address) = (int) strtol(s,0,0);
+		* ((int *)global_switches[i].address) = strtoi(s,0,0);
 	    if(global_switches[i].type == T_UINT)
-		* ((unsigned int *)global_switches[i].address) =
-			(unsigned int) strtoul(s,0,0);
+		* ((unsigned int *)global_switches[i].address) = strtoui(s,0,0);
 	    if(global_switches[i].type == T_UINT8)
-		* ((uint8_t *)global_switches[i].address) =
-			(uint8_t) strtou8(s,0,0);
+		* ((uint8_t *)global_switches[i].address) = strtou8(s,0,0);
 	    if(global_switches[i].type == T_UINT16)
-		* ((uint16_t *)global_switches[i].address) =
-			(uint16_t) strtou8(s,0,0);
+		* ((uint16_t *)global_switches[i].address) = strtou16(s,0,0);
 	    else if (global_switches[i].type == T_STRING)
 		* ((char **)global_switches[i].address) = s;
 	}
