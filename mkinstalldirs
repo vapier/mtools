@@ -38,7 +38,7 @@ for file in ${1+"$@"} ; do
 
      if test ! -d "$pathcomp"; then
         echo "mkdir $pathcomp" 1>&2
-        mkdir "$pathcomp" || errstatus=$?
+        mkdir -p "$pathcomp" || errstatus=$?
      fi
 
      pathcomp="$pathcomp/"
