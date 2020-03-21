@@ -101,6 +101,7 @@ AC_CHECK_HEADERS(termio.h sys/termio.h, [break])
 AC_CHECK_HEADERS(termios.h sys/termios.h, [break])
 
 dnl Check for types
+AC_SYS_LARGEFILE
 AC_TYPE_INT8_T
 AC_TYPE_INT16_T
 AC_TYPE_INT32_T
