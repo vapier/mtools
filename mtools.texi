@@ -403,7 +403,7 @@ and not as Longfilename. However, if you then try to add LongFilename to
 the same directory, it is refused, because case is ignored for clash
 checks.
 
-The VFAT file system allows to store the case of a filename in the
+The VFAT file system allows you to store the case of a filename in the
 attribute byte, if all letters of the filename are the same case, and if
 all letters of the extension are the same case too. Mtools uses this
 information when displaying the files, and also to generate the Unix
@@ -422,8 +422,8 @@ lower case Unix filenames.
 @cindex Formats, high capacity
 @cindex Linux enhancements (High Capacity Formats)
 
-Mtools supports a number of formats which allow to store more data on
-disk as usual. Due to different operating system abilities, these
+Mtools supports a number of formats which allow storage of more data on
+disk than usual. Due to different operating system abilities, these
 formats are not supported on all operating systems. Mtools recognizes
 these formats transparently where supported.
 
@@ -480,7 +480,7 @@ many data bytes are in the sector. Thus, we save some space by using
 up header space once, whereas 8 sectors of 512 bytes have also 8
 headers, for the same amount of useful data.
 
-This method allows to store up to 1992K on a 3 1/2 HD disk.
+This method permits storage of up to 1992K on a 3 1/2 HD disk.
 
 Mtools supports these formats only on Linux.
 
@@ -492,7 +492,7 @@ The 2m format was originally invented by Ciriaco Garcia de Celis. It
 also uses bigger sectors than usual in order to fit more data on the
 disk.  However, it uses the standard format (18 sectors of 512 bytes
 each) on the first cylinder, in order to make these disks easier to
-handle by DOS. Indeed this method allows to have a standard sized
+handle by DOS. Indeed this method allows you to have a standard sized
 boot sector, which contains a description of how the rest of the disk
 should be read.
 
@@ -2129,8 +2129,8 @@ if the directory already exists.
 @cindex High capacity formats, mounting
 
 The @code{mmount} command is used to mount an MS-DOS disk. It is only
-available on Linux, as it is only useful if the OS kernel allows to
-configure the disk geometry. Its syntax is:
+available on Linux, as it is only useful if the OS kernel allows
+configuration of the disk geometry. Its syntax is:
 
 @code{mmount} @var{msdosdrive} [@var{mountargs}]
 
@@ -2657,7 +2657,7 @@ can include them into the next release.  For purely local file, I
 recommend that you use the @code{@value{SYSCONFDIR}mtools.conf} and
 @code{~/.mtoolsrc} configuration files.
 
- However, the devices files also allows to supply geometry setting
+ However, the devices files also allows you to supply geometry setting
 routines. These are necessary if you want to access high capacity
 disks.
 
