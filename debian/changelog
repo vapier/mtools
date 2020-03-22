@@ -1,3 +1,9 @@
+mtools (4.0.24) stable; urgency=low
+  * Spelling fixes in documentation
+  * Permit calling "make install" with >= -j2
+  * Added AC_SYS_LARGEFILE, needed for compiling on certain ARM procs
+
+ -- Alain Knaff <alain@knaff.lu>  Sun, 22 Mar 2020 07:45:19 +0100
 mtools (4.0.23) stable; urgency=low
   * Address lots of compiler warnings (assignments between different types)
   * Network speedup fixes for floppyd (TCP_CORK)

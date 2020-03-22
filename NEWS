@@ -1,3 +1,7 @@
+v4_0_24
+	- Spelling fixes in documentation
+	- Permit calling "make install" with >= -j2
+	- Added AC_SYS_LARGEFILE, needed for compiling on certain ARM procs
 v4_0_23
 	- Address lots of compiler warnings (assignments between different types)
 	- Network speedup fixes for floppyd (TCP_CORK)
