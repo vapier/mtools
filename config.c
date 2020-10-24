@@ -178,6 +178,43 @@ static switches_t dswitches[]= {
     { "CODEPAGE", OFFS(codepage), T_UINT }
 };
 
+#if (defined  HAVE_TOUPPER_L || defined HAVE_STRNCASECMP_L)
+static locale_t C=NULL;
+
+static void init_canon(void) {
+    if(C == NULL)
+	C = newlocale(LC_CTYPE_MASK, "C", NULL);
+}
+#endif
+
+#ifdef HAVE_TOUPPER_L
+static int canon_drv(int drive) {
+    init_canon();
+    int ret = toupper_l(drive, C);
+    return ret;
+}
+#else
+static int canon_drv(int drive) {
+    return toupper(drive);
+}
+#endif
+
+#ifdef HAVE_STRNCASECMP_L
+static int cmp_tok(const char *a, const char *b, int len) {
+    init_canon();
+    return strncasecmp_l(a, b, len, C);
+}
+#else
+static int cmp_tok(const char *a, const char *b, int len) {
+    return strncasecmp(a, b, len);
+}
+#endif
+
+
+char ch_canon_drv(char drive) {
+    return (char) canon_drv( (unsigned char) drive);
+}
+
 static void maintain_default_drive(char drive)
 {
     if(default_drive == ':')
@@ -280,7 +317,7 @@ static char *get_next_token(void)
 static int match_token(const char *template)
 {
     return (strlen(template) == token_length &&
-	    !strncasecmp(template, token, token_length));
+	    !cmp_tok(template, token, token_length));
 }
 
 static void expect_char(char c)
@@ -348,7 +385,7 @@ static void purge(char drive, int fn)
 {
     unsigned int i, j;
 
-    drive = ch_toupper(drive);
+    drive = ch_canon_drv(drive);
     for(j=0, i=0; i < cur_devs; i++) {
 	if(devices[i].drive != drive ||
 	   devices[i].file_nr == fn)
@@ -425,7 +462,7 @@ static void finish_drive_clause(void)
     if(!trusted && (devices[cur_dev].misc_flags & PRIV_FLAG)) {
 	fprintf(stderr,
 		"Warning: privileged flag ignored for drive %c: defined in file %s\n",
-		toupper(devices[cur_dev].drive), filename);
+		canon_drv(devices[cur_dev].drive), filename);
 	devices[cur_dev].misc_flags &= ~PRIV_FLAG;
     }
     trusted = 0;
@@ -621,7 +658,7 @@ static void parse_old_device_line(char drive)
 	devices[cur_dev].heads = 0;
     }
 	
-    devices[cur_dev].drive = ch_toupper(devices[cur_dev].drive);
+    devices[cur_dev].drive = ch_canon_drv(devices[cur_dev].drive);
     maintain_default_drive(devices[cur_dev].drive);
     if (!(devices[cur_dev].name = strdup(name))) {
 	printOom();
@@ -663,7 +700,7 @@ static int parse_one(int privilege)
 	memset((char*)(devices+cur_dev), 0, sizeof(*devices));
 	trusted = privilege;
 	flag_mask = 0;
-	devices[cur_dev].drive = ch_toupper(token[0]);
+	devices[cur_dev].drive = ch_canon_drv(token[0]);
 	maintain_default_drive(devices[cur_dev].drive);
 	expect_char(':');
 	return 1;
@@ -772,7 +809,7 @@ void mtoolstest(int argc, char **argv, int type  UNUSEDP)
     char drive='\0';
 
     if(argc > 1 && argv[1][0] && argv[1][1] == ':') {
-	drive = ch_toupper(argv[1][0]);
+	drive = ch_canon_drv(argv[1][0]);
     }
 
     for (dev=devices; dev->name; dev++) {
