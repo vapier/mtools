@@ -454,9 +454,14 @@ void fat_write(Fs_t *This)
 		/* initialize info sector */
 		InfoSector_t *infoSector;
 		infoSector = (InfoSector_t *) safe_malloc(This->sector_size);
+		if(forceReadSector(This, (char *)infoSector,
+				   This->infoSectorLoc, 1) !=
+		   (signed int) This->sector_size) {
+			fprintf(stderr,"Trouble reading the info sector\n");
+			memset(infoSector->filler1, 0, sizeof(infoSector->filler1));
+			memset(infoSector->filler2, 0, sizeof(infoSector->filler2));
+		}
 		set_dword(infoSector->signature1, INFOSECT_SIGNATURE1);
-		memset(infoSector->filler1, 0, sizeof(infoSector->filler1));
-		memset(infoSector->filler2, 0, sizeof(infoSector->filler2));
 		set_dword(infoSector->signature2, INFOSECT_SIGNATURE2);
 		set_dword(infoSector->pos, This->last);
 		set_dword(infoSector->count, This->freeSpace);
