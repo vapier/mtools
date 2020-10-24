@@ -1,3 +1,8 @@
+v4_0_25
+	- Preserve non-updated contents of info sector, just in case
+          it contains program code
+	- When parsing config file, always use "C" locale for
+          case-insensitive comparisons
 v4_0_24
 	- Spelling fixes in documentation
 	- Permit calling "make install" with >= -j2
