@@ -1405,13 +1405,13 @@ wildcard, and there is only one MS-DOS file parameter on the command
 line, only the attribute is printed, and not the filename.  This option
 is convenient for scripts
 @item p
-Replay mode.  Outputs a series of mformat commands that will reproduce
-the current situation, starting from a situation as left by untarring
-the MS-DOS file system.  Commands are only output for attribute settings
-that differ from the default (archive bit set for files, unset for
-directories).  This option is intended to be used in addition to
-tar. The @code{readonly} attribute is not taken into account, as tar can
-set that one itself.
+Replay mode.  Outputs a series of @code{mformat} commands that will
+reproduce the current situation, starting from a situation as left by
+untarring the MS-DOS file system.  Commands are only output for
+attribute settings that differ from the default (archive bit set for
+files, unset for directories).  This option is intended to be used in
+addition to tar. The @code{readonly} attribute is not taken into
+account, as tar can set that one itself.
 @end table
 
 @node mbadblocks, mcat, mattrib, Commands
@@ -1606,11 +1606,12 @@ to ISO-8859-1 equivalents as far as possible.  When reading DOS files,
 untranslatable characters are replaced by '@code{#}'; when writing DOS files,
 untranslatable characters are replaced by '@code{.}'.
 @item n
-No confirmation when overwriting Unix files.  @code{ASCII} doesn't warn
-the user when overwriting an existing Unix file. If the target file already exists,
-and the @code{-n} option is not in effect, @code{mcopy} asks whether to
-overwrite the file or to rename the new file (@ref{name clashes}) for
-details).  In order to switch off confirmation for DOS files, use @code{-o}.
+No confirmation when overwriting Unix files.  @code{ASCII} doesn't
+warn the user when overwriting an existing Unix file. If the target
+file already exists, and the @code{-n} option is not in effect,
+@code{mcopy} asks whether to overwrite the file or to rename the new
+file (see @ref{name clashes}) for details).  In order to switch off
+confirmation for DOS files, use @code{-o}.
 @item m
 Preserve the file modification time.
 @item v
@@ -2136,7 +2137,7 @@ only.
 @cindex Moving files (mmove)
 @cindex Renaming files (mmove)
 
-The @code{mmove} command is used to moves or renames an existing MS-DOS
+The @code{mmove} command is used to move or rename an existing MS-DOS
 file or subdirectory.
 @display
 @code{mmove} [@code{-v}] [@code{-D} @var{clash_option}] @var{sourcefile} @var{targetfile}
@@ -2212,16 +2213,16 @@ entries, or guessed from the size.
 The number of cylinders of the partition (not the number of cylinders of
 the whole drive.
 @item b @var{begin}
-The starting offset of the partition, expressed in sectors. If begin is
-not given, mpartition lets the partition begin at the start of the disk
-(partition number 1), or immediately after the end of the previous
-partition.
+The starting offset of the partition, expressed in sectors. If begin
+is not given, @code{mpartition} lets the partition begin at the start
+of the disk (partition number 1), or immediately after the end of the
+previous partition.
 @item l @var{length}
-The size (length) of the partition, expressed in sectors.  If end is not
-given, mpartition figures out the size from the number of sectors, heads
-and cylinders.  If these are not given either, it gives the partition
-the biggest possible size, considering disk size and start of the next
-partition.
+The size (length) of the partition, expressed in sectors.  If end is
+not given, @code{mpartition} figures out the size from the number of
+sectors, heads and cylinders.  If these are not given either, it gives
+the partition the biggest possible size, considering disk size and
+start of the next partition.
 @end table
 
 The following option is available for all operation which modify the
@@ -2231,7 +2232,7 @@ partition table:
 Usually, before writing back any changes to the partition, mpartition
 performs certain consistency checks, such as checking for overlaps and
 proper alignment of the partitions.  If any of these checks fails, the
-partition table is not changes.  The @code{-f} allows you to override
+partition table is not changed.  The @code{-f} allows you to override
 these safeguards.
 @end table
 
@@ -2241,9 +2242,9 @@ The following options are available for all operations:
 Together with @code{-p} prints the partition table as it is now (no
 change operation), or as it is after it is modified.
 @item vv
-If the verbosity flag is given twice, mpartition will print out a
-hexdump of the partition table when reading it from and writing it to
-the device.
+If the verbosity flag is given twice, @code{mpartition} will print out
+a hexdump of the partition table when reading it from and writing it
+to the device.
 @end table
 
 The following option is available for partition table initialization:
@@ -2261,7 +2262,9 @@ Mpartition proceeds as follows to pick a type for the partition:
 FAT32 partitions are assigned type 0x0C (``@code{Win95 FAT32, LBA}'')
 
 @item
-For all others, if the partition fits entirely within the 65536 sector of the disk, assign 0x01 (``@code{DOS FAT12, CHS}'') for FAT12 partition and 0x04 (``@code{DOS FAT16, CHS}'') for FAT16 partitions
+For all others, if the partition fits entirely within the first 65536
+sectors of the disk, assign 0x01 (``@code{DOS FAT12, CHS}'') for FAT12
+partition and 0x04 (``@code{DOS FAT16, CHS}'') for FAT16 partitions
 
 @item
 If not covered by the above, assign 0x06 (``@code{DOS BIG FAT16 CHS}'') if partition fits entirely within the first 1024 cylinders (CHS mode)
