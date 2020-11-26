@@ -637,9 +637,15 @@ APIRET rc;
 				 dev->name : "unknown", strerror(errno));
 #endif
 
-		close(This->fd);
-		Free(This);
-		return NULL;
+		if(errno != EOPNOTSUPP || mode == O_RDWR) {
+			/* If error is "not supported", and we're only
+			 * reading from the device anyways, then ignore. Some
+			 * OS'es don't support locks on read-only devices, even
+			 * if they are shared (read-only) locks */
+			close(This->fd);
+			Free(This);
+			return NULL;
+		}
 	}
 #endif
 #endif
