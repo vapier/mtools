@@ -106,17 +106,6 @@ change floppies too without unmounting and mounting.
 Mtools can be found at the following places (and their mirrors):
 @example
 http://ftp.gnu.org/gnu/mtools/mtools-@value{VERSION}.tar.gz
-http://mtools.linux.lu/mtools-@value{VERSION}.tar.gz
-ftp://www.tux.org/pub/knaff/mtools/mtools-@value{VERSION}.tar.gz
-ftp://ibiblio.unc.edu/pub/Linux/utils/disk-management/mtools-@value{VERSION}.tar.gz
-@end example
-
-Before reporting a bug, make sure that it has not yet been fixed in the
-Alpha patches which can be found at:
-@example
-http://ftp.gnu.org/gnu/mtools/
-http://mtools.linux.lu/
-ftp://www.tux.org/pub/knaff/mtools
 @end example
 
 These patches are named
@@ -125,11 +114,10 @@ stands for the base version, @var{dd} for the day and @var{mm} for the
 month. Due to a lack of space, I usually leave only the most recent
 patch.
 
-There is an mtools mailing list at mtools @@ tux.org .  Please
-send all bug reports to this list.  You may subscribe to the list by
-sending a message with 'subscribe mtools @@ tux.org' in its
-body to majordomo @@ tux.org . (N.B. Please remove the spaces
-around the "@@" both times. I left them there in order to fool
+There is an mtools mailing list at info-mtools @@ gnu.org .  Please
+send all bug reports to this list.  You may subscribe to the list at
+https://lists.gnu.org/mailman/listinfo/info-mtools. (N.B. Please
+remove the spaces around the "@@". I left them there in order to fool
 spambots.)  Announcements of new mtools versions will also be sent to
 the list, in addition to the Linux announce newsgroups.  The mailing
 list is archived at http://lists.gnu.org/pipermail/info-mtools/
@@ -431,8 +419,7 @@ In order to format these disks, you need to use an operating system
 specific tool. For Linux, suitable floppy tools can be found in the
 @code{fdutils} package at the following locations~:
 @example
-@code{ftp://www.tux.org/pub/knaff/fdutils/}.
-@code{ftp://ibiblio.unc.edu/pub/Linux/utils/disk-management/fdutils-*}
+@code{http://www.fdutils.linux.lu/}.
 @end example
 
 See the manual pages included in that package for further detail: Use
