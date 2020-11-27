@@ -348,6 +348,10 @@ extern int errno;
 # include <locale.h>
 #endif
 
+#ifdef HAVE_XLOCALE_H
+# include <xlocale.h>
+#endif
+
 #ifdef USE_FLOPPYD
 
 #ifdef HAVE_SYS_SOCKET_H
