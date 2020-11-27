@@ -31,14 +31,20 @@ unsigned int atoui(const char *str) {
     return strtoui(str, 0, 0);
 }
 
+#ifndef HAVE_STRTOI
 int strtoi(const char *nptr, char **endptr, int base) {
     long l = strtol(nptr, endptr, base);
-    if(l > INT_MAX || l < INT_MIN) {
-	fprintf(stderr, "%lu out ob bounds\n", l);
-	exit(1);
+    if(l > INT_MAX) {
+	errno = ERANGE;
+	return INT_MAX;
+    }
+    if(l < INT_MIN) {
+	errno = ERANGE;
+	return INT_MIN;
     }
     return (int) l;
 }
+#endif
 
 unsigned long atoul(const char *str) {
     return strtoul(str, 0, 0);
