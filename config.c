@@ -243,7 +243,10 @@ static void syntax(const char *msg, int thisLine)
     fprintf(stderr,"Syntax error at line %d ", lastTokenLinenumber);
     if(drive) fprintf(stderr, "for drive %c: ", drive);
     if(token) fprintf(stderr, "column %ld ", (long)(token - buffer));
-    fprintf(stderr, "in file %s: %s\n", filename, msg);
+    fprintf(stderr, "in file %s: %s", filename, msg);
+    if(errno != 0)
+	fprintf(stderr, " (%s)", strerror(errno));
+    fprintf(stderr, "\n");
     exit(1);
 }
 
@@ -255,23 +258,41 @@ static void get_env_conf(void)
     for(i=0; i< sizeof(global_switches) / sizeof(*global_switches); i++) {
 	s = getenv(global_switches[i].name);
 	if(s) {
-	    if(global_switches[i].type == T_INT)
+	    errno = 0;
+	    switch(global_switches[i].type) {
+	    case T_INT:
 		* ((int *)global_switches[i].address) = strtoi(s,0,0);
-	    if(global_switches[i].type == T_UINT)
+		break;
+	    case T_UINT:
 		* ((unsigned int *)global_switches[i].address) = strtoui(s,0,0);
-	    if(global_switches[i].type == T_UINT8)
+		break;
+	    case T_UINT8:
 		* ((uint8_t *)global_switches[i].address) = strtou8(s,0,0);
-	    if(global_switches[i].type == T_UINT16)
+		break;
+	    case T_UINT16:
 		* ((uint16_t *)global_switches[i].address) = strtou16(s,0,0);
-	    else if (global_switches[i].type == T_STRING)
+		break;
+	    case T_STRING:
 		* ((char **)global_switches[i].address) = s;
+		break;
+	    default:
+		fprintf(stderr, "Data type %d not supported\n",
+			global_switches[i].type);
+		break;
+	    }
+	    if(errno != 0) {
+		fprintf(stderr, "Bad number %s for %s (%s)\n", s,
+			global_switches[i].name,
+			strerror(errno));
+		exit(1);
+	    }
 	}
     }
 }
 
 static int mtools_getline(void)
 {
-    if(!fp || !fgets(buffer, MAX_LINE_LEN, fp))
+    if(!fp || !fgets(buffer, MAX_LINE_LEN+1, fp))
 	return -1;
     linenumber++;
     pos = buffer;
@@ -356,6 +377,8 @@ static unsigned long get_unumber(unsigned long max)
     skip_junk(1);
     last = pos;
     n=strtoul(pos, &pos, 0);
+    if(errno)
+	syntax("bad number", 0);
     if(last == pos)
 	syntax("numeral expected", 0);
     if(n > max)
@@ -373,6 +396,8 @@ static int get_number(void)
     skip_junk(1);
     last = pos;
     n=(int) strtol(pos, &pos, 0);
+    if(errno)
+	syntax("bad number", 0);
     if(last == pos)
 	syntax("numeral expected", 0);
     pos++;
@@ -513,7 +538,6 @@ static int set_openflags(struct device *dev)
 static int set_misc_flags(struct device *dev)
 {
     unsigned int i;
-
     for(i=0; i < sizeof(misc_flags) / sizeof(*misc_flags); i++) {
 	if(match_token(misc_flags[i].name)) {
 	    flag_mask |= misc_flags[i].flag;
@@ -558,7 +582,7 @@ static int set_def_format(struct device *dev)
     return 1;
 }
 
-static int parse_one(int privilege);
+static void parse_all(int privilege);
 
 void set_cmd_line_image(char *img) {
   char *ofsp;
@@ -592,8 +616,20 @@ void set_cmd_line_image(char *img) {
     lastTokenLinenumber = 0;
     pos = buffer;
     token = 0;
-    while (parse_one(0));
+    parse_all(0);
   }
+}
+
+void check_number_parse_errno(char c, const char *optarg, char *endptr) {
+    if(endptr && *endptr) {
+	fprintf(stderr, "Bad number %s\n", optarg);
+	exit(1);
+    }
+    if(errno) {
+	fprintf(stderr, "Bad number %s for -%c (%s)\n", optarg,
+		c, strerror(errno));
+	exit(1);
+    }
 }
 
 static uint16_t tou16(int in, const char *comment) {
@@ -723,6 +759,12 @@ static int parse_one(int privilege)
     return 1;
 }
 
+static void parse_all(int privilege) {
+    errno=0;
+    while (parse_one(privilege));
+}
+
+
 static int parse(const char *name, int privilege)
 {
     if(fp) {
@@ -746,7 +788,7 @@ static int parse(const char *name, int privilege)
     token = 0;
     cur_dev = -1; /* no current device */
 
-    while(parse_one(privilege));
+    parse_all(privilege);
     finish_drive_clause();
     fclose(fp);
     filename = NULL;

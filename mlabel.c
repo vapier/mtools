@@ -119,7 +119,7 @@ void mlabel(int argc, char **argv, int type UNUSEDP)
 	int c;
 	int mangled;
 	enum { SER_NONE, SER_RANDOM, SER_SET }  set_serial = SER_NONE;
-	unsigned long serial = 0;
+	uint32_t serial = 0;
 	int need_write_boot = 0;
 	int have_boot = 0;
 	char *eptr;
@@ -163,13 +163,15 @@ void mlabel(int argc, char **argv, int type UNUSEDP)
 				break;
 			case 'N':
 				set_serial = SER_SET;
-				serial = strtoul(optarg, &eptr, 16);
+				errno=0;
+				serial = strtou32(optarg, &eptr, 16);
 				if(*eptr) {
 					fprintf(stderr,
 						"%s not a valid serial number\n",
 						optarg);
 					exit(1);
 				}
+				check_number_parse_errno(c, optarg, eptr);
 				break;
 			case 'h':
 				usage(0);

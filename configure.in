@@ -169,8 +169,8 @@ dnl Checks for library functions.
 AC_TYPE_SIGNAL
 AC_CHECK_FUNCS(strerror random srandom strchr strrchr lockf flock \
 strcasecmp strncasecmp strnlen atexit on_exit getpass memmove \
-strdup strndup strcspn strspn strtoul strtol strtoll strtoi memcpy strpbrk \
-memset setenv seteuid setresuid setpgrp \
+strdup strndup strcspn strspn strtoul strtol strtoll strtoi strtoui \
+memcpy strpbrk memset setenv seteuid setresuid setpgrp \
 tcsetattr tcflush basename fchdir media_oldaliases llseek lseek64 \
 snprintf stat64 setlocale toupper_l strncasecmp_l \
 wcsdup wcscasecmp wcsnlen putwc \

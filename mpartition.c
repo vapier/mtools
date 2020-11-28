@@ -50,7 +50,7 @@ static __inline__ void print_hsc(hsc *h)
 	       head(*h), sector(*h), cyl(*h));
 }
 
-static void set_offset(hsc *h, int offset, int heads, int sectors)
+static void set_offset(hsc *h, unsigned long offset, int heads, int sectors)
 {
 	int head, sector, cyl;
 
@@ -71,7 +71,7 @@ static void set_offset(hsc *h, int offset, int heads, int sectors)
 }
 
 void setBeginEnd(struct partition *partTable,
-		 unsigned int begin, unsigned int end,
+		 unsigned long begin, unsigned long end,
 		 unsigned int heads, unsigned int sectors,
 		 int activate, int type, int fat_bits)
 {
@@ -369,6 +369,8 @@ void mpartition(int argc, char **argv, int dummy UNUSEDP)
 	if(helpFlag(argc, argv))
 		usage(0);
 	while ((c = getopt(argc, argv, "i:adprcIT:t:h:s:fvpb:l:S:B:")) != EOF) {
+		char *endptr=NULL;
+		errno=0;
 		switch (c) {
 			case 'i':
 				set_cmd_line_image(optarg);
@@ -411,7 +413,7 @@ void mpartition(int argc, char **argv, int dummy UNUSEDP)
 				/* could be abused to "manually" create
 				 * extended partitions */
 				open2flags |= NO_PRIV;
-				type = strtoi(optarg,0,0);
+				type = strtoi(optarg, &endptr, 0);
 				break;
 
 			case 't':
@@ -440,21 +442,22 @@ void mpartition(int argc, char **argv, int dummy UNUSEDP)
 				 * extending beyond the actual size of the
 				 * device */
 				open2flags |= NO_PRIV;
-				tot_sectors = strtoui(optarg,0,0);
+				tot_sectors = strtoui(optarg, &endptr, 0);
 				sizetest = 1;
 				break;
 			case 'b':
 				begin_set = 1;
-				begin = strtoui(optarg, NULL, 10);
+				begin = strtoui(optarg, &endptr, 0);
 				break;
 			case 'l':
 				size_set = 1;
-				length = strtoui(optarg, NULL, 10);
+				length = strtoui(optarg, &endptr, 0);
 				break;
 
 			default:
 				usage(1);
 		}
+		check_number_parse_errno(c, optarg, endptr);
 	}
 
 	if (argc - optind != 1 ||

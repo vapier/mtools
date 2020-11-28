@@ -46,6 +46,6 @@ int consistencyCheck(struct partition *partTable, int doprint, int verbose,
 		     struct device *used_dev, int target_partition);
 
 void setBeginEnd(struct partition *partTable,
-		 unsigned int begin, unsigned int end,
+		 unsigned long begin, unsigned long end,
 		 unsigned int heads, unsigned int sector,
 		 int activate, int type, int fat_bits);

@@ -963,6 +963,7 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 	while ((c = getopt(argc,argv,
 			   "i:148f:t:n:v:qub"
 			   "kK:R:B:r:L:I:FCc:Xh:s:T:l:N:H:M:S:2:30:Aad:m:"))!= EOF) {
+		errno = 0;
 		endptr = NULL;
 		switch (c) {
 			case 'i':
@@ -1133,10 +1134,7 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 			default:
 				usage(1);
 		}
-		if(endptr && *endptr) {
-			fprintf(stderr, "Bad number %s\n", optarg);
-			exit(1);
-		}
+		check_number_parse_errno(c, optarg, endptr);
 	}
 
 	if (argc - optind > 1)

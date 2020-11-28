@@ -18,14 +18,35 @@
 #include "sysincludes.h"
 #include "mtools.h"
 
-unsigned int strtoui(const char *nptr, char **endptr, int base) {
-    unsigned long l = strtoul(nptr, endptr, base);
-    if(l > UINT_MAX) {
-	fprintf(stderr, "%lu too large\n", l);
-	exit(1);
+static long strtol_with_range(const char *nptr, char **endptr, int base,
+			      long min, long max) {
+    long l = strtol(nptr, endptr, base);
+    if(l > max) {
+	errno = ERANGE;
+	return max;
     }
-    return (unsigned int) l;
+    if(l < min) {
+	errno = ERANGE;
+	return min;
+    }
+    return l;
 }
+
+static long strtoul_with_range(const char *nptr, char **endptr, int base,
+			      unsigned long max) {
+    unsigned long l = strtoul(nptr, endptr, base);
+    if(l > max) {
+	errno = ERANGE;
+	return max;
+    }
+    return l;
+}
+
+#ifndef HAVE_STRTOUI
+unsigned int strtoui(const char *nptr, char **endptr, int base) {
+    return (unsigned int) strtoul_with_range(nptr, endptr, base, UINT_MAX);
+}
+#endif
 
 unsigned int atoui(const char *str) {
     return strtoui(str, 0, 0);
@@ -33,16 +54,7 @@ unsigned int atoui(const char *str) {
 
 #ifndef HAVE_STRTOI
 int strtoi(const char *nptr, char **endptr, int base) {
-    long l = strtol(nptr, endptr, base);
-    if(l > INT_MAX) {
-	errno = ERANGE;
-	return INT_MAX;
-    }
-    if(l < INT_MIN) {
-	errno = ERANGE;
-	return INT_MIN;
-    }
-    return (int) l;
+    return (int) strtol_with_range(nptr, endptr, base, INT_MIN, INT_MAX);
 }
 #endif
 
@@ -51,12 +63,7 @@ unsigned long atoul(const char *str) {
 }
 
 uint8_t strtou8(const char *nptr, char **endptr, int base) {
-    unsigned long l = strtoul(nptr, endptr, base);
-    if(l > UINT8_MAX) {
-	fprintf(stderr, "%lu too large\n", l);
-	exit(1);
-    }
-    return (uint8_t) l;
+    return (uint8_t) strtoul_with_range(nptr, endptr, base, UINT8_MAX);
 }
 
 uint8_t atou8(const char *str) {
@@ -64,12 +71,7 @@ uint8_t atou8(const char *str) {
 }
 
 uint16_t strtou16(const char *nptr, char **endptr, int base) {
-    unsigned long l = strtoul(nptr, endptr, base);
-    if(l > UINT16_MAX) {
-	fprintf(stderr, "%lu too large\n", l);
-	exit(1);
-    }
-    return (uint16_t) l;
+    return (uint16_t) strtoul_with_range(nptr, endptr, base, UINT16_MAX);
 }
 
 uint16_t atou16(const char *str) {
@@ -77,12 +79,7 @@ uint16_t atou16(const char *str) {
 }
 
 uint32_t strtou32(const char *nptr, char **endptr, int base) {
-    unsigned long l = strtoul(nptr, endptr, base);
-    if(l > UINT32_MAX) {
-	fprintf(stderr, "%lu too large\n", l);
-	exit(1);
-    }
-    return (uint32_t) l;
+    return (uint32_t) strtoul_with_range(nptr, endptr, base, UINT32_MAX);
 }
 
 uint32_t atou32(const char *str) {
