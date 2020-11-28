@@ -1,3 +1,8 @@
+v4_0_26
+	- Fix compilation on Macintosh
+	- Ignore image file locking errors if we are performing a
+          read-only access anyways
+	- Minor man-page fixes
 v4_0_25
 	- Preserve non-updated contents of info sector, just in case
           it contains program code

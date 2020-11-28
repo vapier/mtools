@@ -1,3 +1,8 @@
+mtools (4.0.26) stable; urgency=low
+  * Fix compilation on Macintosh
+  * Ignore image file locking errors if we are performing a read-only access anyways
+  * Minor man-page fixes
+ -- Alain Knaff <alain@knaff.lu>  Sat, 28 Nov 2020 12:46:04 +0100
 mtools (4.0.25) stable; urgency=low
   * Preserve non-updated contents of info sector, just in case it contains program code
   * When parsing config file, always use "C" locale for case-insensitive comparisons
