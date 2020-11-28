@@ -189,8 +189,9 @@ static void init_canon(void) {
 
 #ifdef HAVE_TOUPPER_L
 static int canon_drv(int drive) {
+    int ret;
     init_canon();
-    int ret = toupper_l(drive, C);
+    ret = toupper_l(drive, C);
     return ret;
 }
 #else
@@ -211,7 +212,7 @@ static int cmp_tok(const char *a, const char *b, int len) {
 #endif
 
 
-char ch_canon_drv(char drive) {
+static char ch_canon_drv(char drive) {
     return (char) canon_drv( (unsigned char) drive);
 }
 
@@ -274,10 +275,6 @@ static void get_env_conf(void)
 		break;
 	    case T_STRING:
 		* ((char **)global_switches[i].address) = s;
-		break;
-	    default:
-		fprintf(stderr, "Data type %d not supported\n",
-			global_switches[i].type);
 		break;
 	    }
 	    if(errno != 0) {
@@ -620,13 +617,13 @@ void set_cmd_line_image(char *img) {
   }
 }
 
-void check_number_parse_errno(char c, const char *optarg, char *endptr) {
+void check_number_parse_errno(char c, const char *oarg, char *endptr) {
     if(endptr && *endptr) {
-	fprintf(stderr, "Bad number %s\n", optarg);
+	fprintf(stderr, "Bad number %s\n", oarg);
 	exit(1);
     }
     if(errno) {
-	fprintf(stderr, "Bad number %s for -%c (%s)\n", optarg,
+	fprintf(stderr, "Bad number %s for -%c (%s)\n", oarg,
 		c, strerror(errno));
 	exit(1);
     }

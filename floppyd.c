@@ -363,8 +363,9 @@ static char recv_packet(Packet packet, io_buffer fp, Dword maxlength)
 }
 
 static ssize_t read_packet(Packet packet, int fd, Dword length) {
+	ssize_t ret;
 	make_new(packet, length);
-	ssize_t ret = read(fd, packet->data, packet->len);
+	ret = read(fd, packet->data, packet->len);
 	if(ret < 0)
 		return ret;
 	packet->len = (Dword) ret;

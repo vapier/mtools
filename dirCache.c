@@ -49,7 +49,8 @@ static uint32_t calcHash(wchar_t *name)
 		c = towupper((wint_t)*name);		
 		hash ^=  (c * (c+2)) ^ (i * (i+2));
 		hash &= 0xffffffff;
-		i++, name++;
+		i++;
+		name++;
 	}
 	hash = hash * (hash + 2);
 	/* the following two xors make sure all info is spread evenly over all
