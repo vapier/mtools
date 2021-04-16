@@ -102,8 +102,8 @@ doscp_t *cp_open(int codepage)
 {
 	char dosCp[17];
 	doscp_t *ret;
-	iconv_t *from;
-	iconv_t *to;
+	iconv_t from;
+	iconv_t to;
 
 	if(codepage == 0)
 		codepage = mtools_default_codepage;
