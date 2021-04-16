@@ -1,3 +1,5 @@
+v4_0_27
+	- Fix type error in calls to iconv functions
 v4_0_26
 	- Fix compilation on Macintosh
 	- Ignore image file locking errors if we are performing a
