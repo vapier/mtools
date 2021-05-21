@@ -117,7 +117,147 @@ Stream_t *GetFs(Stream_t *Fs)
 }
 
 /**
- * Tries out all device definitions for the given drive number, until one
+ * Tries out one device definition for the given drive number
+ * Parameters
+ *  - dev: device definition to try
+ *  - mode: file open mode
+ *  - out_dev: device parameters (geometry, etc.) are returned here
+ *  - boot: boot sector is read from the disk into this structure
+ *  - name: "name" of device definition (returned)
+ *  - media: media byte is returned here (ored with 0x100 if there is a
+ *    BIOS Parameter block present)
+ *  - maxSize: maximal size supported by (physical) drive returned here
+ *  - try_writable: whether to try opening it writable from the get-go,
+ *     even if not specified as writable in mode (used for mlabel)
+ *  - isRop: whether device is read-only is returned here
+ * Return value:
+ *  - a Stream allowing to read from this device, must be closed by caller
+ *
+ * If a geometry change is needed, drive is re-opened RW, as geometry
+ * change ioctl needs write access. However, in such case, the lock
+ * acquired is still only a read lock.
+ */
+static Stream_t *try_device(struct device *dev,
+			    int mode, struct device *out_dev,
+			    union bootsector *boot,
+			    char *name, int *media, mt_size_t *maxSize,
+			    int *isRop, int try_writable,
+			    char *errmsg)
+{
+	int retry_write;
+	int have_read_bootsector=0;
+	int lmode=mode;
+
+	*out_dev = *dev;
+	expand(dev->name,name);
+#ifdef USING_NEW_VOLD
+	strcpy(name, getVoldName(dev, name));
+#endif
+	
+	for(retry_write=0; retry_write<2; retry_write++) {
+		Stream_t *Stream;
+		int r;
+		if(retry_write)
+			mode |= O_RDWR;
+		if(out_dev->misc_flags & FLOPPYD_FLAG) {
+#ifdef USE_FLOPPYD
+			Stream = FloppydOpen(out_dev, name, mode,
+					     errmsg, maxSize);
+#endif
+		} else {
+
+#ifdef USE_XDF
+			Stream = XdfOpen(out_dev, name, mode, errmsg, 0);
+			if(Stream) {
+				out_dev->use_2m = 0x7f;
+				if(maxSize)
+					*maxSize = max_off_t_31;
+			}
+#endif
+
+
+			if (!Stream) {
+				Stream = SimpleFileOpenWithLm(out_dev, dev, name,
+							      try_writable ? mode | O_RDWR: mode,
+							      errmsg, 0, 1,
+							      try_writable ? lmode | O_RDWR: lmode,
+							      maxSize);
+			}
+
+			if(Stream) {
+				*isRop=0;
+			} else if(try_writable &&
+				  (errno == EPERM || errno == EACCES || errno == EROFS)) {
+				Stream = SimpleFileOpenWithLm(out_dev, dev, name,
+							      mode | O_RDONLY,
+							      errmsg, 0, 1,
+							      lmode | O_RDONLY,
+							      maxSize);
+				if(Stream) {
+					*isRop=1;
+				}
+			}
+		}
+
+		if( !Stream)
+			return NULL;
+
+		if(!have_read_bootsector) {
+			/* read the boot sector */
+			if ((r=read_boot(Stream, boot, out_dev->blocksize)) < 0){
+				sprintf(errmsg,
+					"init %c: could not read boot sector",
+					dev->drive);
+				FREE(&Stream);
+				return NULL;
+			}
+
+			if((*media= get_media_type(Stream, boot)) <= 0xf0 ){
+				if (boot->boot.jump[2]=='L')
+					sprintf(errmsg,
+						"diskette %c: is Linux LILO, not DOS",
+						dev->drive);
+				else
+					sprintf(errmsg,"init %c: non DOS media", dev->drive);
+				FREE(&Stream);
+				return NULL;
+			}
+			have_read_bootsector=1;
+		}
+
+		/* set new parameters, if needed */
+		errno = 0;
+		if(SET_GEOM(Stream, out_dev, dev, *media, boot)){
+			if(errno == EBADF || errno == EPERM) {
+				/* Retry with write */
+				FREE(&Stream);
+				continue;
+			}
+			if(errno)
+#ifdef HAVE_SNPRINTF
+				snprintf(errmsg, 199,
+					 "Can't set disk parameters for %c: %s",
+					 dev->drive, strerror(errno));
+#else
+			sprintf(errmsg,
+				"Can't set disk parameters for %c: %s",
+				drive, strerror(errno));
+#endif
+			else
+				sprintf(errmsg,
+					"Can't set disk parameters for %c",
+					dev->drive);
+			FREE(&Stream);
+			return NULL;
+		}
+		return Stream;
+	}
+	return NULL;
+}
+
+
+/**
+ * Tries out all device definitions for the given drive letter, until one
  * is found that is able to read from the device
  * Parameters
  *  - drive: drive letter to check
@@ -138,113 +278,32 @@ Stream_t *find_device(char drive, int mode, struct device *out_dev,
 		      int *isRop)
 {
 	char errmsg[200];
-	Stream_t *Stream;
 	struct device *dev;
-	int r;
-	int isRo=0;
-
-	Stream = NULL;
+	
 	sprintf(errmsg, "Drive '%c:' not supported", drive);
 					/* open the device */
 	for (dev=devices; dev->name; dev++) {
-		FREE(&Stream);
+		Stream_t *Stream;
+		int isRo;
+		isRo=0;
 		if (dev->drive != drive)
 			continue;
-		*out_dev = *dev;
-		expand(dev->name,name);
-#ifdef USING_NEW_VOLD
-		strcpy(name, getVoldName(dev, name));
-#endif
 
-		Stream = 0;
-		if(out_dev->misc_flags & FLOPPYD_FLAG) {
-		    Stream = 0;
-#ifdef USE_FLOPPYD
-		    Stream = FloppydOpen(out_dev, name, mode,
-					 errmsg, maxSize);
-#endif
-		} else {
-
-#ifdef USE_XDF
-		    Stream = XdfOpen(out_dev, name, mode, errmsg, 0);
-		    if(Stream) {
-			out_dev->use_2m = 0x7f;
-			if(maxSize)
-			    *maxSize = max_off_t_31;
-		    }
-#endif
-
-
-		    if (!Stream)
-			Stream = SimpleFileOpen(out_dev, dev, name,
-						isRop ? mode | O_RDWR: mode,
-						errmsg, 0, 1, maxSize);
-
-		    if(Stream) {
-			isRo=0;
-		    } else if(isRop &&
-		       (errno == EPERM || errno == EACCES || errno == EROFS)) {
-			Stream = SimpleFileOpen(out_dev, dev, name,
-						mode | O_RDONLY,
-						errmsg, 0, 1, maxSize);
-			if(Stream) {
-				isRo=1;
-			}
-		    }
+		Stream = try_device(dev, mode, out_dev,
+				    boot,
+				    name, media, maxSize,
+				    &isRo, isRop != NULL,
+				    errmsg);
+		if(Stream) {
+			if(isRop)
+				*isRop = isRo;
+			return Stream;
 		}
-
-		if( !Stream)
-		    continue;
-
-		/* read the boot sector */
-		if ((r=read_boot(Stream, boot, out_dev->blocksize)) < 0){
-			sprintf(errmsg,
-				"init %c: could not read boot sector",
-				drive);
-			continue;
-		}
-
-		if((*media= get_media_type(Stream, boot)) <= 0xf0 ){
-			if (boot->boot.jump[2]=='L')
-				sprintf(errmsg,
-					"diskette %c: is Linux LILO, not DOS",
-					drive);
-			else
-				sprintf(errmsg,"init %c: non DOS media", drive);
-			continue;
-		}
-
-		/* set new parameters, if needed */
-		errno = 0;
-		if(SET_GEOM(Stream, out_dev, dev, *media, boot)){
-			if(errno)
-#ifdef HAVE_SNPRINTF
-				snprintf(errmsg, 199,
-					"Can't set disk parameters for %c: %s",
-					drive, strerror(errno));
-#else
-				sprintf(errmsg,
-					"Can't set disk parameters for %c: %s",
-					drive, strerror(errno));
-#endif
-			else
-				sprintf(errmsg,
-					"Can't set disk parameters for %c",
-					drive);
-			continue;
-		}
-		break;
 	}
 
 	/* print error msg if needed */
-	if ( dev->drive == 0 ){
-		FREE(&Stream);
-		fprintf(stderr,"%s\n",errmsg);
-		return NULL;
-	}
-	if(isRop)
-		*isRop = isRo;
-	return Stream;
+	fprintf(stderr,"%s\n",errmsg);
+	return NULL;
 }
 
 

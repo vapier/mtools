@@ -481,10 +481,17 @@ static Class_t SimpleFileClass = {
 	file_discard
 };
 
-
 Stream_t *SimpleFileOpen(struct device *dev, struct device *orig_dev,
 			 const char *name, int mode, char *errmsg, 
-			 int mode2, int locked, mt_size_t *maxSize)
+			 int mode2, int locked, mt_size_t *maxSize) {
+	return SimpleFileOpenWithLm(dev, orig_dev, name, mode,
+				    errmsg, mode2, locked, mode, maxSize);
+}
+
+Stream_t *SimpleFileOpenWithLm(struct device *dev, struct device *orig_dev,
+			       const char *name, int mode, char *errmsg, 
+			       int mode2, int locked, int lockMode,
+			       mt_size_t *maxSize)
 {
 	SimpleFile_t *This;
 #ifdef __EMX__

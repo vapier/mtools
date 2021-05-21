@@ -31,6 +31,10 @@
 Stream_t *SimpleFileOpen(struct device *dev, struct device *orig_dev,
 			 const char *name, int mode, char *errmsg, int mode2,
 			 int locked, mt_size_t *maxSize);
+Stream_t *SimpleFileOpenWithLm(struct device *dev, struct device *orig_dev,
+			       const char *name, int mode, char *errmsg,
+			       int mode2, int locked, int lockMode,
+			       mt_size_t *maxSize);
 int check_parameters(struct device *ref, struct device *testee);
 
 int get_fd(Stream_t *Stream);
