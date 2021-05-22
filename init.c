@@ -392,7 +392,10 @@ Stream_t *fs_init(char drive, int mode, int *isRop)
 			tot_sectors = DWORD_S(bigsect);	
 
 		This->cluster_size = boot.boot.clsiz;
-		This->fat_start = WORD_S(nrsvsect);
+		if(dev.reserved_sectors)
+			This->fat_start = dev.reserved_sectors;
+		else
+			This->fat_start = WORD_S(nrsvsect);
 		This->fat_len = WORD_S(fatlen);
 		This->dir_len = WORD_S(dirents) * MDIR_SIZE / This->sector_size;
 		This->num_fat = boot.boot.nfat;

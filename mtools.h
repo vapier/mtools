@@ -76,6 +76,9 @@ typedef struct device {
 
 	int codepage;		/* codepage for shortname encoding */
 
+	int reserved_sectors;	/* number of reserved sectors. If 0,
+				   use settings from boot sector */
+
 	const char *cfg_filename; /* used for debugging purposes */
 } device_t;
 
