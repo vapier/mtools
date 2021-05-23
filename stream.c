@@ -64,6 +64,12 @@ int free_stream(Stream_t **Stream)
 #define GET_DATA(stream, date, size, type, address) \
 (stream)->Class->get_data( (stream), (date), (size), (type), (address) )
 
+int set_geom_pass_through(Stream_t *Stream, device_t *dev,
+			  device_t *orig_dev, int media,
+			  union bootsector *boot)
+{
+	return SET_GEOM(Stream->Next, dev, orig_dev, media, boot);
+}
 
 int get_data_pass_through(Stream_t *Stream, time_t *date, mt_size_t *size,
 			  int *type, int *address)

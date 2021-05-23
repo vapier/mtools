@@ -30,6 +30,7 @@
 #include "xdf_io.h"
 #include "buffer.h"
 #include "file_name.h"
+#include "remap.h"
 
 #define FULL_CYL
 
@@ -207,6 +208,16 @@ static Stream_t *try_device(struct device *dev,
 		if( !Stream)
 			return NULL;
 
+		if(dev->data_map) {
+			Stream_t *Remapped = Remap(Stream, dev->data_map,
+						   errmsg);
+			if(Remapped == NULL) {
+				FREE(&Stream);
+				return NULL;
+			}
+			Stream = Remapped;
+		}
+		
 		if(!have_read_bootsector) {
 			/* read the boot sector */
 			if ((r=read_boot(Stream, boot, out_dev->blocksize)) < 0){

@@ -76,6 +76,8 @@ typedef struct device {
 
 	int codepage;		/* codepage for shortname encoding */
 
+	const char *data_map;
+
 	const char *cfg_filename; /* used for debugging purposes */
 } device_t;
 
@@ -264,6 +266,7 @@ char get_default_drive(void);
 void set_cmd_line_image(char *img);
 void check_number_parse_errno(char c, const char *optarg, char *endptr);
 void read_config(void);
+off_t str_to_offset_with_end(const char *str, const char **endp);
 off_t str_to_offset(char *str);
 unsigned int strtoui(const char *nptr, char **endptr, int base);
 unsigned int atoui(const char *nptr);

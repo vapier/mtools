@@ -87,6 +87,10 @@ copy_stream( (stream) )
 int force_write(Stream_t *Stream, char *buf, mt_off_t start, size_t len);
 int force_read(Stream_t *Stream, char *buf, mt_off_t start, size_t len);
 
+int set_geom_pass_through(Stream_t *Stream, device_t *dev,
+			  device_t *orig_dev, int media,
+			  union bootsector *boot);
+
 int get_data_pass_through(Stream_t *Stream, time_t *date, mt_size_t *size,
 						  int *type, int *address);
 

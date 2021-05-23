@@ -175,7 +175,8 @@ static switches_t dswitches[]= {
     { "HIDDEN", OFFS(hidden), T_UINT },
     { "PRECMD", OFFS(precmd), T_STRING },
     { "BLOCKSIZE", OFFS(blocksize), T_UINT },
-    { "CODEPAGE", OFFS(codepage), T_UINT }
+    { "CODEPAGE", OFFS(codepage), T_UINT },
+    { "DATA_MAP", OFFS(data_map), T_STRING }
 };
 
 #if (defined  HAVE_TOUPPER_L || defined HAVE_STRNCASECMP_L)
