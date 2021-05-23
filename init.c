@@ -157,6 +157,7 @@ static Stream_t *try_device(struct device *dev,
 	for(retry_write=0; retry_write<2; retry_write++) {
 		Stream_t *Stream;
 		int r;
+		int geomFailure=0;
 		if(retry_write)
 			mode |= O_RDWR;
 		if(out_dev->misc_flags & FLOPPYD_FLAG) {
@@ -181,7 +182,8 @@ static Stream_t *try_device(struct device *dev,
 							      try_writable ? mode | O_RDWR: mode,
 							      errmsg, 0, 1,
 							      try_writable ? lmode | O_RDWR: lmode,
-							      maxSize);
+							      maxSize,
+							      &geomFailure);
 			}
 
 			if(Stream) {
@@ -192,11 +194,14 @@ static Stream_t *try_device(struct device *dev,
 							      mode | O_RDONLY,
 							      errmsg, 0, 1,
 							      lmode | O_RDONLY,
-							      maxSize);
+							      maxSize,
+							      &geomFailure);
 				if(Stream) {
 					*isRop=1;
 				}
 			}
+			if(geomFailure)
+				continue;
 		}
 
 		if( !Stream)

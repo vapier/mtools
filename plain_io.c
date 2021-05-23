@@ -485,13 +485,14 @@ Stream_t *SimpleFileOpen(struct device *dev, struct device *orig_dev,
 			 const char *name, int mode, char *errmsg, 
 			 int mode2, int locked, mt_size_t *maxSize) {
 	return SimpleFileOpenWithLm(dev, orig_dev, name, mode,
-				    errmsg, mode2, locked, mode, maxSize);
+				    errmsg, mode2, locked, mode, maxSize,
+				    NULL);
 }
 
 Stream_t *SimpleFileOpenWithLm(struct device *dev, struct device *orig_dev,
 			       const char *name, int mode, char *errmsg, 
 			       int mode2, int locked, int lockMode,
-			       mt_size_t *maxSize)
+			       mt_size_t *maxSize, int *geomFailure)
 {
 	SimpleFile_t *This;
 #ifdef __EMX__
@@ -658,11 +659,17 @@ APIRET rc;
 #endif
 #endif
 	/* set default parameters, if needed */
-	if (dev){		
+	if (dev){
+		errno=0;
 		if ((!IS_MFORMAT_ONLY(dev) && dev->tracks) &&
 			init_geom(This->fd, dev, orig_dev, &This->statbuf)){
+			int err=errno;
 			close(This->fd);
 			Free(This);
+			if(geomFailure && (err==EBADF || err==EPERM)) {
+				*geomFailure=1;
+				return NULL;
+			}
 			if(errmsg)
 				sprintf(errmsg,"init: set default params");
 			return NULL;
