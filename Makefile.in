@@ -101,7 +101,8 @@ mlabel.1 mlabel.c mmd.1 mmd.c mmount.1 mmount.c mmove.1 mmove.c \
 mpartition.1 mpartition.c mrd.1 \
 mren.1 msdos.h mshortname.1 mshowfat.1 mtoolstest.1 mtools.1 mtools.5 mtools.c \
 mtools.conf mtools.h mtype.1 nameclash.h patchlevel.c \
-plain_io.c plain_io.h precmd.c privileges.c scripts signal.c stream.c stream.h \
+plain_io.c plain_io.h precmd.c privileges.c remap.c remap.h \
+scripts signal.c stream.c stream.h \
 streamcache.c streamcache.h subdir.c strtonum.c sysincludes.h unixdir.c todo \
 vfat.c vfat.h xdf_io.c xdf_io.h
 
@@ -112,7 +113,7 @@ match.o mainloop.o mattrib.o mbadblocks.o mcat.o mcd.o mclasserase.o mcopy.o \
 mdel.o mdir.o mdoctorfat.o mdu.o \
 mformat.o minfo.o misc.o missFuncs.o mk_direntry.o mlabel.o mmd.o mmount.o \
 mmove.o mpartition.o mshortname.o mshowfat.o mzip.o mtools.o old_dos.o \
-patchlevel.o plain_io.o precmd.o privileges.o scsi.o signal.o stream.o \
+patchlevel.o plain_io.o precmd.o privileges.o remap.o scsi.o signal.o stream.o \
 streamcache.o subdir.o unixdir.o tty.o vfat.o xdf_io.o strtonum.o
 
 OBJS2 = missFuncs.o mkmanifest.o misc.o patchlevel.o
@@ -128,7 +129,7 @@ mainloop.c mattrib.c mbadblocks.c mcat.c mcd.c mclasserase.c mcopy.c mdel.c \
 mdir.c mdu.c mdoctorfat.c mformat.c minfo.c misc.c \
 missFuncs.c mk_direntry.c mlabel.c mmd.c mmount.c mmove.c mpartition.c \
 mshortname.c mshowfat.c mzip.c mtools.c old_dos.c plain_io.c precmd.c \
-privileges.c \
+privileges.c remap.c \
 scsi.c signal.c stream.c streamcache.c subdir.c unixdir.c tty.o vfat.c \
 xdf_io.c mkmanifest.c
 
