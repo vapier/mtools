@@ -946,6 +946,35 @@ also available in ISO-Latin-1. You may also specify a global code page
 for all drives by using the global @code{default_codepage} parameter
 (outside of any drive description). This parameters exists starting at
 version 4.0.0
+
+@item data_map
+Remaps data from image file. This is useful for image files which
+might need additional zero-filled sectors to be inserted. Such is the
+case for instance for IBM 3174 floppy images. These images represent
+floppy disks with fewer sectors on their first cylinder. These missing
+sectors are not stored in the image, but are still counted in the
+filesystem layout. The data_map allows to fake these missing sectors
+for the upper layers of mtools. A data_map is a comma-separated
+sequence of source type and size. Source type may be @code{zero} for
+zero-filled sectors created by map, @code{skip} for data in raw image
+to be ignored (skipped), and nothing for data to be used as is
+(copied) from the raw image. Datamap is automatically complemented by
+an implicit last element of data to be used as is from current offset
+to end of file. Each size is a number followed by a unit: @code{s} for
+a 512 byte sector, @code{K} for Kbytes, @code{M} for megabytes,
+@code{G} for gigabytes, and nothing for single bytes.
+
+Example:
+
+@code{data_map=1s,zero31s,28s,skip1s} would be a map for use with IBM
+3174 floppy images. First sector (@code{1s}, boot sector) is used as
+is. Then follow 31 fake zero-filled sectors (@code{zero31s}), then the
+next 28 sectors from image (@code{28s}) are used as is (they contain
+FAT and root directory), then one sector from image is skipped
+(@code{skip1s}), and finally the rest of image is used as is
+(implicit)
+
+
 @item precmd
 @cindex Solaris (volcheck)
 @cindex Executing commands before opening the device
