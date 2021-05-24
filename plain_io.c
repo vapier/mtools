@@ -58,7 +58,7 @@ typedef struct SimpleFile_t {
 
 #include "lockdev.h"
 
-typedef int (*iofn) (int, char *, int);
+typedef ssize_t (*iofn) (int, void *, size_t);
 
 
 static void swap_buffer(char *buf, size_t len)

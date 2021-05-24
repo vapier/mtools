@@ -110,6 +110,7 @@ static int process_map(Remap_t *This, const char *ptr,
 	mt_off_t remapped=0;
 	int count=0;
 	int atEnd=0;
+	char *eptr;
 	while(!atEnd) {
 		mt_size_t len;
 		enum map_type_t type;
@@ -129,8 +130,8 @@ static int process_map(Remap_t *This, const char *ptr,
 			type=DATA;
 		}
 
-		len=str_to_offset_with_end(ptr,&ptr);
-
+		len=str_to_offset_with_end(ptr,&eptr);
+		ptr=eptr;
 		switch(*ptr) {
 		case '\0':
 			/* End of string */
