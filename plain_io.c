@@ -632,7 +632,7 @@ APIRET rc;
 #ifndef __CYGWIN__
 #ifndef OS_mingw32msvc
 	/* lock the device on writes */
-	if (locked && lock_dev(This->fd, mode == O_RDWR, dev)) {
+	if (locked && lock_dev(This->fd, (lockMode&O_ACCMODE) == O_RDWR, dev)) {
 		if(errmsg)
 #ifdef HAVE_SNPRINTF
 			snprintf(errmsg,199,
@@ -645,7 +645,7 @@ APIRET rc;
 				 dev->name : "unknown", strerror(errno));
 #endif
 
-		if(errno != EOPNOTSUPP || mode == O_RDWR) {
+		if(errno != EOPNOTSUPP || (lockMode&O_ACCMODE) == O_RDWR) {
 			/* If error is "not supported", and we're only
 			 * reading from the device anyways, then ignore. Some
 			 * OS'es don't support locks on read-only devices, even
