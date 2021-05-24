@@ -205,8 +205,7 @@ int hash_remove(T_HashTable *H,T_HashTableEl *E, size_t hint)
 {
   T_HashTableEl *E2;
 
-  if (hint >=0 && hint < H->size &&
-      H->entries[hint] == E){
+  if (hint < H->size && H->entries[hint] == E){
     H->inuse--;
     H->entries[hint] = &deleted;
     return 0;

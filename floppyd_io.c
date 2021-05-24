@@ -176,6 +176,7 @@ static int floppyd_writer(int fd, char* buffer, size_t len)
 	Dword errcode;
 	Dword gotlen;
 	Byte buf[16];
+	ssize_t ret;
 
 	dword2byte(1, buf);
 	buf[4] = OP_WRITE;
@@ -184,7 +185,8 @@ static int floppyd_writer(int fd, char* buffer, size_t len)
 	cork(fd, 1);
 	if(write(fd, buf, 9) < 9)
 		return AUTH_IO_ERROR;
-	if(write(fd, buffer, len) < len)
+	ret = write(fd, buffer, len);
+	if(ret == -1 || (size_t) ret < len)
 		return AUTH_IO_ERROR;
 	cork(fd, 0);
 	

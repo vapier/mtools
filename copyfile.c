@@ -63,8 +63,8 @@ int copyfile(Stream_t *Source, Stream_t *Target)
 				perror("write in copy");
 			else
 				fprintf(stderr,
-					"Short write %lu instead of %d\n",
-					(unsigned long) retw, ret);
+					"Short write %zd instead of %d\n",
+					retw, ret);
 			if(errno == ENOSPC)
 				got_signal = 1;
 			return ret;

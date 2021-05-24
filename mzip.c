@@ -171,16 +171,13 @@ static void usage(int ret)
 	exit(ret);
 }
 
+#define ZIP_RW (0)
+#define ZIP_RO (2)
+#define ZIP_RO_PW (3)
+#define ZIP_PW (5)
+#define ZIP_UNLOCK_TIL_EJECT (8)
 
-enum mode_t {
-	ZIP_RW = 0,
-	ZIP_RO = 2,
-	ZIP_RO_PW = 3,
-	ZIP_PW = 5,
-	ZIP_UNLOCK_TIL_EJECT = 8
-};
-
-static enum mode_t get_zip_status(int priv, int fd, void *extra_data)
+static int get_zip_status(int priv, int fd, void *extra_data)
 {
 	unsigned char status[128];
 	unsigned char cdb[6] = { 0x06, 0, 0x02, 0, sizeof status, 0 };
@@ -231,15 +228,15 @@ void mzip(int argc, char **argv, int type UNUSEDP)
 	device_t *dev;
 	int fd = -1;
 	char name[EXPAND_BUF];
-	enum { ZIP_NIX    =      0,
-	       ZIP_STATUS = 1 << 0,
-	       ZIP_EJECT  = 1 << 1,
-	       ZIP_MODE_CHANGE = 1 << 2,
-	       ZIP_FORCE  = 1 << 3
-	} request = ZIP_NIX;
+#define ZIP_NIX (0)
+#define ZIP_STATUS (1 << 0)
+#define ZIP_EJECT  (1 << 1)
+#define ZIP_MODE_CHANGE (1 << 2)
+#define ZIP_FORCE  (1 << 3)
+	int request = ZIP_NIX;
 
-	enum mode_t newMode = ZIP_RW;
-	enum mode_t oldMode = ZIP_RW;
+	int newMode = ZIP_RW;
+	int oldMode = ZIP_RW;
 
 #define setMode(x) \
 	if(request & ZIP_MODE_CHANGE) usage(1); \
@@ -417,7 +414,7 @@ void mzip(int argc, char **argv, int type UNUSEDP)
 
 	if (request & ZIP_MODE_CHANGE) {
 		int ret;
-		enum mode_t unlockMode, unlockMask;
+		int unlockMode, unlockMask;
 		const char *passwd;
 		char dummy[1];
 
