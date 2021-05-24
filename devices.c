@@ -28,7 +28,7 @@
 
 #define INIT_NOOP
 
-#define DEF_ARG1(x) (x), 0x2,0,(char *)0, 0, 0
+#define DEF_ARG1(x) (x), 0x2,0,(char *)0, 0, 0, 0, 0, NULL
 #define DEF_ARG0(x) 0,DEF_ARG1(x)
 
 #define MDEF_ARG 0L,DEF_ARG0(MFORMAT_ONLY_FLAG)
@@ -66,7 +66,7 @@
 #define ZIP(x)	 ZIPJAZ(x,96, 64, 32, 0)
 #define RZIP(x)	 ZIPJAZ(x,96, 64, 32, SCSI_FLAG|PRIV_FLAG)
 
-#define REMOTE    {"$DISPLAY", 'X', 0,0, 0,0, 0,0,0L, DEF_ARG0(FLOPPYD_FLAG),0,0}
+#define REMOTE    {"$DISPLAY", 'X', 0,0, 0,0, 0,0,0L, DEF_ARG0(FLOPPYD_FLAG)}
 
 
 
@@ -730,12 +730,12 @@ int analyze_one_reply(RawRequest_t *raw_cmd, int *bytes, int do_print)
 
 #define predefined_devices
 struct device devices[] = {
-	{"/dev/fd0", 'A', 0, 0, 80,2, 18,0, MDEF_ARG, 0, 0},
-	{"/dev/fd1", 'B', 0, 0, 0,0, 0,0, FDEF_ARG, 0, 0},
+	{"/dev/fd0", 'A', 0, 0, 80,2, 18,0, MDEF_ARG },
+	{"/dev/fd1", 'B', 0, 0, 0,0, 0,0, FDEF_ARG },
 	/* we assume that the Zip or Jaz drive is the second on the SCSI bus */
-	{"/dev/sdb4",'J', GENHD, 0, 0 },
-	{"/dev/sdb4",'Z', GENHD, 0, 0 },
-	/*	{"/dev/sda4",'D', GENHD, 0, 0 },*/
+	{"/dev/sdb4",'J', GENHD },
+	{"/dev/sdb4",'Z', GENHD },
+	/*	{"/dev/sda4",'D', GENHD },*/
 	REMOTE
 };
 
