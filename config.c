@@ -77,7 +77,8 @@ typedef struct switches_l {
 	T_STRING,
 	T_UINT,
 	T_UINT8,
-	T_UINT16
+	T_UINT16,
+	T_UQSTRING
     } type;
 } switches_t;
 
@@ -176,7 +177,7 @@ static switches_t dswitches[]= {
     { "PRECMD", OFFS(precmd), T_STRING },
     { "BLOCKSIZE", OFFS(blocksize), T_UINT },
     { "CODEPAGE", OFFS(codepage), T_UINT },
-    { "DATA_MAP", OFFS(data_map), T_STRING }
+    { "DATA_MAP", OFFS(data_map), T_UQSTRING }
 };
 
 #if (defined  HAVE_TOUPPER_L || defined HAVE_STRNCASECMP_L)
@@ -275,6 +276,7 @@ static void get_env_conf(void)
 		* ((uint16_t *)global_switches[i].address) = strtou16(s,0,0);
 		break;
 	    case T_STRING:
+	    case T_UQSTRING:
 		* ((char **)global_switches[i].address) = s;
 		break;
 	    }
@@ -362,9 +364,19 @@ static char *get_string(void)
     end = strchr(str, '\"');
     if(!end)
 	syntax("unterminated string constant", 1);
-    *end = '\0';
+    str = strndup(str, end - str);
     pos = end+1;
     return str;
+}
+
+static char *get_unquoted_string(void)
+{
+    if(*pos == '"')
+	return get_string();
+    else {
+	char *str=get_next_token();
+	return strndup(str, token_length);
+    }
 }
 
 static unsigned long get_unumber(unsigned long max)
@@ -513,7 +525,10 @@ static int set_var(struct switches_l *switches, int nr,
 		    get_number();
 	    else if (switches[i].type == T_STRING)
 		* ((char**)((long)switches[i].address+base_address))=
-		    strdup(get_string());
+		    get_string();
+	    else if (switches[i].type == T_UQSTRING)
+		* ((char**)((long)switches[i].address+base_address))=
+		    get_unquoted_string();
 	    return 0;
 	}
     }
