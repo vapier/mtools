@@ -768,14 +768,14 @@ APIRET rc;
 		}
 
 		if(!dev->tracks) {
-			dev->heads = head(partTable[dev->partition].end)+1;
-			dev->sectors = sector(partTable[dev->partition].end);
-			dev->tracks = cyl(partTable[dev->partition].end) -
-				cyl(partTable[dev->partition].start)+1;
+			/* CHS Info left by recent partitioning tools are
+			   completely unreliable => just use standard LBA 
+			   geometry */
+			dev->heads = 16;
+			dev->sectors = 63;
+			dev->tracks = PART_SIZE(partTable[dev->partition])
+				/(16*63);
 		}
-		dev->hidden=
-			dev->sectors*head(partTable[dev->partition].start) +
-			sector(partTable[dev->partition].start)-1;
 		if(!mtools_skip_check &&
 		   consistencyCheck((struct partition *)(buf+0x1ae), 0, 0,
 				    &has_activated, &last_end, &j, dev, 0)) {

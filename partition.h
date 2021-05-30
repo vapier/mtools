@@ -28,6 +28,7 @@ typedef struct hsc {
 
 #define BEGIN(p) _DWORD((p).start_sect)
 #define END(p) (_DWORD((p).start_sect)+(_DWORD((p).nr_sects)))
+#define PART_SIZE(p) (_DWORD((p).nr_sects))
 
 
 struct partition {
