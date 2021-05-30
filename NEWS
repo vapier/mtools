@@ -1,3 +1,10 @@
+v4_0_28
+	- Support remapping of data (for not-quite linear floppy image files)
+	- Re-open floppy devices read-write if geometry parameters need to
+	be changed
+	- relax consistency checks in mpartition (partitions created
+          by current fdisk would almost never pass these checks)
+	- Fix some compiler warnings
 v4_0_27
 	- Fix type error in calls to iconv functions
 v4_0_26

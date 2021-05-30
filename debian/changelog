@@ -1,3 +1,11 @@
+mtools (4.0.28) stable; urgency=low
+
+  * Support remapping of data (for not-quite linear floppy image files)
+  * Re-open floppy devices read-write if geometry parameters need to be changed
+  * relax consistency checks in mpartition (partitions created by current fdisk would almost never pass these checks)
+  * Fix some compiler warnings
+
+ -- Alain Knaff <alain@knaff.lu>  Sun, 30 May 2021 18:33:09 +0200
 mtools (4.0.27) stable; urgency=low
   * Fix type error in calls to iconv functions
 
