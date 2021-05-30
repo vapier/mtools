@@ -100,7 +100,7 @@ int unix_loop(Stream_t *Stream UNUSEDP, MainParam_t *mp,
 {
 	int ret;
 	int isdir=0;
-	int unixNameLength;
+	size_t unixNameLength;
 
 	mp->File = NULL;
 	mp->direntry = NULL;
@@ -257,10 +257,10 @@ static int _dos_loop(Stream_t *Dir, MainParam_t *mp, const char *filename)
 	r=0;
 	initializeDirentry(&entry, Dir);
 	while(!got_signal &&
-	      (r=vfat_lookup(&entry, filename, -1,
-			     mp->lookupflags,
-			     mp->shortname.data, mp->shortname.len,
-			     mp->longname.data, mp->longname.len)) == 0 ){
+	      (r=vfat_lookup_zt(&entry, filename,
+				mp->lookupflags,
+				mp->shortname.data, mp->shortname.len,
+				mp->longname.data, mp->longname.len)) == 0 ){
 		mp->File = NULL;
 		if(!checkForDot(mp->lookupflags,entry.name)) {
 			MyFile = 0;
@@ -297,7 +297,7 @@ static int recurs_dos_loop(MainParam_t *mp, const char *filename0,
 	/* Dir is de-allocated by the same entity which allocated it */
 	const char *ptr;
 	direntry_t entry;
-	int length;
+	size_t length;
 	int lookupflags;
 	int ret;
 	int have_one;
@@ -343,7 +343,7 @@ static int recurs_dos_loop(MainParam_t *mp, const char *filename0,
 		ptr = filename1;
 		filename1 = 0;
 	} else {
-		length = ptr - filename0;
+		length = ptrdiff(ptr, filename0);
 		ptr++;
 	}
 	if(!ptr) {
@@ -664,7 +664,7 @@ char *mpBuildUnixFilename(MainParam_t *mp)
 		  target="DOTDOT";
 		}
 		while( (tmp=strchr(target, '/')) ) {
-		  strncat(ret, target, tmp-target);
+		  strncat(ret, target, ptrdiff(tmp,target));
 		  strcat(ret, "\\");
 		  target=tmp+1;
 		}

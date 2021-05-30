@@ -48,13 +48,13 @@ typedef struct Remap_t {
 static enum map_type_t remap(Remap_t *This, mt_off_t *start, size_t *len) {
 	int i;
 	for(i=0; i <= This->mapSize; i++) {
-		size_t maxLen;
+		mt_size_t maxLen;
 		if(i < This->mapSize && *start >= This->map[i+1].remapped)
 			continue;
 		if(i < This->mapSize) {
-			maxLen = This->map[i+1].remapped- *start;
+			maxLen = (mt_size_t)(This->map[i+1].remapped - *start);
 			if(*len > maxLen)
-				*len = maxLen;
+				*len = (size_t) maxLen;
 		}
 		*start = *start - This->map[i].remapped + This->map[i].orig;
 		return This->map[i].type;
@@ -62,18 +62,20 @@ static enum map_type_t remap(Remap_t *This, mt_off_t *start, size_t *len) {
 	return ZERO;
 }
 
-static int remap_read(Stream_t *Stream, char *buf, mt_off_t start, size_t len)
+static ssize_t remap_read(Stream_t *Stream, char *buf,
+			  mt_off_t start, size_t len)
 {
 	DeclareThis(Remap_t);	
 	if(remap(This, &start, &len)==DATA)
 		return READS(This->Next, buf, start, len);
 	else {
 		bzero(buf, len);
-		return len;
+		return (ssize_t) len;
 	}
 }
 
-static int remap_write(Stream_t *Stream, char *buf, mt_off_t start, size_t len)
+static ssize_t remap_write(Stream_t *Stream, char *buf,
+			   mt_off_t start, size_t len)
 {
 	DeclareThis(Remap_t);	
 	if(remap(This, &start, &len)==DATA)
@@ -130,7 +132,7 @@ static int process_map(Remap_t *This, const char *ptr,
 			type=DATA;
 		}
 
-		len=str_to_offset_with_end(ptr,&eptr);
+		len=str_to_size_with_end(ptr,&eptr);
 		ptr=eptr;
 		switch(*ptr) {
 		case '\0':
@@ -146,7 +148,7 @@ static int process_map(Remap_t *This, const char *ptr,
 		}
 		
 		if(type == POS) {
-			orig = len;
+			orig = (mt_off_t)len;
 			continue;
 		}
 		if(type != SKIP) {
@@ -188,7 +190,7 @@ Stream_t *Remap(Stream_t *Next, const char *map, char *errmsg) {
 		return NULL;
 	}
 	
-	This->map = calloc(nrItems+1, sizeof(struct map));
+	This->map = calloc((size_t)nrItems+1, sizeof(struct map));
 	if(!This->map) {
 		free(This);
 		printOom();

@@ -69,7 +69,7 @@ static int write_dword(int handle, Dword parm)
 static uint32_t authenticate_to_floppyd(char fullauth, int sock, char *display, 
 					uint32_t protoversion)
 {
-	size_t filelen=0;
+	uint32_t filelen=0;
 	Byte buf[16];
 	const char *command[] = { "xauth", "xauth", "extract", "-", 0, 0 };
 	char *xcookie = NULL;
@@ -80,11 +80,11 @@ static uint32_t authenticate_to_floppyd(char fullauth, int sock, char *display,
 	if (fullauth) {
 		command[4] = display;
 
-		filelen=strlen(display);
+		filelen=(uint32_t)strlen(display);
 		filelen += 100;
 
 		xcookie = (char *) safe_malloc(filelen+4);
-		filelen = safePopenOut(command, xcookie+4, filelen);
+		filelen = (uint32_t) safePopenOut(command, xcookie+4, filelen);
 		if(filelen < 1)
 		    return AUTH_AUTHFAILED;
 	}

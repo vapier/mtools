@@ -37,7 +37,7 @@ typedef struct Arg_t {
 	uint32_t fat;
 	int markbad;
 	int setsize;
-	unsigned long size;
+	uint32_t size;
 	Fs_t *Fs;
 } Arg_t;
 
@@ -112,14 +112,14 @@ void mdoctorfat(int argc, char **argv, int mtype UNUSEDP)
 				break;
 			case 's':
 				arg.setsize=1;
-				arg.size = strtoul(optarg,&endptr,0);
+				arg.size = strtou32(optarg,&endptr,0);
 				break;
 			case 'h':
 				usage(0);
 			case '?':
 				usage(1);
 		}
-		check_number_parse_errno(c, optarg, endptr);
+		check_number_parse_errno((char)c, optarg, endptr);
 	}
 
 	if (argc - optind < 2)

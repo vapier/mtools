@@ -121,11 +121,11 @@ static __inline__ void print_time(struct directory *dir)
 /*
  * Return a number in dotted notation
  */
-static const char *dotted_num(mt_size_t num, int width, char **buf)
+static const char *dotted_num(mt_size_t num, size_t width, char **buf)
 {
 	size_t len;
 	register char *srcp, *dstp;
-	int size;
+	size_t size;
 
 	unsigned long numlo;
 	unsigned long numhi;
@@ -141,12 +141,12 @@ static const char *dotted_num(mt_size_t num, int width, char **buf)
 	 */
 
 	numlo = num % 1000000000;
-	numhi = num / 1000000000;
+	numhi = (unsigned long) (num / 1000000000);
 
 	if(numhi && size > 9) {
-		sprintf(*buf, "%.*lu%09lu", size-9, numhi, numlo);
+		sprintf(*buf, "%.*lu%09lu", (int)(size-9), numhi, numlo);
 	} else {
-		sprintf(*buf, "%.*lu", size, numlo);
+		sprintf(*buf, "%.*lu", (int) size, numlo);
 	}
 
 	for (srcp=*buf; srcp[1] != '\0'; ++srcp)
@@ -251,11 +251,12 @@ static void leaveDrive(int haveError)
 		}
 		if(RootDir && !fast) {
 			char *s1 = NULL;
-			mt_off_t bytes = getfree(RootDir);
-			if(bytes == -1) {
+			mt_off_t ret = getfree(RootDir);
+			if(ret == -1) {
 				fprintf(stderr, "Fat error\n");
 				goto exit_1;
 			}
+			mt_size_t bytes = (mt_size_t) ret;
 			printf("                  %s bytes free\n\n",
 			       dotted_num(bytes,17, &s1));
 #ifdef TEST_SIZE

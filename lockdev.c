@@ -77,7 +77,7 @@ int lock_dev(int fd, int mode, struct device *dev)
 		int ret=0;
 #if defined(USE_FLOCK_W) || defined(USE_LOCKF_W) || defined (USE_SETLK_W)
 		struct sigaction alrm_action, old_alrm_action;
-		int old_alrm = alarm(0);
+		unsigned int old_alrm = alarm(0);
 		memset(&alrm_action, 0, sizeof(alrm_action));
 		alrm_action.sa_handler = alrm;
 		alrm_action.sa_flags = 0;

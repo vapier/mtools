@@ -48,8 +48,8 @@ static size_t bufLen(size_t blocksize, mt_size_t totalSize, mt_off_t address)
 {
 	if(totalSize == 0)
 		return blocksize;
-	if(address + blocksize > totalSize)
-		return totalSize - address;
+	if((mt_off_t) blocksize > (mt_off_t) totalSize - address)
+		return (size_t) ((mt_off_t)totalSize - address);
 	return blocksize;
 }
 
@@ -67,7 +67,6 @@ void mcat(int argc, char **argv, int type UNUSEDP)
 
 	char mode = O_RDONLY;
 	int optindex = 1;
-	size_t len;
 
 	noPrivileges = 1;
 
@@ -140,22 +139,24 @@ void mcat(int argc, char **argv, int type UNUSEDP)
 
 
 	if (mode == O_WRONLY) {
+		size_t len;
 		mt_size_t size=0;
 		size = out_dev.sectors * out_dev.heads * out_dev.tracks;
 		size *= 512;
 		while ((len = fread(buf, 1,
 				    bufLen(BUF_SIZE, size, address),
 				    stdin)) > 0) {			
-			int r = WRITES(Stream, buf, address, len);
+			ssize_t r = WRITES(Stream, buf, address, len);
 			fprintf(stderr, "Wrote to %d\n", (int) address);
 			if(r < 0)
 				break;
 			address += len;
 		}
 	} else {
+		ssize_t len;
 		while ((len = READS(Stream, buf, address, BUF_SIZE)) > 0) {
-			fwrite(buf, 1, len, stdout);
-			address += len;
+			fwrite(buf, 1, (size_t) len, stdout);
+			address += (size_t) len;
 		}
 	}
 

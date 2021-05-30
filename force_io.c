@@ -27,11 +27,11 @@
 #include "msdos.h"
 #include "stream.h"
 
-static int force_io(Stream_t *Stream,
-		    char *buf, mt_off_t start, size_t len,
-		    int (*io)(Stream_t *, char *, mt_off_t, size_t))
+static ssize_t force_io(Stream_t *Stream,
+			char *buf, mt_off_t start, size_t len,
+			ssize_t (*io)(Stream_t *, char *, mt_off_t, size_t))
 {
-	int ret;
+	ssize_t ret;
 	int done=0;
 	
 	while(len){
@@ -42,21 +42,21 @@ static int force_io(Stream_t *Stream,
 			else
 				return ret;
 		}
-		start += ret;
+		start += (size_t) ret;
 		done += ret;
-		len -= ret;
+		len -= (size_t) ret;
 		buf += ret;
 	}
 	return done;
 }
 
-int force_write(Stream_t *Stream, char *buf, mt_off_t start, size_t len)
+ssize_t force_write(Stream_t *Stream, char *buf, mt_off_t start, size_t len)
 {
 	return force_io(Stream, buf, start, len,
-					Stream->Class->write);
+			Stream->Class->write);
 }
 
-int force_read(Stream_t *Stream, char *buf, mt_off_t start, size_t len)
+ssize_t force_read(Stream_t *Stream, char *buf, mt_off_t start, size_t len)
 {
 	return force_io(Stream, buf, start, len,
 					Stream->Class->read);

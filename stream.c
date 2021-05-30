@@ -72,17 +72,19 @@ int set_geom_pass_through(Stream_t *Stream, device_t *dev,
 }
 
 int get_data_pass_through(Stream_t *Stream, time_t *date, mt_size_t *size,
-			  int *type, int *address)
+			  int *type, uint32_t *address)
 {
        return GET_DATA(Stream->Next, date, size, type, address);
 }
 
-int read_pass_through(Stream_t *Stream, char *buf, mt_off_t start, size_t len)
+ssize_t read_pass_through(Stream_t *Stream, char *buf,
+			  mt_off_t start, size_t len)
 {
 	return READS(Stream->Next, buf, start, len);
 }
 
-int write_pass_through(Stream_t *Stream, char *buf, mt_off_t start, size_t len)
+ssize_t write_pass_through(Stream_t *Stream, char *buf,
+			   mt_off_t start, size_t len)
 {
 	return WRITES(Stream->Next, buf, start, len);
 }

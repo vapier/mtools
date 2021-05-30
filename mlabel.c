@@ -30,8 +30,8 @@
 static void _label_name(doscp_t *cp, const char *filename, int verbose UNUSEDP,
 			int *mangled, dos_name_t *ans, int preserve_case)
 {
-	int len;
-	int i;
+	size_t len;
+	size_t i;
 	int have_lower, have_upper;
 	wchar_t wbuffer[12];
 
@@ -159,7 +159,7 @@ void mlabel(int argc, char **argv, int type UNUSEDP)
 			case 'n':
 				set_serial = SER_RANDOM;
 				init_random();
-				serial=random();
+				serial=(uint32_t) random();
 				break;
 			case 'N':
 				set_serial = SER_SET;
@@ -171,7 +171,7 @@ void mlabel(int argc, char **argv, int type UNUSEDP)
 						optarg);
 					exit(1);
 				}
-				check_number_parse_errno(c, optarg, eptr);
+				check_number_parse_errno((char)c, optarg, eptr);
 				break;
 			case 'h':
 				usage(0);

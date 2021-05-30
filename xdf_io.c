@@ -101,7 +101,7 @@ typedef struct Xdf_t {
 	int track0_size;
 	int sector_size;
 	unsigned int FatSize;
-	unsigned int RootDirSize;
+	uint16_t RootDirSize;
 	TrackMap_t *track_map;
 
 	unsigned char last_sector;
@@ -373,7 +373,7 @@ static int load_bounds(Xdf_t *This, off_t begin, off_t end)
 static int fill_t0(Xdf_t *This, int ptr, unsigned int size,
 		   int *sector, int *head)
 {
-	int n;
+	unsigned int n;
 
 	for(n = 0; n < size; ptr++,n++) {
 		REC.head = *head;
@@ -391,7 +391,7 @@ static int fill_t0(Xdf_t *This, int ptr, unsigned int size,
 
 static int fill_phantoms(Xdf_t *This, int ptr, unsigned int size)
 {
-	int n;
+	unsigned int n;
 
 	for(n = 0; n < size; ptr++,n++)
 		REC.phantom = 1;
@@ -478,7 +478,7 @@ static void decompose(Xdf_t *This, int where, int len, off_t *begin,
 }
 
 
-static int xdf_read(Stream_t *Stream, char *buf, mt_off_t where, size_t len)
+static ssize_t xdf_read(Stream_t *Stream, char *buf, mt_off_t where, size_t len)
 {	
 	off_t begin, end;
 	size_t len2;
@@ -492,17 +492,19 @@ static int xdf_read(Stream_t *Stream, char *buf, mt_off_t where, size_t len)
 	return end - begin;
 }
 
-static int xdf_write(Stream_t *Stream, char *buf, mt_off_t where, size_t len)
+static ssize_t xdf_write(Stream_t *Stream, char *buf, mt_off_t where, size_t len)
 {	
 	off_t begin, end;
-	size_t len2;
+	ssize_t len2;
 	DeclareThis(Xdf_t);
 
 	decompose(This, truncBytes32(where), len, &begin, &end, 0);
 	len2 = load_bounds(This, begin, end);
+	if(len2 < 0)
+		return len2;
 	smaximize(end, (off_t)len2);
 	len2 -= begin;
-	sizemaximize(len, (off_t)len2);
+	sizemaximize(len, len2);
 	memcpy(This->buffer + begin, buf, len);
 	mark_dirty(This, begin, end);
 	return end - begin;

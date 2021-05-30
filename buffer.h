@@ -21,8 +21,8 @@
 #include "stream.h"
 
 Stream_t *buf_init(Stream_t *Next, 
-		   int size, 
-		   int cylinderSize,
-		   int sectorSize);
+		   size_t size, 
+		   size_t cylinderSize,
+		   size_t sectorSize);
 
 #endif

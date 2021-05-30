@@ -63,7 +63,7 @@ static void autorename(char *name,
 			seqnum = 0;
 			maxseq = 1;
 		} else if (name[dotpos] >= '0' && name[dotpos] <= '9') {
-			seqnum = seqnum * 10 + name[dotpos] - '0';
+			seqnum = seqnum * 10 + (uint8_t)(name[dotpos] - '0');
 			maxseq = maxseq * 10;
 		} else
 			tildapos = -1; /* sequence number interrupted */
@@ -171,7 +171,7 @@ static __inline__ unsigned char sum_shortname(const dos_name_t *dn)
 
 	for (sum=0; name<end; ++name)
 		sum = ((sum & 1) ? 0x80 : 0) + (sum >> 1)
-		  + *name;
+			+ (uint8_t) *name;
 	return(sum);
 }
 
@@ -207,7 +207,7 @@ static __inline__ void check_vfat(struct vfat_state *v, struct directory *dir)
 }
 
 
-int clear_vses(Stream_t *Dir, int entrySlot, size_t last)
+int clear_vses(Stream_t *Dir, int entrySlot, unsigned int last)
 {
 	direntry_t entry;
 	dirCache_t *cache;
@@ -240,11 +240,12 @@ int clear_vses(Stream_t *Dir, int entrySlot, size_t last)
 	return 0;
 }
 
-int write_vfat(Stream_t *Dir, dos_name_t *shortname, char *longname, int start,
+int write_vfat(Stream_t *Dir, dos_name_t *shortname, char *longname,
+	       unsigned int start,
 	       direntry_t *mainEntry)
 {
 	struct vfat_subentry *vse;
-	int vse_id, num_vses;
+	uint8_t vse_id, num_vses;
 	wchar_t *c;
 	direntry_t entry;
 	dirCache_t *cache;
@@ -252,7 +253,7 @@ int write_vfat(Stream_t *Dir, dos_name_t *shortname, char *longname, int start,
 	doscp_t *cp = GET_DOSCONVERT(Dir);
 
 	wchar_t wlongname[MAX_VNAMELEN+1];
-	int wlen;
+	size_t wlen;
 
 	if(longname) {
 #ifdef DEBUG
@@ -272,7 +273,7 @@ int write_vfat(Stream_t *Dir, dos_name_t *shortname, char *longname, int start,
 
 		wlen = native_to_wchar(longname, wlongname, MAX_VNAMELEN+1,
 				       0, 0);
-		num_vses = (wlen + VSE_NAMELEN - 1)/VSE_NAMELEN;
+		num_vses = (uint8_t)((wlen + VSE_NAMELEN - 1)/VSE_NAMELEN);
 		for (vse_id = num_vses; vse_id; --vse_id) {
 			int end = 0;
 			
@@ -418,7 +419,7 @@ static dirCacheEntry_t *vfat_lookup_loop_common(doscp_t *cp,
 						int *io_error)
 {
 	wchar_t newfile[13];
-	int initpos = direntry->entry + 1;
+	unsigned int initpos = direntry->entry + 1;
 	struct vfat_state vfat;
 	wchar_t *longname;
 	int error;
@@ -599,13 +600,22 @@ static result_t checkNameForMatch(struct direntry_t *direntry,
 }
 
 
+int vfat_lookup_zt(direntry_t *direntry, const char *filename,
+		   int flags, char *shortname, size_t shortname_size,
+		   char *longname, size_t longname_size) {
+	return vfat_lookup(direntry, filename, strlen(filename),
+			   flags, shortname, shortname_size,
+			   longname, longname_size);
+}
+
 /*
  * vfat_lookup looks for filenames in directory dir.
  * if a name if found, it is returned in outname
  * if applicable, the file is opened and its stream is returned in File
  */
 
-int vfat_lookup(direntry_t *direntry, const char *filename, int length,
+int vfat_lookup(direntry_t *direntry, const char *filename,
+		size_t length,
 		int flags, char *shortname, size_t shortname_size,
 		char *longname, size_t longname_size)
 {
@@ -615,9 +625,6 @@ int vfat_lookup(direntry_t *direntry, const char *filename, int length,
 	int io_error;
 	wchar_t wfilename[MAX_VNAMELEN+1];
 	doscp_t *cp = GET_DOSCONVERT(direntry->Dir);
-
-	if(length == -1 && filename)
-		length = strlen(filename);
 
 	if(filename != NULL)
 		length = native_to_wchar(filename, wfilename, MAX_VNAMELEN,
@@ -644,7 +651,7 @@ int vfat_lookup(direntry_t *direntry, const char *filename, int length,
 		}
 		result = checkNameForMatch(direntry, dce,
 					   wfilename,
-					   length, flags);
+					   (int) length, flags);
 	} while(result == RES_NOMATCH);
 
 	if(result == RES_MATCH){
@@ -669,7 +676,7 @@ int vfat_lookup(direntry_t *direntry, const char *filename, int length,
 
 static __inline__ dirCacheEntry_t *vfat_lookup_loop_for_insert(doscp_t *cp,
 							       direntry_t *direntry,
-							       int initpos,
+							       unsigned int initpos,
 							       dirCache_t *cache)
 {
 	dirCacheEntry_t *dce;
@@ -717,8 +724,8 @@ static void clear_scan(wchar_t *longname, int use_longname,
 	s->free_end = s->got_slots = s->free_start = 0;
 
 	if (use_longname & 1)
-		s->size_needed = 1 +
-			(wcslen(longname) + VSE_NAMELEN - 1)/VSE_NAMELEN;
+		s->size_needed = (unsigned)
+			(1 + (wcslen(longname) + VSE_NAMELEN - 1)/VSE_NAMELEN);
 	else
                 s->size_needed = 1;
 }
@@ -741,7 +748,7 @@ int lookupForInsert(Stream_t *Dir,
 	int ignore_match;
 	dirCacheEntry_t *dce;
 	dirCache_t *cache;
-	int pos; /* position _before_ the next answered entry */
+	unsigned int pos; /* position _before_ the next answered entry */
 	wchar_t shortName[13];
 	wchar_t wlongname[MAX_VNAMELEN+1];
 	doscp_t *cp = GET_DOSCONVERT(Dir);

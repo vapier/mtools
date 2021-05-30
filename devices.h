@@ -174,7 +174,7 @@ UNUSED(static __inline__ int GET_DRIVE(int fd))
 	    MAJOR(statbuf.st_rdev) != FLOPPY_MAJOR)
 		return -1;
 	
-	return MINOR( statbuf.st_rdev );
+	return (int) MINOR( statbuf.st_rdev );
 }
 
 

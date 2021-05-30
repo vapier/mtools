@@ -54,7 +54,7 @@ static int renameit(dos_name_t *dosname,
 		    direntry_t *targetEntry)
 {
 	Arg_t *arg = (Arg_t *) arg0;
-	int fat;
+	uint32_t fat;
 
 	targetEntry->dir = arg->entry->dir;
 	dosnameToDirentry(dosname, &targetEntry->dir);
@@ -252,7 +252,7 @@ void mmove(int argc, char **argv, int oldsyntax)
 				arg.verbose = 1;
 				break;
 			case 'o':
-				handle_clash_options(&arg.ch, c);
+				handle_clash_options(&arg.ch, (char)c);
 				break;
 			case 'D':
 				if(handle_clash_options(&arg.ch, *optarg))

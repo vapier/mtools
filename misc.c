@@ -228,6 +228,31 @@ off_t str_to_offset_with_end(const char *str, char **endp) {
 	return ofs;
 }
 
+/* Convert a string to a size. The string should be a number,
+   optionally followed by S (sectors), K (K-Bytes), M (Megabytes), G
+   (Gigabytes) */
+size_t str_to_size_with_end(const char *str, char **endp) {
+	char s;
+	size_t siz;
+
+	*endp = NULL;
+	siz = strtoul(str, endp, 0);
+	s = **endp;
+	/* trailing char, see if it is a size specifier */
+	if (s == 's' || s == 'S')       /* sector */
+		siz <<= 9;
+	else if (s == 'k' || s == 'K')  /* kb */
+		siz <<= 10;
+	else if (s == 'm' || s == 'M')  /* Mb */
+		siz <<= 20;
+	else if (s == 'g' || s == 'G')  /* Gb */
+		siz <<= 30;
+	else
+		return siz;      /* invalid character */
+	(*endp)++;
+	return siz;
+}
+
 off_t str_to_offset(char *str) {
 	char *end;
 	off_t ofs = str_to_offset_with_end(str, &end);

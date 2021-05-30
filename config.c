@@ -203,12 +203,12 @@ static int canon_drv(int drive) {
 #endif
 
 #ifdef HAVE_STRNCASECMP_L
-static int cmp_tok(const char *a, const char *b, int len) {
+static int cmp_tok(const char *a, const char *b, size_t len) {
     init_canon();
     return strncasecmp_l(a, b, len, C);
 }
 #else
-static int cmp_tok(const char *a, const char *b, int len) {
+static int cmp_tok(const char *a, const char *b, size_t len) {
     return strncasecmp(a, b, len);
 }
 #endif
@@ -364,7 +364,7 @@ static char *get_string(void)
     end = strchr(str, '\"');
     if(!end)
 	syntax("unterminated string constant", 1);
-    str = strndup(str, end - str);
+    str = strndup(str, ptrdiff(end, str));
     pos = end+1;
     return str;
 }
@@ -465,7 +465,7 @@ static void prepend(void)
 static void append(void)
 {
     grow();
-    cur_dev = cur_devs;
+    cur_dev = (int) cur_devs;
     cur_devs++;
     init_drive();
 }
@@ -610,7 +610,7 @@ void set_cmd_line_image(char *img) {
     devices[cur_dev].name = strdup(img);
     devices[cur_dev].offset = 0;
   } else {
-    devices[cur_dev].name = strndup(img, ofsp - img);
+    devices[cur_dev].name = strndup(img, ptrdiff(ofsp, img));
     devices[cur_dev].offset = str_to_offset(ofsp+2);
   }
 
@@ -655,7 +655,6 @@ static uint16_t tou16(int in, const char *comment) {
 	exit(1);
     }
     return (uint16_t) in;
-       
 }
 
 static void parse_old_device_line(char drive)
@@ -664,7 +663,7 @@ static void parse_old_device_line(char drive)
     int items;
     long offset;
 
-    int heads, sectors;
+    int heads, sectors, tracks;
     
     /* finish any old drive */
     finish_drive_clause();
@@ -676,11 +675,10 @@ static void parse_old_device_line(char drive)
     append();
     items = sscanf(token,"%c %s %i %i %i %i %li",
 		   &devices[cur_dev].drive,name,&devices[cur_dev].fat_bits,
-		   &devices[cur_dev].tracks,&heads,
-		   &sectors, &offset);
+		   &tracks,&heads,&sectors, &offset);
     devices[cur_dev].heads = tou16(heads, "heads");
     devices[cur_dev].sectors = tou16(sectors, "sectors");
-    
+    devices[cur_dev].tracks = (unsigned int) tracks;
     devices[cur_dev].offset = (off_t) offset;
     switch(items){
 	case 2:

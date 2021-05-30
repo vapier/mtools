@@ -32,8 +32,8 @@ static long strtol_with_range(const char *nptr, char **endptr, int base,
     return l;
 }
 
-static long strtoul_with_range(const char *nptr, char **endptr, int base,
-			      unsigned long max) {
+static unsigned long strtoul_with_range(const char *nptr, char **endptr,
+					int base, unsigned long max) {
     unsigned long l = strtoul(nptr, endptr, base);
     if(l > max) {
 	errno = ERANGE;

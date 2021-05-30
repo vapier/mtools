@@ -107,7 +107,7 @@ static int _unix_write(MainParam_t *mp, int needfilter, const char *unixFile)
 	Stream_t *File=mp->File;
 	Stream_t *Target, *Source;
 	struct MT_STAT stbuf;
-	int ret;
+	ssize_t ret;
 	char errmsg[80];
 
 	File->Class->get_data(File, &mtime, 0, 0, 0);
@@ -289,7 +289,9 @@ static int writeit(struct dos_name_t *dosname,
 {
 	Stream_t *Target;
 	time_t now;
-	int type, fat, ret;
+	int type;
+	ssize_t ret;
+	uint32_t fat;
 	time_t date;
 	mt_size_t filesize, newsize;
 	Arg_t *arg = (Arg_t *) arg0;
@@ -302,7 +304,7 @@ static int writeit(struct dos_name_t *dosname,
 		return -1;
 	}
 
-	if(fileTooBig(filesize)) {
+	if(fileSizeTooBig(filesize)) {
 		fprintf(stderr, "File \"%s\" too big\n", longname);
 		return 1;
 	}
@@ -351,7 +353,7 @@ static int writeit(struct dos_name_t *dosname,
 		fat_free(arg->mp.targetDir, fat);
 		return -1;
 	} else {
-		mk_entry(dosname, arg->attr, fat, truncBytes32(newsize),
+		mk_entry(dosname, arg->attr, fat, (uint32_t)newsize,
 				 now, &entry->dir);
 		return 0;
 	}
@@ -392,7 +394,7 @@ static Stream_t *subDir(Stream_t *parent, const char *filename)
 	direntry_t entry;
 	initializeDirentry(&entry, parent);
 
-	switch(vfat_lookup(&entry, filename, -1, ACCEPT_DIR, 0, 0, 0, 0)) {
+	switch(vfat_lookup_zt(&entry, filename, ACCEPT_DIR, 0, 0, 0, 0)) {
 	    case 0:
 		return OpenFileByDirentry(&entry);
 	    case -1:
@@ -537,6 +539,7 @@ void mcopy(int argc, char **argv, int mtype)
 				break;
 			case 'T':
 				arg.convertCharset = 1;
+				 /*-fallthrough*/
 			case 'a':
 			case 't':
 				arg.textmode = 1;
@@ -558,7 +561,7 @@ void mcopy(int argc, char **argv, int mtype)
 				batchmode = 1;
 				break;
 			case 'o':
-				handle_clash_options(&arg.ch, c);
+				handle_clash_options(&arg.ch, (char) c);
 				break;
 			case 'D':
 				if(handle_clash_options(&arg.ch, *optarg))
@@ -570,6 +573,7 @@ void mcopy(int argc, char **argv, int mtype)
 				usage(1);
 			default:
 				break;
+
 		}
 	}
 

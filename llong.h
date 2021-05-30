@@ -89,6 +89,8 @@ typedef struct {
 #define min(a,b) ((a) < (b) ? (a) : (b))
 #define MAX_OFF_T_B(bits) \
 	((((mt_off_t) 1 << min(bits-1, sizeof(mt_off_t)*8 - 2)) -1) << 1 | 1)
+#define MAX_SIZE_T_B(bits) \
+	((((mt_size_t) 1 << min(bits-1, sizeof(mt_size_t)*8 - 2)) -1) << 1 | 1)
 
 #if defined(HAVE_LLSEEK) || defined(HAVE_LSEEK64)
 # define SEEK_BITS 63
@@ -100,11 +102,17 @@ extern const mt_off_t max_off_t_31;
 extern const mt_off_t max_off_t_41;
 extern const mt_off_t max_off_t_seek;
 
-extern off_t truncBytes32(mt_off_t off);
+extern off_t truncBytes32(mt_off_t off); /* truncMtOffToOff */
+extern uint32_t truncMtOffTo32u(mt_off_t off);
+extern uint32_t truncOffTo32u(off_t off);
+extern uint32_t truncSizeTo32u(size_t siz);
 extern int fileTooBig(mt_off_t off);
+extern int fileSizeTooBig(mt_size_t off);
+ssize_t truncOffToSsize(off_t off);
+size_t truncOffToSize(off_t off);
 
 int mt_lseek(int fd, mt_off_t where, int whence);
 
-unsigned int log_2(int);
+unsigned int log_2(unsigned int);
 
 #endif

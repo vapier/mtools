@@ -23,7 +23,7 @@
 
 struct xdf_info {
   unsigned int FatSize;
-  unsigned int RootDirSize;
+  uint16_t RootDirSize;
   unsigned int BadSectors;
 };
 

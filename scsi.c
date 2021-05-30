@@ -70,7 +70,7 @@
 #include <sys/scsiio.h>
 #endif
 
-int scsi_max_length(void)
+unsigned int scsi_max_length(void)
 {
 #ifdef OS_linux
 	return 8;
@@ -99,8 +99,8 @@ int scsi_open(const char *name, int flag UNUSEDP, int mode UNUSEDP,
 #endif
 }
 
-int scsi_cmd(int fd, unsigned char *cdb, int cmdlen, scsi_io_mode_t mode,
-	     void *data, size_t len, void *extra_data UNUSEDP)
+int scsi_cmd(int fd, unsigned char *cdb, uint8_t cmdlen, scsi_io_mode_t mode,
+	     void *data, uint32_t len, void *extra_data UNUSEDP)
 {
 #if defined OS_hpux
 	struct sctl_io sctl_io;
@@ -179,7 +179,7 @@ int scsi_cmd(int fd, unsigned char *cdb, int cmdlen, scsi_io_mode_t mode,
 	my_scsi_cmd.dxfer_len       = len;
 	my_scsi_cmd.dxferp          = data;
 	my_scsi_cmd.cmdp            = cdb;
-	my_scsi_cmd.timeout         = ~0; /* where is MAX_UINT defined??? */
+	my_scsi_cmd.timeout         = ~0u; /* where is MAX_UINT defined??? */
 
 #ifdef DEBUG
 	printf("CMD(%d): %02x%02x%02x%02x%02x%02x %sdevice\n",cmdlen,cdb[0],cdb[1],cdb[2],cdb[3],cdb[4],cdb[5],

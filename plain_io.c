@@ -50,7 +50,7 @@ typedef struct SimpleFile_t {
 #ifdef OS_hpux
     int size_limited;
 #endif
-    int scsi_sector_size;
+    unsigned int scsi_sector_size;
     void *extra_data; /* extra system dependent information for scsi */
     int swap; /* do the word swapping */
 } SimpleFile_t;
@@ -72,11 +72,11 @@ static void swap_buffer(char *buf, size_t len)
 }
 
 
-static int file_io(Stream_t *Stream, char *buf, mt_off_t where, int len,
-				   iofn io)
+static ssize_t file_io(Stream_t *Stream, char *buf, mt_off_t where, size_t len,
+		       iofn io)
 {
 	DeclareThis(SimpleFile_t);
-	int ret;
+	ssize_t ret;
 
 	where += This->offset;
 
@@ -120,25 +120,27 @@ static int file_io(Stream_t *Stream, char *buf, mt_off_t where, int len,
 	
 
 
-static int file_read(Stream_t *Stream, char *buf, mt_off_t where, size_t len)
+static ssize_t file_read(Stream_t *Stream, char *buf,
+			 mt_off_t where, size_t len)
 {
 	DeclareThis(SimpleFile_t);
 
-	int result = file_io(Stream, buf, where, len, (iofn) read);
+	ssize_t result = file_io(Stream, buf, where, len, read);
 
 	if ( This->swap )
 		swap_buffer( buf, len );
 	return result;
 }
 
-static int file_write(Stream_t *Stream, char *buf, mt_off_t where, size_t len)
+static ssize_t file_write(Stream_t *Stream, char *buf,
+			  mt_off_t where, size_t len)
 {
 	DeclareThis(SimpleFile_t);
 
 	if ( !This->swap )
 		return file_io(Stream, buf, where, len, (iofn) write);
 	else {
-		int result;
+		ssize_t result;
 		char *swapping = malloc( len );
 		memcpy( swapping, buf, len );
 		swap_buffer( swapping, len );
@@ -176,11 +178,12 @@ static int file_geom(Stream_t *Stream, struct device *dev,
 {
 	int ret;
 	DeclareThis(SimpleFile_t);
-	size_t tot_sectors;
+	uint32_t tot_sectors;
 	int BootP, Infp0, InfpX, InfTm;
-	int sectors, j;
+	uint16_t sectors;
+	int j;
 	unsigned char sum;
-	int sect_per_track;
+	uint16_t sect_per_track;
 	struct label_blk_t *labelBlock;
 
 	dev->ssize = 2; /* allow for init_geom to change it */
@@ -208,9 +211,11 @@ static int file_geom(Stream_t *Stream, struct device *dev,
 			exit(1);
 		    }
 		}
-		tot_sectors += sect_per_track - 1; /* round size up */
 		dev->tracks = tot_sectors / sect_per_track;
-
+		if(tot_sectors % sect_per_track)
+			/* round size up */
+			dev->tracks++;
+		
 		BootP = WORD(ext.old.BootP);
 		Infp0 = WORD(ext.old.Infp0);
 		InfpX = WORD(ext.old.InfpX);
@@ -258,14 +263,14 @@ static int file_geom(Stream_t *Stream, struct device *dev,
 
 
 static int file_data(Stream_t *Stream, time_t *date, mt_size_t *size,
-		     int *type, int *address)
+		     int *type, uint32_t *address)
 {
 	DeclareThis(SimpleFile_t);
 
 	if(date)
 		*date = This->statbuf.st_mtime;
 	if(size)
-		*size = This->statbuf.st_size;
+		*size = (mt_size_t) This->statbuf.st_size;
 	if(type)
 		*type = S_ISDIR(This->statbuf.st_mode);
 	if(address)
@@ -322,21 +327,22 @@ static void scsi_init(SimpleFile_t *This)
    }
 }
 
-static int scsi_io(Stream_t *Stream, char *buf,
-		   mt_off_t where, size_t len, int rwcmd)
+static ssize_t scsi_io(Stream_t *Stream, char *buf,
+		       mt_off_t where, size_t len, scsi_io_mode_t rwcmd)
 {
 	unsigned int firstblock, nsect;
-	int clen,r;
-	size_t max;
+	uint8_t clen;
+	int r;
+	unsigned int max;
 	off_t offset;
 	unsigned char cdb[10];
 	DeclareThis(SimpleFile_t);
 
-	firstblock=truncBytes32((where + This->offset)/This->scsi_sector_size);
+	firstblock=truncMtOffTo32u((where + This->offset)/This->scsi_sector_size);
 	/* 512,1024,2048,... bytes/sector supported */
 	offset=truncBytes32(where + This->offset - 
-						firstblock*This->scsi_sector_size);
-	nsect=(offset+len+This->scsi_sector_size-1)/ This->scsi_sector_size;
+			    firstblock*This->scsi_sector_size);
+	nsect=truncOffTo32u(offset+len+This->scsi_sector_size-1)/ This->scsi_sector_size;
 #if defined(OS_sun) && defined(OS_i386)
 	if (This->scsi_sector_size>512)
 		firstblock*=This->scsi_sector_size/512; /* work around a uscsi bug */
@@ -433,13 +439,15 @@ static int scsi_io(Stream_t *Stream, char *buf,
 #ifdef JPD
 	printf("zip: read or write OK\n");
 #endif
-	if (offset>0) memmove(buf,buf+offset,nsect*This->scsi_sector_size-offset);
+	if (offset>0)
+		memmove(buf,buf+offset,
+			truncOffToSize(nsect*This->scsi_sector_size-offset));
 	if (len==256) return 256;
 	else if (len==512) return 512;
-	else return nsect*This->scsi_sector_size-offset;
+	else return truncOffToSsize(nsect*This->scsi_sector_size-offset);
 }
 
-static int scsi_read(Stream_t *Stream, char *buf, mt_off_t where, size_t len)
+static ssize_t scsi_read(Stream_t *Stream, char *buf, mt_off_t where, size_t len)
 {
 	
 #ifdef JPD
@@ -448,7 +456,8 @@ static int scsi_read(Stream_t *Stream, char *buf, mt_off_t where, size_t len)
 	return scsi_io(Stream, buf, where, len, SCSI_IO_READ);
 }
 
-static int scsi_write(Stream_t *Stream, char *buf, mt_off_t where, size_t len)
+static ssize_t scsi_write(Stream_t *Stream, char *buf,
+			  mt_off_t where, size_t len)
 {
 #ifdef JPD
 	Printf("zip: to write %d bytes at %d\n", len, where);
@@ -684,9 +693,9 @@ APIRET rc;
 
 	if(maxSize) {
 		if (IS_SCSI(dev)) {
-			*maxSize = MAX_OFF_T_B(31+log_2(This->scsi_sector_size));
+			*maxSize = MAX_SIZE_T_B(31+log_2(This->scsi_sector_size));
 		} else {
-			*maxSize = max_off_t_seek;
+			*maxSize = (mt_size_t) max_off_t_seek;
 		}
 		if(This->offset > (mt_off_t) *maxSize) {
 			close(This->fd);
@@ -696,7 +705,7 @@ APIRET rc;
 			return NULL;
 		}
 		
-		*maxSize -= This->offset;
+		*maxSize -= (mt_size_t) This->offset;
 	}
 	/* partitioned drive */
 
@@ -745,7 +754,7 @@ APIRET rc;
 					sprintf(errmsg,"init: Big disks not supported");
 				return NULL;
 			}
-			*maxSize -= (mt_off_t) partOff << 9;
+			*maxSize -= (mt_size_t) partOff << 9;
 		}
 			
 		This->offset += (mt_off_t) partOff << 9;

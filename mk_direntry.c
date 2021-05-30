@@ -54,7 +54,7 @@ static __inline__ int convert_to_shortname(doscp_t *cp, ClashHandling_t *ch,
 
 static __inline__ void chomp(char *line)
 {
-	int l = strlen(line);
+	size_t l = strlen(line);
 	while(l > 0 && (line[l-1] == '\n' || line[l-1] == '\r')) {
 		line[--l] = '\0';
 	}
@@ -183,7 +183,7 @@ static __inline__ clash_action ask_namematch(doscp_t *cp,
 			if(rep == EOF)
 				ans[0] = 'q';
 			else
-				ans[0] = rep;
+				ans[0] = (char) rep;
 		} else {
 			if(fgets(ans, 9, opentty(0)) == NULL)
 				ans[0] = 'q';
@@ -299,7 +299,10 @@ static __inline__ clash_action process_namematch(doscp_t *cp,
 			return NAMEMATCH_SKIP;
 		else
 			return NAMEMATCH_OVERWRITE;
-	default:
+	case NAMEMATCH_NONE:
+	case NAMEMATCH_ERROR:
+	case NAMEMATCH_SUCCESS:
+	case NAMEMATCH_GREW:
 		return NAMEMATCH_NONE;
 	}
 }
@@ -622,7 +625,9 @@ static int _mwrite_one(Stream_t *Dir,
 				return write_slots(Dir, &dosname, longname,
 						   &scan, cb, arg,
 						   ch->use_longname);
-			default:
+			case NAMEMATCH_NONE:
+			case NAMEMATCH_AUTORENAME:
+			case NAMEMATCH_QUIT:
 				fprintf(stderr,
 					"Internal error: clash_action=%d\n",
 					ret);

@@ -57,7 +57,7 @@ typedef struct RemoteFile_t {
 	int fd;
 	mt_off_t offset;
 	mt_off_t lastwhere;
-	mt_off_t size;
+	mt_size_t size;
 	unsigned int version;
 	unsigned int capabilities;
 	int drive;
@@ -73,7 +73,8 @@ typedef struct RemoteFile_t {
 static unsigned int authenticate_to_floppyd(RemoteFile_t *floppyd,
 					    int sock, char *display)
 {
-	size_t filelen;
+	size_t cookielen;
+	uint16_t filelen;
 	ssize_t newlen;
 	Byte buf[16];
 	const char *command[] = { "xauth", "xauth", "extract", "-", 0, 0 };
@@ -83,14 +84,14 @@ static unsigned int authenticate_to_floppyd(RemoteFile_t *floppyd,
 
 	command[4] = display;
 
-	filelen=strlen(display);
-	filelen += 100;
+	cookielen=strlen(display);
+	cookielen += 100;
 
-	xcookie = (char *) safe_malloc(filelen+4);
-	newlen = safePopenOut(command, xcookie+4, filelen);
-	if(newlen < 1)
+	xcookie = (char *) safe_malloc(cookielen+4);
+	newlen = safePopenOut(command, xcookie+4, cookielen);
+	if(newlen < 1 || newlen > UINT16_MAX)
 		return AUTH_AUTHFAILED;
-	filelen = (size_t) newlen;
+	filelen = (uint16_t) newlen;
 	
 	/* Version negotiation */
 	dword2byte(4,buf);
@@ -127,7 +128,7 @@ static unsigned int authenticate_to_floppyd(RemoteFile_t *floppyd,
 }
 
 
-static int floppyd_reader(int fd, char* buffer, size_t len) 
+static ssize_t floppyd_reader(int fd, char* buffer, uint32_t len) 
 {
 	Dword errcode;
 	Dword gotlen;
@@ -166,15 +167,15 @@ static int floppyd_reader(int fd, char* buffer, size_t len)
 			l = (size_t) ret;
 		}
 	} else {
-		errno = errcode;
+		errno = (int) errcode;
 	}
-	return gotlen;
+	return (ssize_t) gotlen;
 }
 
-static int floppyd_writer(int fd, char* buffer, size_t len) 
+static ssize_t floppyd_writer(int fd, char* buffer, uint32_t len) 
 {
-	Dword errcode;
-	Dword gotlen;
+	int errcode;
+	int32_t gotlen;
 	Byte buf[16];
 	ssize_t ret;
 
@@ -195,8 +196,8 @@ static int floppyd_writer(int fd, char* buffer, size_t len)
 		return -1;
 	}
 
-	gotlen = read_dword(fd);
-	errcode = read_dword(fd);
+	gotlen = read_sdword(fd);
+	errcode = read_sdword(fd);
 
 	errno = errcode;
 	if(errno != 0 && gotlen == 0) {
@@ -208,18 +209,18 @@ static int floppyd_writer(int fd, char* buffer, size_t len)
 	return gotlen;
 }
 
-static int floppyd_lseek(int fd, mt_off_t offset, int whence) 
+static int floppyd_lseek(int fd, int32_t offset, int whence) 
 {
-	Dword errcode;
-	Dword gotlen;
+	int errcode;
+	int gotlen;
 	Byte buf[32];
 	
 	dword2byte(1, buf);
 	buf[4] = OP_SEEK;
 	
 	dword2byte(8, buf+5);
-	dword2byte(truncBytes32(offset), buf+9);
-	dword2byte(whence, buf+13);
+	sdword2byte(offset, buf+9);
+	sdword2byte(whence, buf+13);
 	
 	if(write(fd, buf, 17) < 17)
 		return AUTH_IO_ERROR;
@@ -229,8 +230,8 @@ static int floppyd_lseek(int fd, mt_off_t offset, int whence)
 		return -1;
 	}
 
-	gotlen = read_dword(fd);
-	errcode = read_dword(fd);
+	gotlen = read_sdword(fd);
+	errcode = read_sdword(fd);
 
 	errno = errcode;
 	
@@ -239,16 +240,16 @@ static int floppyd_lseek(int fd, mt_off_t offset, int whence)
 
 static mt_off_t floppyd_lseek64(int fd, mt_off_t offset, int whence) 
 {
-	Dword errcode;
-	Qword gotlen;
+	int errcode;
+	struct SQwordRet gotlen;
 	Byte buf[32];
 	
 	dword2byte(1, buf);
 	buf[4] = OP_SEEK64;
 	
 	dword2byte(12, buf+5);
-	qword2byte(offset, buf+9);
-	dword2byte(whence, buf+17);
+	qword2byte((uint32_t)offset, buf+9);
+	sdword2byte(whence, buf+17);
 	
 	if(write(fd, buf, 21) < 21)
 		return AUTH_IO_ERROR;
@@ -258,18 +259,18 @@ static mt_off_t floppyd_lseek64(int fd, mt_off_t offset, int whence)
 		return -1;
 	}
 
-	gotlen = read_qword(fd);
-	errcode = read_dword(fd);
+	gotlen = read_sqword(fd);
+	errcode = read_sdword(fd);
 
 	errno = errcode;
 	
-	return gotlen;
+	return gotlen.v;
 }
 
 static int floppyd_open(RemoteFile_t *This, int mode) 
 {
-	Dword errcode;
-	Dword gotlen;
+	int errcode;
+	int gotlen;
 	Byte buf[16];
 	
 	if(! (This->capabilities & FLOPPYD_CAP_EXPLICIT_OPEN) ) {
@@ -283,7 +284,7 @@ static int floppyd_open(RemoteFile_t *This, int mode)
 	else
 		buf[4] = OP_OPRW;
 	dword2byte(4, buf+5);
-	dword2byte(This->drive, buf+9);
+	sdword2byte(This->drive, buf+9);
 
 	if(write(This->fd, buf, 13) < 13)
 		return AUTH_IO_ERROR;
@@ -293,8 +294,8 @@ static int floppyd_open(RemoteFile_t *This, int mode)
 		return -1;
 	}
 
-	gotlen = read_dword(This->fd);
-	errcode = read_dword(This->fd);
+	gotlen = read_sdword(This->fd);
+	errcode = read_sdword(This->fd);
 
 	errno = errcode;
 	
@@ -304,13 +305,13 @@ static int floppyd_open(RemoteFile_t *This, int mode)
 
 /* ######################################################################## */
 
-typedef int (*iofn) (int, char *, size_t);
+typedef ssize_t (*iofn) (int, char *, uint32_t);
 
-static int floppyd_io(Stream_t *Stream, char *buf, mt_off_t where, size_t len,
-		      iofn io)
+static ssize_t floppyd_io(Stream_t *Stream, char *buf, mt_off_t where,
+			  size_t len, iofn io)
 {
 	DeclareThis(RemoteFile_t);
-	int ret;
+	ssize_t ret;
 
 	where += This->offset;
 
@@ -322,29 +323,36 @@ static int floppyd_io(Stream_t *Stream, char *buf, mt_off_t where, size_t len,
 				return -1;
 			}
 		} else {
-			if(floppyd_lseek( This->fd, where, SEEK_SET) < 0 ){
+			if(where > INT32_MAX  || where < INT32_MIN) {
+				fprintf(stderr, "Seek position out of range\n");
+				return -1;
+			}
+			if(floppyd_lseek(This->fd, (int32_t) where, SEEK_SET) < 0 ){
 				perror("floppyd_lseek");
 				This->lastwhere = (mt_off_t) -1;
 				return -1;
 			}
 		}
 	}
-	ret = io(This->fd, buf, len);
+	ret = io(This->fd, buf,
+		 (len > INT32_MAX) ? (uint32_t)INT32_MAX+1 : (uint32_t) len);
 	if ( ret == -1 ){
 		perror("floppyd_io");
 		This->lastwhere = (mt_off_t) -1;
 		return -1;
 	}
-	This->lastwhere = where + ret;
+	This->lastwhere = where + (mt_off_t) ret;
 	return ret;
 }
 
-static int floppyd_read(Stream_t *Stream, char *buf, mt_off_t where, size_t len)
+static ssize_t floppyd_read(Stream_t *Stream, char *buf,
+			    mt_off_t where, size_t len)
 {	
 	return floppyd_io(Stream, buf, where, len, floppyd_reader);
 }
 
-static int floppyd_write(Stream_t *Stream, char *buf, mt_off_t where, size_t len)
+static ssize_t floppyd_write(Stream_t *Stream, char *buf,
+			     mt_off_t where, size_t len)
 {
 	return floppyd_io(Stream, buf, where, len, floppyd_writer);
 }
@@ -376,8 +384,8 @@ static int floppyd_flush(Stream_t *Stream)
 static int floppyd_free(Stream_t *Stream)
 {
 	Byte buf[16];
-	unsigned int gotlen;
-	unsigned int errcode;
+	int gotlen;
+	int errcode;
 	DeclareThis(RemoteFile_t);
 
 	if (This->fd > 2) {
@@ -391,8 +399,8 @@ static int floppyd_free(Stream_t *Stream)
 		    return -1;
 		}
 		
-		gotlen = read_dword(This->fd);
-		errcode = read_dword(This->fd);
+		gotlen = read_sdword(This->fd);
+		errcode = read_sdword(This->fd);
 		
 		errno = errcode;
 
@@ -407,7 +415,7 @@ static int floppyd_geom(Stream_t *Stream, struct device *dev,
 			struct device *orig_dev UNUSEDP,
 			int media, union bootsector *boot)
 {
-	size_t tot_sectors;
+	uint32_t tot_sectors;
 	unsigned int sect_per_track;
 	DeclareThis(RemoteFile_t);
 
@@ -434,7 +442,7 @@ static int floppyd_geom(Stream_t *Stream, struct device *dev,
 
 
 static int floppyd_data(Stream_t *Stream, time_t *date, mt_size_t *size,
-		     int *type, int *address)
+			int *type, uint32_t *address)
 {
 	DeclareThis(RemoteFile_t);
 
@@ -443,7 +451,7 @@ static int floppyd_data(Stream_t *Stream, time_t *date, mt_size_t *size,
 		*date = 0;
 	if(size)
 		/* the size derived from the geometry */
-		*size = (mt_size_t) This->size;
+		*size = This->size;
 	if(type)
 		*type = 0; /* not a directory */
 	if(address)
@@ -616,9 +624,9 @@ Stream_t *FloppydOpen(struct device *dev,
 	}
 
 	if(maxSize) {
-		*maxSize = 
-			(This->capabilities & FLOPPYD_CAP_LARGE_SEEK) ?
-			max_off_t_seek : max_off_t_31;
+		*maxSize = (mt_size_t)
+			((This->capabilities & FLOPPYD_CAP_LARGE_SEEK) ?
+			 max_off_t_seek : max_off_t_31);
 	}
 	return (Stream_t *) This;
 }

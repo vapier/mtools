@@ -44,7 +44,7 @@
 #include <unistd.h>
 #include <stdio.h>
 
-/**
+/*
  * Prints the Usage Message to STDOUT<br>
  *
  * @author  stefan feuz<br>
@@ -63,7 +63,7 @@ static void usage(int ret)
   exit(ret);
 }
 
-/**
+/*
  * Delete all files on a Drive.<br>
  *
  * @author  Lukas Meyer<br>
@@ -255,10 +255,10 @@ static void do_mclasserase(char drive,int debug)
 }
 
 
-/**
+/*
  * Total Erase of Data on a Disk. After using mclasserase there won't
  * be ANY bits of old files on the disk.<br>
- * </b>
+ * 
  * @author  stefan feuz<br>
  *          thomas locher<br>
  *          stefan.feuz@ruag.com

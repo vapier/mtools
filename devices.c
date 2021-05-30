@@ -758,21 +758,22 @@ struct device devices[] = {
 #define USE_2M(floppy) ((floppy.rate & FD_2M) ? 0xff : 0x80 )
 #define SSIZE(floppy) ((((floppy.rate & 0x38) >> 3 ) + 2) % 8)
 
-static __inline__ void set_2m(struct floppy_struct *floppy, int value)
+static __inline__ void set_2m(struct floppy_struct *floppy, unsigned int value)
 {
+	uint8_t v;
 	if (value & 0x7f)
-		value = FD_2M;
+		v = FD_2M;
 	else
-		value = 0;
-	floppy->rate = (floppy->rate & ~FD_2M) | value;
+		v = 0;
+	floppy->rate = (floppy->rate & ~FD_2M) | v;
 }
 #define SET_2M set_2m
 
 static __inline__ void set_ssize(struct floppy_struct *floppy, int value)
 {
-	value = (( (value & 7) + 6 ) % 8) << 3;
+	uint8_t v = (uint8_t) ((( (value & 7) + 6 ) % 8) << 3);
 
-	floppy->rate = (floppy->rate & ~0x38) | value;
+	floppy->rate = (floppy->rate & ~0x38) | v;
 }
 
 #define SET_SSIZE set_ssize
@@ -1037,13 +1038,13 @@ int init_geom(int fd, struct device *dev, struct device *orig_dev,
 		SECTORS(floppy) = dev->sectors;
 		change = 1;
 	} else
-		dev->sectors = SECTORS(floppy);
-
+		dev->sectors = (uint16_t) SECTORS(floppy);
+	
 	if(compare(dev->heads, HEADS(floppy))){
 		HEADS(floppy) = dev->heads;
 		change = 1;
 	} else
-		dev->heads = HEADS(floppy);
+		dev->heads = (uint16_t) HEADS(floppy);
 	 
 	if(compare(dev->tracks, TRACKS(floppy))){
 		TRACKS(floppy) = dev->tracks;

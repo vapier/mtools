@@ -24,11 +24,11 @@
  * Copy the data from source to target
  */
 
-int copyfile(Stream_t *Source, Stream_t *Target)
+ssize_t copyfile(Stream_t *Source, Stream_t *Target)
 {
 	char buffer[8*16384];
 	mt_off_t pos;
-	int ret;
+	ssize_t ret;
 	ssize_t retw;
 /*	size_t len;*/
 	mt_size_t mt_len;
@@ -63,7 +63,7 @@ int copyfile(Stream_t *Source, Stream_t *Target)
 				perror("write in copy");
 			else
 				fprintf(stderr,
-					"Short write %zd instead of %d\n",
+					"Short write %zd instead of %zd\n",
 					retw, ret);
 			if(errno == ENOSPC)
 				got_signal = 1;

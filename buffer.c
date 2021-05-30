@@ -38,10 +38,27 @@ typedef struct Buffer_t {
 	int ever_dirty;	       	/* was the buffer ever dirty? */
 	size_t dirty_pos;
 	size_t dirty_end;
-	mt_off_t current;		/* first sector in buffer */
-	size_t cur_size;		/* the current size */
+	mt_off_t current;	/* first sector in buffer */
+	size_t cur_size;	/* the current size */
 	char *buf;		/* disk read/write buffer */
 } Buffer_t;
+
+/* Convert position relative to buffer to absolute position */
+static mt_off_t abs_pos(Buffer_t *Buffer, size_t rel) {
+	return Buffer->current + (mt_off_t) rel;
+}
+
+/* End of currently valid buffer */
+static mt_off_t cur_end(Buffer_t *Buffer) {
+	return abs_pos(Buffer, Buffer->cur_size);
+}
+
+/* distance from absolute position until next full cylinder. If position already
+ * *is* on a full cylinder boundary, return size of full cylinder */
+static size_t pos_to_next_full_cyl(Buffer_t *Buffer, mt_off_t pos) {
+	return Buffer->cylinderSize -
+		(size_t) (pos % (mt_off_t) Buffer->cylinderSize);
+}
 
 /*
  * Flush a dirty buffer to disk.  Resets Buffer->dirty to zero.
@@ -50,14 +67,10 @@ typedef struct Buffer_t {
 
 static int _buf_flush(Buffer_t *Buffer)
 {
-	int ret;
+	ssize_t ret;
 
 	if (!Buffer->Next || !Buffer->dirty)
 		return 0;
-	if(Buffer->current < 0L) {
-		fprintf(stderr,"Should not happen\n");
-		return -1;
-	}
 #ifdef DEBUG
 	fprintf(stderr, "write %08x -- %02x %08x %08x\n",
 		Buffer,
@@ -68,7 +81,7 @@ static int _buf_flush(Buffer_t *Buffer)
 
 	ret = force_write(Buffer->Next,
 			  Buffer->buf + Buffer->dirty_pos,
-			  Buffer->current + Buffer->dirty_pos,
+			  Buffer->current + (mt_off_t) Buffer->dirty_pos,
 			  Buffer->dirty_end - Buffer->dirty_pos);
 	if(ret != (signed int) (Buffer->dirty_end - Buffer->dirty_pos)) {
 		if(ret < 0)
@@ -91,13 +104,13 @@ static int invalidate_buffer(Buffer_t *Buffer, mt_off_t start)
 	/* start reading at the beginning of start's sector
 	 * don't start reading too early, or we might not even reach
 	 * start */
-	Buffer->current = ROUND_DOWN(start, Buffer->sectorSize);
+	Buffer->current = ROUND_DOWN(start, (mt_off_t) Buffer->sectorSize);
 	Buffer->cur_size = 0;
 	return 0;
 }
 
 #undef OFFSET
-#define OFFSET (start - This->current)
+#define OFFSET ((size_t)(start - This->current))
 
 typedef enum position_t {
 	OUTSIDE,
@@ -108,11 +121,10 @@ typedef enum position_t {
 
 static position_t isInBuffer(Buffer_t *This, mt_off_t start, size_t *len)
 {
-	if(start >= This->current &&
-	   start < This->current + (mt_off_t) This->cur_size) {
+	if(start >= This->current && start < cur_end(This)) {
 		maximize(*len, This->cur_size - OFFSET);
 		return INSIDE;
-	} else if(start == This->current + (mt_off_t) This->cur_size &&
+	} else if(start == cur_end(This) &&
 		  This->cur_size < This->size &&
 		  *len >= This->sectorSize) {
 		/* append to the buffer for this, three conditions have to
@@ -129,17 +141,17 @@ static position_t isInBuffer(Buffer_t *This, mt_off_t start, size_t *len)
 		if(invalidate_buffer(This, start) < 0)
 			return ERROR;
 		maximize(*len, This->cylinderSize - OFFSET);
-		maximize(*len, This->cylinderSize - This->current % This->cylinderSize);
+		maximize(*len, pos_to_next_full_cyl(This, This->current));
 		return OUTSIDE;
 	}
 }
 
-static int buf_read(Stream_t *Stream, char *buf, mt_off_t start, size_t len)
+static ssize_t buf_read(Stream_t *Stream, char *buf, mt_off_t start, size_t len)
 {
 	size_t length;
-	mt_off_t offset;
+	size_t offset;
 	char *disk_ptr;
-	int ret;
+	ssize_t ret;
 	DeclareThis(Buffer_t);	
 
 	if(!len)
@@ -150,18 +162,17 @@ static int buf_read(Stream_t *Stream, char *buf, mt_off_t start, size_t len)
 		case OUTSIDE:
 		case APPEND:
 			/* always load until the end of the cylinder */
-			length = This->cylinderSize -
-				(This->current + This->cur_size) % This->cylinderSize;
+			length = pos_to_next_full_cyl(This, cur_end(This));
 			maximize(length, This->size - This->cur_size);
 
 			/* read it! */
 			ret=READS(This->Next,
 				  This->buf + This->cur_size,
-				  This->current + This->cur_size,
+				  This->current + (mt_off_t) This->cur_size,
 				  length);
 			if ( ret < 0 )
 				return ret;
-			This->cur_size += ret;
+			This->cur_size += (size_t) ret;
 			if (This->current+(mt_off_t)This->cur_size < start) {
 				fprintf(stderr, "Short buffer fill\n");
 				exit(1);
@@ -178,10 +189,11 @@ static int buf_read(Stream_t *Stream, char *buf, mt_off_t start, size_t len)
 	disk_ptr = This->buf + offset;
 	maximize(len, This->cur_size - offset);
 	memcpy(buf, disk_ptr, len);
-	return len;
+	return (ssize_t) len;
 }
 
-static int buf_write(Stream_t *Stream, char *buf, mt_off_t start, size_t len)
+static ssize_t buf_write(Stream_t *Stream, char *buf,
+			 mt_off_t start, size_t len)
 {
 	char *disk_ptr;
 	DeclareThis(Buffer_t);	
@@ -206,27 +218,29 @@ static int buf_write(Stream_t *Stream, char *buf, mt_off_t start, size_t len)
 #ifdef DEBUG
 			fprintf(stderr, "outside\n");
 #endif
-			if(start % This->cylinderSize ||
+			if(start % (mt_off_t) This->cylinderSize ||
 			   len < This->sectorSize) {
 				size_t readSize;
-				int ret;
-
+				ssize_t ret;
+				size_t bytes_read;
+				
 				readSize = This->cylinderSize -
-					This->current % This->cylinderSize;
+					(size_t)(This->current % (mt_off_t) This->cylinderSize);
 
-				ret=READS(This->Next, This->buf, This->current, readSize);
+				ret=READS(This->Next, This->buf, (mt_off_t)This->current, readSize);
 				/* read it! */
 				if ( ret < 0 )
 					return ret;
-				if(ret % This->sectorSize) {
-				  fprintf(stderr, "Weird: read size (%d) not a multiple of sector size (%d)\n", ret, (int) This->sectorSize);
-				    ret -= ret % This->sectorSize;
-				    if(ret == 0) {
+				bytes_read = (size_t) ret;
+				if(bytes_read % This->sectorSize) {
+				  fprintf(stderr, "Weird: read size (%zd) not a multiple of sector size (%d)\n", bytes_read, (int) This->sectorSize);
+				    bytes_read -= bytes_read % This->sectorSize;
+				    if(bytes_read == 0) {
 					fprintf(stderr, "Nothing left\n");
 					exit(1);
 				    }
 				}
-				This->cur_size = ret;
+				This->cur_size = bytes_read;
 				/* for dosemu. Autoextend size */
 				if(!This->cur_size) {
 					memset(This->buf,0,readSize);
@@ -245,8 +259,7 @@ static int buf_write(Stream_t *Stream, char *buf, mt_off_t start, size_t len)
 			maximize(len, This->size - offset);
 			This->cur_size += len;
 			if(This->Next->Class->pre_allocate)
-				PRE_ALLOCATE(This->Next,
-							 This->current + This->cur_size);
+				PRE_ALLOCATE(This->Next, cur_end(This));
 			break;
 		case INSIDE:
 			/* nothing to do */
@@ -296,7 +309,7 @@ static int buf_write(Stream_t *Stream, char *buf, mt_off_t start, size_t len)
 	}
 
 	This->dirty = 1;
-	return len;
+	return (ssize_t) len;
 }
 
 static int buf_flush(Stream_t *Stream)
@@ -335,9 +348,9 @@ static Class_t BufferClass = {
 	0, /* discard */
 };
 
-Stream_t *buf_init(Stream_t *Next, int size,
-		   int cylinderSize,
-		   int sectorSize)
+Stream_t *buf_init(Stream_t *Next, size_t size,
+		   size_t cylinderSize,
+		   size_t sectorSize)
 {
 	Buffer_t *Buffer;
 	Stream_t *Stream;

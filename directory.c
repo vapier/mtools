@@ -30,7 +30,7 @@
  */
 struct directory *dir_read(direntry_t *entry, int *error)
 {
-	int n;
+	ssize_t n;
 	*error = 0;
 	if((n=force_read(entry->Dir, (char *) (&entry->dir), 
 			 (mt_off_t) entry->entry * MDIR_SIZE, 
@@ -53,7 +53,7 @@ int dir_grow(Stream_t *Dir, int size)
 {
 	Stream_t *Stream = GetFs(Dir);
 	DeclareThis(FsPublic_t);
-	int ret;
+	ssize_t ret;
 	unsigned int buflen;
 	char *buffer;
 	
@@ -96,28 +96,28 @@ void low_level_dir_write_end(Stream_t *Dir, int entry)
  */
 
 struct directory *mk_entry(const dos_name_t *dn, unsigned char attr,
-			   unsigned int fat, size_t size, time_t date,
+			   unsigned int fat, uint32_t size, time_t date,
 			   struct directory *ndir)
 {
 	struct tm *now;
 	time_t date2 = date;
-	unsigned char hour, min_hi, min_low, sec;
-	unsigned char year, month_hi, month_low, day;
+	uint8_t hour, min_hi, min_low, sec;
+	uint8_t year, month_hi, month_low, day;
 
 	now = localtime(&date2);
 	dosnameToDirentry(dn, ndir);
 	ndir->attr = attr;
 	ndir->ctime_ms = 0;
-	hour = now->tm_hour << 3;
-	min_hi = now->tm_min >> 3;
-	min_low = now->tm_min << 5;
-	sec = now->tm_sec / 2;
+	hour = (uint8_t) (now->tm_hour << 3);
+	min_hi = (uint8_t) (now->tm_min >> 3);
+	min_low = (uint8_t) (now->tm_min << 5);
+	sec = (uint8_t) (now->tm_sec / 2);
 	ndir->ctime[1] = ndir->time[1] = hour + min_hi;
 	ndir->ctime[0] = ndir->time[0] = min_low + sec;
-	year = (now->tm_year - 80) << 1;
-	month_hi = (now->tm_mon + 1) >> 3;
-	month_low = (now->tm_mon + 1) << 5;
-	day = now->tm_mday;
+	year = (uint8_t) ((now->tm_year - 80) << 1);
+	month_hi = (uint8_t) ((now->tm_mon + 1) >> 3);
+	month_low = (uint8_t) ((now->tm_mon + 1) << 5);
+	day = (uint8_t) (now->tm_mday);
 	ndir -> adate[1] = ndir->cdate[1] = ndir->date[1] = year + month_hi;
 	ndir -> adate[0] = ndir->cdate[0] = ndir->date[0] = month_low + day;
 
@@ -133,7 +133,7 @@ struct directory *mk_entry(const dos_name_t *dn, unsigned char attr,
  * Thus it doesn't bother with character set conversions
  */
 struct directory *mk_entry_from_base(const char *base, unsigned char attr,
-				     unsigned int fat, size_t size, time_t date,
+				     unsigned int fat, uint32_t size, time_t date,
 				     struct directory *ndir)
 {
 	struct dos_name_t dn;

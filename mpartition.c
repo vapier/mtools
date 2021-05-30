@@ -32,16 +32,11 @@
 
 #ifdef OS_linux
 #include "linux/hdreg.h"
-
-#define _LINUX_STRING_H_
-#define kdev_t int
 #include "linux/fs.h"
-#undef _LINUX_STRING_H_
-
 #endif
 
 #define tolinear(x) \
-(sector(x)-1+(head(x)+cyl(x)*used_dev->heads)*used_dev->sectors)
+(sector(x)-1u+(head(x)+cyl(x)*used_dev->heads)*used_dev->sectors)
 
 
 static __inline__ void print_hsc(hsc *h)
@@ -50,9 +45,11 @@ static __inline__ void print_hsc(hsc *h)
 	       head(*h), sector(*h), cyl(*h));
 }
 
-static void set_offset(hsc *h, unsigned long offset, int heads, int sectors)
+static void set_offset(hsc *h, unsigned long offset,
+		       uint16_t heads, uint16_t sectors)
 {
-	int head, sector, cyl;
+	uint16_t head, sector;
+	unsigned int cyl;
 
 	if(! heads || !sectors)
 		head = sector = cyl = 0; /* linear mode */
@@ -61,19 +58,25 @@ static void set_offset(hsc *h, unsigned long offset, int heads, int sectors)
 		offset = offset / sectors;
 
 		head = offset % heads;
-		cyl = offset / heads;
-		if(cyl > 1023) cyl = 1023;
+		offset = offset / heads;
+		if(offset > 1023)
+			cyl = 1023;
+		else
+			cyl = (uint16_t) offset;
 	}
-
-	h->head = head;
+	if(head > UINT8_MAX) {
+		/* sector or head out of range => linear mode */
+		head = sector = cyl = 0;
+	}
+	h->head = (uint8_t) head;
 	h->sector = ((sector+1) & 0x3f) | ((cyl & 0x300)>>2);
 	h->cyl = cyl & 0xff;
 }
 
 void setBeginEnd(struct partition *partTable,
-		 unsigned long begin, unsigned long end,
-		 unsigned int heads, unsigned int sectors,
-		 int activate, int type, int fat_bits)
+		 uint32_t begin, uint32_t end,
+		 uint16_t heads, uint16_t sectors,
+		 int activate, uint8_t type, int fat_bits)
 {
 	set_offset(&partTable->start, begin, heads, sectors);
 	set_offset(&partTable->end, end-1, heads, sectors);
@@ -139,10 +142,10 @@ void setBeginEnd(struct partition *partTable,
 
 int consistencyCheck(struct partition *partTable, int doprint, int verbose,
 		     int *has_activated, unsigned int *last_end,
-		     unsigned int *j,
-		     struct device *used_dev, int target_partition)
+		     unsigned int *j, 
+		     struct device *used_dev, unsigned int target_partition)
 {
-	int i;
+	unsigned int i;
 	unsigned int inconsistency;
 
 	*j = 0;
@@ -276,12 +279,12 @@ static int setsize(unsigned long capacity,unsigned int *cyls,
     if (cylinders == 0) rv=(unsigned)-1;/* Give error if 0 cylinders */
 
     *cyls = (unsigned int) cylinders;	/* Stuff return values */
-    *secs = (unsigned int) sectors;
-    *hds  = (unsigned int) heads;
+    *secs = (uint16_t) sectors;
+    *hds  = (uint16_t) heads;
     return(rv);
 }
 
-static void setsize0(unsigned long capacity,unsigned int *cyls,
+static void setsize0(uint32_t capacity,unsigned int *cyls,
 		     uint16_t *hds, uint16_t *secs)
 {
 	int r;
@@ -336,7 +339,7 @@ void mpartition(int argc, char **argv, int dummy UNUSEDP)
 	int do_remove = 0;
 	int initialize = 0;
 	unsigned int tot_sectors=0;
-	int type = 0;
+	uint8_t type = 0;
 	int begin_set = 0;
 	int size_set = 0;
 	int end_set = 0;
@@ -352,7 +355,8 @@ void mpartition(int argc, char **argv, int dummy UNUSEDP)
 
 	int c;
 	struct device used_dev;
-	int argtracks, argheads, argsectors;
+	uint16_t argtracks;
+	uint8_t argheads, argsectors;
 
 	char drive, name[EXPAND_BUF];
 	unsigned char buf[512];
@@ -413,17 +417,17 @@ void mpartition(int argc, char **argv, int dummy UNUSEDP)
 				/* could be abused to "manually" create
 				 * extended partitions */
 				open2flags |= NO_PRIV;
-				type = strtoi(optarg, &endptr, 0);
+				type = strtou8(optarg, &endptr, 0);
 				break;
 
 			case 't':
-				argtracks = atoi(optarg);
+				argtracks = atou16(optarg);
 				break;
 			case 'h':
-				argheads = atoi(optarg);
+				argheads = atou8(optarg);
 				break;
 			case 's':
-				argsectors = atoi(optarg);
+				argsectors = atou8(optarg);
 				break;
 
 			case 'f':
@@ -457,7 +461,7 @@ void mpartition(int argc, char **argv, int dummy UNUSEDP)
 			default:
 				usage(1);
 		}
-		check_number_parse_errno(c, optarg, endptr);
+		check_number_parse_errno((char)c, optarg, endptr);
 	}
 
 	if (argc - optind != 1 ||

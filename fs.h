@@ -37,7 +37,7 @@ Stream_t *fs_init(char drive, int mode, int *isRop);
 int fat_free(Stream_t *Dir, unsigned int fat);
 int fatFreeWithDir(Stream_t *Dir, struct directory *dir);
 int fat_error(Stream_t *Dir);
-int fat32RootCluster(Stream_t *Dir);
+uint32_t fat32RootCluster(Stream_t *Dir);
 char getDrive(Stream_t *Stream);
 
 #endif

@@ -72,7 +72,7 @@ static char *dos_name2(const char *name)
 					/* separate the name from extension */
 	ext = 0;
 	dot = 0;
-	for (i=strlen(buf)-1; i>=0; i--) {
+	for (i=(int)strlen(buf)-1; i>=0; i--) {
 		if (buf[i] == '.' && !dot) {
 			dot = 1;
 			buf[i] = '\0';

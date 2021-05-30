@@ -63,7 +63,7 @@ static int makeit(dos_name_t *dosname,
 {
 	Stream_t *Target;
 	CreateArg_t *arg = (CreateArg_t *) arg0;
-	int fat;
+	uint32_t fat;
 	direntry_t subEntry;	
 
 	/* will it fit? At least one cluster must be free */

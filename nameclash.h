@@ -50,7 +50,7 @@ typedef struct ClashHandling_t {
 	int ignore_entry;
 	int source; /* to prevent the source from overwriting itself */
 	int source_entry; /* to account for the space freed up by the original 
-					   * name */
+			   * name */
 	void (*name_converter)(doscp_t *cp,
 			       const char *filename, int verbose, 
 			       int *mangled, dos_name_t *ans);

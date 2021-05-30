@@ -42,7 +42,7 @@ typedef struct Dir_t {
 /*#define FCHDIR_MODE*/
 
 static int get_dir_data(Stream_t *Stream, time_t *date, mt_size_t *size,
-			int *type, int *address)
+			int *type, unsigned int *address)
 {
 	DeclareThis(Dir_t);
 

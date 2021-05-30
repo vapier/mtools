@@ -37,7 +37,7 @@
 /*
  * Read the boot sector.  We glean the disk parameters from this sector.
  */
-static int read_boot(Stream_t *Stream, union bootsector * boot, int size)
+static int read_boot(Stream_t *Stream, union bootsector * boot, size_t size)
 {
 	size_t boot_sector_size; /* sector size, as stored in boot sector */
 
@@ -47,7 +47,7 @@ static int read_boot(Stream_t *Stream, union bootsector * boot, int size)
 	if(size > MAX_BOOT)
 		size = MAX_BOOT;
 
-	if (force_read(Stream, boot->characters, 0, size) != size)
+	if (force_read(Stream, boot->characters, 0, size) != (ssize_t) size)
 		return -1;
 
 	boot_sector_size = WORD(secsiz);		
@@ -173,7 +173,7 @@ static Stream_t *try_device(struct device *dev,
 			if(Stream) {
 				out_dev->use_2m = 0x7f;
 				if(maxSize)
-					*maxSize = max_off_t_31;
+					*maxSize = (mt_size_t) max_off_t_31;
 			}
 #endif
 
@@ -325,12 +325,12 @@ Stream_t *find_device(char drive, int mode, struct device *out_dev,
 
 Stream_t *fs_init(char drive, int mode, int *isRop)
 {
-	int blocksize;
+	uint32_t blocksize;
 	int media;
-	int disk_size = 0;	/* In case we don't happen to set this below */
-	size_t tot_sectors;
+	size_t disk_size = 0;	/* In case we don't happen to set this below */
+	uint32_t tot_sectors;
 	char name[EXPAND_BUF];
-	int cylinder_size;
+	unsigned int cylinder_size;
 	struct device dev;
 	mt_size_t maxSize;
 
@@ -380,7 +380,7 @@ Stream_t *fs_init(char drive, int mode, int *isRop)
 		This->fat_bits = 12;
 	} else {
 		struct label_blk_t *labelBlock;
-		int i;
+		unsigned int i;
 		
 		This->sector_size = WORD_S(secsiz);
 		if(This->sector_size > MAX_SECTOR){
@@ -505,7 +505,7 @@ char getDrive(Stream_t *Stream)
 		return This->drive;
 }
 
-int fsPreallocateClusters(Fs_t *Fs, long size)
+int fsPreallocateClusters(Fs_t *Fs, size_t size)
 {
 	if(size > 0 && getfreeMinClusters((Stream_t *)Fs, size) != 1)
 		return -1;

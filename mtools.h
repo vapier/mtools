@@ -74,7 +74,7 @@ typedef struct device {
 	int file_nr;		/* used during parsing */
 	unsigned int blocksize;	/* size of disk block in bytes */
 
-	int codepage;		/* codepage for shortname encoding */
+	unsigned int codepage;		/* codepage for shortname encoding */
 
 	const char *data_map;
 
@@ -86,7 +86,7 @@ struct OldDos_t {
 	uint16_t sectors;
 	uint16_t  heads;
 	
-	unsigned int dir_len;
+	uint16_t dir_len;
 	unsigned int cluster_size;
 	unsigned int fat_len;
 
@@ -136,7 +136,7 @@ extern const char *short_illegals, *long_illegals;
     if(target > 0) \
       target = 0; \
   } else if(target > (size_t) max) {		\
-    target = max; \
+	  target = (size_t) max;			\
   } \
 } while(0)
 
@@ -165,14 +165,14 @@ char *unix_normalize (doscp_t *cp, char *ans, struct dos_name_t *dn,
 void dos_name(doscp_t *cp, const char *filename, int verbose, int *mangled,
 	      struct dos_name_t *);
 struct directory *mk_entry(const dos_name_t *filename, unsigned char attr,
-			   unsigned int fat, size_t size, time_t date,
+			   unsigned int fat, uint32_t size, time_t date,
 			   struct directory *ndir);
 
 struct directory *mk_entry_from_base(const char *base, unsigned char attr,
-				     unsigned int fat, size_t size, time_t date,
+				     unsigned int fat, uint32_t size, time_t date,
 				     struct directory *ndir);
 
-int copyfile(Stream_t *Source, Stream_t *Target);
+ssize_t copyfile(Stream_t *Source, Stream_t *Target);
 int getfreeMinClusters(Stream_t *Stream, size_t ref);
 
 FILE *opentty(int mode);
@@ -184,7 +184,7 @@ int dir_grow(Stream_t *Dir, int size);
 int match(const wchar_t *, const wchar_t *, wchar_t *, int,  int);
 
 wchar_t *unix_name(doscp_t *fromDos,
-		   const char *base, const char *ext, char Case,
+		   const char *base, const char *ext, uint8_t Case,
 		   wchar_t *answer);
 void *safe_malloc(size_t size);
 Stream_t *open_filter(Stream_t *Next,int convertCharset);
@@ -206,11 +206,7 @@ void restore_interrupts(saved_sig_state *ss);
 #define SET_INT(target, source) \
 if(source)target=source
 
-
-UNUSED(static __inline__ int compare (long ref, long testee))
-{
-	return (ref && ref != testee);
-}
+#define compare(ref,testee) ((ref) && (ref) != (testee))
 
 UNUSED(static __inline__ char ch_toupper(char ch))
 {
@@ -237,6 +233,10 @@ UNUSED(static __inline__ void init_random(void))
 	srandom((unsigned int)time (0));
 }
 
+UNUSED(static __inline__ size_t ptrdiff (const char *end, const char *begin))
+{
+	return (size_t) (end-begin);
+}
 
 Stream_t *GetFs(Stream_t *Fs);
 
@@ -267,6 +267,7 @@ void set_cmd_line_image(char *img);
 void check_number_parse_errno(char c, const char *optarg, char *endptr);
 void read_config(void);
 off_t str_to_offset_with_end(const char *str, char **endp);
+size_t str_to_size_with_end(const char *str, char **endp);
 off_t str_to_offset(char *str);
 unsigned int strtoui(const char *nptr, char **endptr, int base);
 unsigned int atoui(const char *nptr);

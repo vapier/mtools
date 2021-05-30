@@ -74,7 +74,7 @@ static void displayBPB(Stream_t *Stream, union bootsector *boot) {
 	printf("sectors per track: %d\n", WORD(nsect));
 	printf("heads: %d\n", WORD(nheads));
 	printf("hidden sectors: %d\n", DWORD(nhs));
-	printf("big size: %d sectors\n", DWORD(bigsect));
+	printf("big size: %u sectors\n", DWORD(bigsect));
 
 	if(WORD(fatlen)) {
 		labelBlock = &boot->boot.ext.old.labelBlock;
@@ -233,7 +233,8 @@ void minfo(int argc, char **argv, int type UNUSEDP)
 			displayBPB(Stream, &boot);
 
 		if(verbose) {
-			int size;
+			uint16_t size;
+			ssize_t ssize;
 			unsigned char *buf;
 
 			printf("\n");
@@ -245,13 +246,13 @@ void minfo(int argc, char **argv, int type UNUSEDP)
 				exit(1);
 			}
 
-			size = READS(Stream, buf, (mt_off_t) 0, size);
-			if(size < 0) {
+			ssize = READS(Stream, buf, (mt_off_t) 0, size);
+			if(ssize < 0) {
 				perror("read boot sector");
 				exit(1);
 			}
 
-			print_sector("Boot sector hexdump", buf, size);
+			print_sector("Boot sector hexdump", buf, (uint16_t)ssize);
 		}
 	}
 	FREE(&Stream);

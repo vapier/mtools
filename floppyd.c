@@ -567,7 +567,7 @@ static uint16_t getportnum(char *portnum)
 		{
 			if ((serv = getservbyname(portnum, "tcp")) != NULL)
 				{
-					port = ntohs(serv->s_port);
+					port = ntohs((uint16_t)serv->s_port);
 				}
 			else
 				{

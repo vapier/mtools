@@ -55,8 +55,8 @@
 #endif
 
 
-static int zip_cmd(int priv, int fd, unsigned char cdb[6], int clen, 
-		   scsi_io_mode_t mode, void *data, size_t len, 
+static int zip_cmd(int priv, int fd, unsigned char cdb[6], uint8_t clen, 
+		   scsi_io_mode_t mode, void *data, uint32_t len, 
 		   void *extra_data)
 {
 	int r;
@@ -177,7 +177,7 @@ static void usage(int ret)
 #define ZIP_PW (5)
 #define ZIP_UNLOCK_TIL_EJECT (8)
 
-static int get_zip_status(int priv, int fd, void *extra_data)
+static uint8_t get_zip_status(int priv, int fd, void *extra_data)
 {
 	unsigned char status[128];
 	unsigned char cdb[6] = { 0x06, 0, 0x02, 0, sizeof status, 0 };
@@ -191,29 +191,32 @@ static int get_zip_status(int priv, int fd, void *extra_data)
 }
 
 
-static int short_command(int priv, int fd, int cmd1, int cmd2, 
-			 int cmd3, const char *data, void *extra_data)
+static int short_command(int priv, int fd, uint8_t cmd1, uint8_t cmd2, 
+			 uint8_t cmd3, const char *data, void *extra_data)
 {
-	unsigned char cdb[6] = { 0, 0, 0, 0, 0, 0 };
+	uint8_t cdb[6] = { 0, 0, 0, 0, 0, 0 };
 
 	cdb[0] = cmd1;
 	cdb[1] = cmd2;
 	cdb[4] = cmd3;
 
 	return zip_cmd(priv, fd, cdb, 6, SCSI_IO_WRITE, 
-		       (char *) data, data ? strlen(data) : 0, extra_data);
+		       (char *) data, data ? (uint32_t) strlen(data) : 0,
+		       extra_data);
 }
 
 
-static int iomega_command(int priv, int fd, int mode, const char *data, 
+static int iomega_command(int priv, int fd, uint8_t mode, const char *data, 
 			  void *extra_data)
 {
 	return short_command(priv, fd, 
-			     SCSI_IOMEGA, mode, data ? strlen(data) : 0,
+			     SCSI_IOMEGA, mode,
+			     /* Do we really need strlen(data) in here? */
+			     data ? (uint8_t) strlen(data) : 0,
 			     data, extra_data);
 }
 
-static int door_command(int priv, int fd, int cmd1, int cmd2,
+static int door_command(int priv, int fd, uint8_t cmd1, uint8_t cmd2,
 			void *extra_data)
 {
 	return short_command(priv, fd, cmd1, 0, cmd2, 0, extra_data);
@@ -235,8 +238,8 @@ void mzip(int argc, char **argv, int type UNUSEDP)
 #define ZIP_FORCE  (1 << 3)
 	int request = ZIP_NIX;
 
-	int newMode = ZIP_RW;
-	int oldMode = ZIP_RW;
+	uint8_t newMode = ZIP_RW;
+	uint8_t oldMode = ZIP_RW;
 
 #define setMode(x) \
 	if(request & ZIP_MODE_CHANGE) usage(1); \
@@ -414,7 +417,7 @@ void mzip(int argc, char **argv, int type UNUSEDP)
 
 	if (request & ZIP_MODE_CHANGE) {
 		int ret;
-		int unlockMode, unlockMask;
+		uint8_t unlockMode, unlockMask;
 		const char *passwd;
 		char dummy[1];
 
