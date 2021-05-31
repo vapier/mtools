@@ -34,7 +34,13 @@ typedef struct File_t {
 			   mt_off_t *res);
 	uint32_t FileSize;
 
+	/* How many bytes do we project to need for this file
+	   (includes those already in FileSize) */
 	uint32_t preallocatedSize;
+
+	/* How many clusters we have asked the lower layer to reserve
+	   for us (only what we will need in the future, excluding already
+	   allocated clusters in FileSize) */
 	uint32_t preallocatedClusters;
 
 	/* Absolute position of first cluster of file */
@@ -94,7 +100,6 @@ static int recalcPreallocSize(File_t *This)
 	unsigned int clus_size;
 	uint32_t neededPrealloc;
 	Fs_t *Fs = This->Fs;
-	int r;
 
 #if 0
 	if(This->FileSize & 0xc0000000) {
@@ -106,16 +111,21 @@ static int recalcPreallocSize(File_t *This)
 	}
 #endif
 	clus_size = Fs->cluster_size * Fs->sector_size;
-
 	currentClusters = filebytesToClusters(This->FileSize, clus_size);
 	neededClusters = filebytesToClusters(This->preallocatedSize, clus_size);
 	if(neededClusters < currentClusters)
 		neededPrealloc = 0;
 	else
 		neededPrealloc = neededClusters - currentClusters;
-	r = fsPreallocateClusters(Fs, neededPrealloc - This->preallocatedClusters);
-	if(r)
-		return r;
+	if(neededPrealloc > This->preallocatedClusters) {
+		int r = fsPreallocateClusters(Fs, neededPrealloc-
+					      This->preallocatedClusters);
+		if(r)
+			return r;
+	} else {
+		fsReleasePreallocateClusters(Fs, This->preallocatedClusters -
+					     neededPrealloc);
+	}
 	This->preallocatedClusters = neededPrealloc;
 	return 0;
 }
@@ -524,7 +534,7 @@ static int free_file(Stream_t *Stream)
 {
 	DeclareThis(File_t);
 	Fs_t *Fs = This->Fs;
-	fsPreallocateClusters(Fs, -This->preallocatedClusters);
+	fsReleasePreallocateClusters(Fs, This->preallocatedClusters);
 	FREE(&This->direntry.Dir);
 	freeDirCache(Stream);
 	return hash_remove(filehash, (void *) Stream, This->hint);

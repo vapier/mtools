@@ -505,11 +505,32 @@ char getDrive(Stream_t *Stream)
 		return This->drive;
 }
 
-int fsPreallocateClusters(Fs_t *Fs, size_t size)
+/*
+ * Upper layer asks to pre-allocated more additional clusters
+ * Parameters:
+ *   size: new additional clusters to pre-allocate
+ * Return:
+ *   0  if pre-allocation was granted
+ *  -1  if not enough clusters could be found
+ */
+int fsPreallocateClusters(Fs_t *Fs, uint32_t size)
 {
 	if(size > 0 && getfreeMinClusters((Stream_t *)Fs, size) != 1)
 		return -1;
 
 	Fs->preallocatedClusters += size;
 	return 0;
+}
+
+/*
+ * Upper layer wants to release some clusters that it had
+ * pre-allocated before Usually done because they have now been really
+ * allocated, and thus pre-allocation needs to be released to prevent
+ * counting them twice.
+ * Parameters:
+ *   size: new additional clusters to pre-allocate
+ */
+void fsReleasePreallocateClusters(Fs_t *Fs, uint32_t size)
+{
+	Fs->preallocatedClusters -= size;
 }

@@ -98,7 +98,8 @@ int fat_read(Fs_t *This, union bootsector *boot,
 void fat_write(Fs_t *This);
 int zero_fat(Fs_t *Fs, uint8_t media_descriptor);
 extern Class_t FsClass;
-int fsPreallocateClusters(Fs_t *Fs, size_t);
+int fsPreallocateClusters(Fs_t *Fs, uint32_t);
+void fsReleasePreallocateClusters(Fs_t *Fs, uint32_t);
 Fs_t *getFs(Stream_t *Stream);
 
 
