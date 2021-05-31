@@ -1,7 +1,7 @@
 %define _binary_payload w9.gzdio
 Name:           mtools
 Summary:        mtools, read/write/list/format DOS disks under Unix
-Version:        4.0.26
+Version:        4.0.29
 Release:        1
 License:        GPLv3+
 Group:          Utilities/System
@@ -135,6 +135,8 @@ if [ -f %{_bindir}/install-info ] ; then
 fi
 
 %changelog
+* Mon May 31 2021 Alain Knaff <alain@knaff.lu>
+-Fix bug in cluster preallocation, which was accidentally introduced by compiler warning "fixes" from v4_0_28
 * Sat Nov 28 2020 Alain Knaff <alain@knaff.lu>
 - Fix compilation on Macintosh
 - Ignore image file locking errors if we are performing a read-only access anyways

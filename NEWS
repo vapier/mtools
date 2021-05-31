@@ -1,3 +1,6 @@
+v4_0_29
+	- Fix bug in cluster preallocation, which was accidentally introduced
+	by compiler warning "fixes" from v4_0_28
 v4_0_28
 	- Support remapping of data (for not-quite linear floppy image files)
 	- Re-open floppy devices read-write if geometry parameters need to
