@@ -369,6 +369,26 @@ static int load_bounds(Xdf_t *This, off_t begin, off_t end)
 	return lend * This->sector_size;
 }
 
+/* Fill out a map that is just sufficient to read boot sector */
+static void fill_boot(Xdf_t *This)
+{
+	int ptr=0;
+
+	REC.head = 0;
+	REC.sector = 129;
+	REC.phantom = 0;
+	
+	REC.begin = ptr;
+	REC.end = ptr+1;
+			
+	REC.sizecode = 2;
+			
+	REC.valid = 0;
+	REC.dirty = 0;
+	This->last_sector=1;
+	This->current_track=0;
+}
+
 
 static int fill_t0(Xdf_t *This, int ptr, unsigned int size,
 		   int *sector, int *head)
@@ -612,7 +632,7 @@ Stream_t *XdfOpen(struct device *dev, char *name,
 	This->stretch = 0;
 
 	precmd(dev);
-	This->fd = open(name, mode | dev->mode | O_EXCL | O_NDELAY);
+	This->fd = open(name, mode | dev->mode | O_EXCL | O_NDELAY | O_RDWR);
 	if(This->fd < 0) {
 #ifdef HAVE_SNPRINTF
 		snprintf(errmsg,199,"xdf floppy: open: \"%s\"", strerror(errno));
@@ -651,13 +671,9 @@ Stream_t *XdfOpen(struct device *dev, char *name,
 	}
 
 	/* Before reading the boot sector, assume dummy values suitable
-	 * for reading at least the boot sector */
-	This->track_size = 11;
-	This->track0_size = 6;
+	 * for reading just the boot sector */
+	fill_boot(This);
 	This->rate = 0;
-	This->FatSize = 9;
-	This->RootDirSize = 1;
-	decompose(This, 0, 512, &begin, &end, 0);
 	if (load_data(This, 0, 1, 1) < 0 ) {
 		This->rate = 0x43;
 		if(load_data(This, 0, 1, 1) < 0)
