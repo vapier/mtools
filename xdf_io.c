@@ -509,7 +509,8 @@ static int decompose(Xdf_t *This, mt_off_t iwhere, size_t len,
 }
 
 
-static ssize_t xdf_read(Stream_t *Stream, char *buf, mt_off_t where, size_t len)
+static ssize_t xdf_read(Stream_t *Stream, char *buf,
+			mt_off_t where, size_t len)
 {	
 	uint32_t begin, end;
 	ssize_t ret;
@@ -631,7 +632,7 @@ static Class_t XdfClass = {
 	0 /* discard */
 };
 
-Stream_t *XdfOpen(struct device *dev, char *name,
+Stream_t *XdfOpen(struct device *dev, const char *name,
 		  int mode, char *errmsg, struct xdf_info *info)
 {
 	Xdf_t *This;

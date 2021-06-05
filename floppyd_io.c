@@ -589,7 +589,7 @@ static int ConnectToFloppyd(RemoteFile_t *floppyd, const char* name,
 			    char *errmsg);
 
 Stream_t *FloppydOpen(struct device *dev, 
-		      char *name, int mode, char *errmsg,
+		      const char *name, int mode, char *errmsg,
 		      mt_size_t *maxSize)
 {
 	RemoteFile_t *This;

@@ -27,7 +27,7 @@ struct xdf_info {
   unsigned int BadSectors;
 };
 
-Stream_t *XdfOpen(struct device *dev, char *name,
+Stream_t *XdfOpen(struct device *dev, const char *name,
 		  int mode, char *errmsg, struct xdf_info *info);
 
 #endif
