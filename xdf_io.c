@@ -293,7 +293,7 @@ static int flush_dirty(Xdf_t *This)
 }
 
 
-static int load_data(Xdf_t *This, off_t begin, off_t end, int retries)
+static ssize_t load_data(Xdf_t *This, off_t begin, off_t end, int retries)
 {
 	int ptr, nr, bytes;
 	RawRequest_t requests[100];
@@ -501,13 +501,14 @@ static void decompose(Xdf_t *This, int where, int len, off_t *begin,
 static ssize_t xdf_read(Stream_t *Stream, char *buf, mt_off_t where, size_t len)
 {	
 	off_t begin, end;
-	size_t len2;
+	ssize_t ret;
 	DeclareThis(Xdf_t);
 
 	decompose(This, truncBytes32(where), len, &begin, &end, 0);
-	len2 = load_data(This, begin, end, 4);
-	len2 -= begin;
-	maximize(len, len2);
+	ret = load_data(This, begin, end, 4);
+	if(ret < 0)
+		return ret;
+	maximize(len, (size_t) ret - begin);
 	memcpy(buf, This->buffer + begin, len);
 	return end - begin;
 }
