@@ -262,6 +262,8 @@ static void get_env_conf(void)
 	s = getenv(global_switches[i].name);
 	if(s) {
 	    errno = 0;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-align"
 	    switch(global_switches[i].type) {
 	    case T_INT:
 		* ((int *)global_switches[i].address) = strtoi(s,0,0);
@@ -280,6 +282,7 @@ static void get_env_conf(void)
 		* ((char **)global_switches[i].address) = s;
 		break;
 	    }
+#pragma GCC diagnostic pop
 	    if(errno != 0) {
 		fprintf(stderr, "Bad number %s for %s (%s)\n", s,
 			global_switches[i].name,
@@ -511,6 +514,13 @@ static int set_var(struct switches_l *switches, int nr,
     for(i=0; i < nr; i++) {
 	if(match_token(switches[i].name)) {
 	    expect_char('=');
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-align"
+	    /* All pointers cast back to pointers with alignment
+	     * constraints were such pointers with alignment
+	     * constraints initially, thus they do indeed fit the
+	     * constraint */
+
 	    if(switches[i].type == T_UINT)
 		* ((unsigned int *)((long)switches[i].address+base_address)) =
 		    (unsigned int) get_unumber(UINT_MAX);
@@ -529,6 +539,7 @@ static int set_var(struct switches_l *switches, int nr,
 	    else if (switches[i].type == T_UQSTRING)
 		* ((char**)((long)switches[i].address+base_address))=
 		    get_unquoted_string();
+#pragma GCC diagnostic pop
 	    return 0;
 	}
     }
