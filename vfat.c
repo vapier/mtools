@@ -206,7 +206,15 @@ static __inline__ void check_vfat(struct vfat_state *v, struct directory *dir)
 	v->present = 1;
 }
 
-
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+/* We have indeed different types for the entry slot
+ * - the higher levels have a "signed" type, in order to accomodate
+ *   reserved values for "root directory" entry, "not found" entries, and
+ *   "uninitialized"
+ * - the lower levels always consider it as an index into the
+ *   directory viewed as a table, i.e. always positive
+ */
 int clear_vses(Stream_t *Dir, int entrySlot, unsigned int last)
 {
 	direntry_t entry;
@@ -841,7 +849,7 @@ int lookupForInsert(Stream_t *Dir,
 	fprintf(stderr, "No directory slots\n");
 	return -1;
 }
-
+#pragma GCC diagnostic pop
 
 
 /* End vfat.c */
