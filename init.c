@@ -25,12 +25,9 @@
 #include "stream.h"
 #include "mtools.h"
 #include "fsP.h"
-#include "plain_io.h"
-#include "floppyd_io.h"
-#include "xdf_io.h"
 #include "buffer.h"
 #include "file_name.h"
-#include "remap.h"
+#include "open_image.h"
 
 #define FULL_CYL
 
@@ -147,77 +144,57 @@ static Stream_t *try_device(struct device *dev,
 {
 	int retry_write;
 	int have_read_bootsector=0;
-	int lmode=mode;
+	int modeFlags = mode & ~O_ACCMODE;
+	int openMode;
+	int lockMode;
 
 	*out_dev = *dev;
 	expand(dev->name,name);
 #ifdef USING_NEW_VOLD
 	strcpy(name, getVoldName(dev, name));
 #endif
-	
+
+	if(try_writable) {
+		/* Caller asks up to try first read-write, and only fall back
+		 * if not feasible */
+		openMode = O_RDWR | modeFlags;
+	} else {
+		openMode = mode;
+	}
+	lockMode = openMode;
+
 	for(retry_write=0; retry_write<2; retry_write++) {
 		Stream_t *Stream;
 		int r;
 		int geomFailure=0;
+
 		if(retry_write)
 			mode |= O_RDWR;
-		if(out_dev->misc_flags & FLOPPYD_FLAG) {
-#ifdef USE_FLOPPYD
-			Stream = FloppydOpen(out_dev, name, mode,
-					     errmsg, maxSize);
-#endif
-		} else {
 
-#ifdef USE_XDF
-			Stream = XdfOpen(out_dev, name, mode, errmsg, 0);
-			if(Stream) {
-				out_dev->use_2m = 0x7f;
-				if(maxSize)
-					*maxSize = (mt_size_t) max_off_t_31;
-			}
-#endif
-
-
-			if (!Stream) {
-				Stream = SimpleFileOpenWithLm(out_dev, dev, name,
-							      try_writable ? mode | O_RDWR: mode,
-							      errmsg, 0, 1,
-							      try_writable ? lmode | O_RDWR: lmode,
-							      maxSize,
-							      &geomFailure);
-			}
-
-			if(Stream) {
-				*isRop=0;
-			} else if(try_writable &&
-				  (errno == EPERM || errno == EACCES || errno == EROFS)) {
-				Stream = SimpleFileOpenWithLm(out_dev, dev, name,
-							      mode | O_RDONLY,
-							      errmsg, 0, 1,
-							      lmode | O_RDONLY,
-							      maxSize,
-							      &geomFailure);
-				if(Stream) {
-					*isRop=1;
-				}
-			}
-			if(geomFailure)
+		Stream = OpenImage(out_dev, dev, name, openMode, errmsg,
+				   0, lockMode,
+				   maxSize, &geomFailure, 0, NULL);
+		if(Stream == NULL) {
+			if(geomFailure && (mode & O_ACCMODE) == O_RDONLY) {
+				/* Our first attempt was to open read-only,
+				   but this resulted in failure setting the 
+				   geometry */
+				openMode = modeFlags | O_RDWR;
 				continue;
-		}
-
-		if( !Stream)
-			return NULL;
-
-		if(dev->data_map) {
-			Stream_t *Remapped = Remap(Stream, dev->data_map,
-						   errmsg);
-			if(Remapped == NULL) {
-				FREE(&Stream);
-				return NULL;
 			}
-			Stream = Remapped;
+
+			if(try_writable &&
+			   (errno == EPERM ||
+			    errno == EACCES ||
+			    errno == EROFS)) {
+				/* Our first attempt was to open
+				 * read-write, but this resulted in a
+				 * read-protection problem */
+				lockMode = openMode = modeFlags | O_RDONLY;
+				continue;
+			}
+			return NULL;
 		}
-		
 		if(!have_read_bootsector) {
 			/* read the boot sector */
 			if ((r=read_boot(Stream, boot, out_dev->blocksize)) < 0){
@@ -247,6 +224,7 @@ static Stream_t *try_device(struct device *dev,
 			if(errno == EBADF || errno == EPERM) {
 				/* Retry with write */
 				FREE(&Stream);
+				openMode = modeFlags | O_RDWR;
 				continue;
 			}
 			if(errno)
@@ -265,6 +243,9 @@ static Stream_t *try_device(struct device *dev,
 					dev->drive);
 			FREE(&Stream);
 			return NULL;
+		}
+		if(isRop) {
+			*isRop = (openMode & O_ACCMODE) == O_RDONLY;
 		}
 		return Stream;
 	}

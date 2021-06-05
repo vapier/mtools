@@ -33,10 +33,8 @@
 #ifdef HAVE_ASSERT_H
 #include <assert.h>
 #endif
-#ifdef USE_XDF
-#include "xdf_io.h"
-#endif
 #include "partition.h"
+#include "open_image.h"
 #include "file_name.h"
 
 #ifndef abs
@@ -1241,32 +1239,23 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 #endif
 
 #ifdef USE_XDF
-		if(!format_xdf) {
-#endif
-			Fs.Direct = 0;
-#ifdef USE_FLOPPYD
-			Fs.Direct = FloppydOpen(&used_dev, name,
-						O_RDWR | create,
-						errmsg, &maxSize);
-#endif
-			if(!Fs.Direct) {
-				Fs.Direct = SimpleFileOpen(&used_dev, dev, name,
-							   O_RDWR | create,
-							   errmsg, 0, 1,
-							   &maxSize);
-			}
-#ifdef USE_XDF
-		} else {
+		if(!format_xdf)
 			used_dev.misc_flags |= USE_XDF_FLAG;
-			Fs.Direct = XdfOpen(&used_dev, name, O_RDWR,
-					    errmsg, &info);
-			if(Fs.Direct && !Fs.fat_len)
+#endif
+
+		Fs.Direct = OpenImage(&used_dev, dev, name,
+				      O_RDWR|create, errmsg, 0, O_RDWR,
+				      &maxSize, NULL, 0, &info);
+
+#ifdef USE_XDF
+		if(Fs.Direct && info.FatSize) {
+			if(!Fs.fat_len)
 				Fs.fat_len = info.FatSize;
-			if(Fs.Direct && !Fs.dir_len)
+			if(!Fs.dir_len)
 				Fs.dir_len = info.RootDirSize;
 		}
 #endif
-
+		
 		if (!Fs.Direct)
 			continue;
 

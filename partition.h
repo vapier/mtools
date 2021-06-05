@@ -50,3 +50,7 @@ void setBeginEnd(struct partition *partTable,
 		 uint32_t begin, uint32_t end,
 		 uint16_t iheads, uint16_t isectors,
 		 int activate, uint8_t type, int fat_bits);
+
+Stream_t *OpenPartition(Stream_t *Next, struct device *dev,
+			char *errmsg, mt_size_t *maxSize);
+

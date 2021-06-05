@@ -29,6 +29,7 @@
 #include "buffer.h"
 #include "scsi.h"
 #include "partition.h"
+#include "open_image.h"
 
 #ifdef OS_linux
 #include "linux/hdreg.h"
@@ -504,8 +505,9 @@ void mpartition(int argc, char **argv, int dummy UNUSEDP)
 #ifdef USING_NEW_VOLD
 		strcpy(name, getVoldName(dev, name));
 #endif
-		Stream = SimpleFileOpen(&used_dev, dev, name, mode,
-					errmsg, open2flags, 1, 0);
+		Stream = OpenImage(&used_dev, dev, name, mode,
+				   errmsg, open2flags, mode, NULL, NULL,
+				   SKIP_PARTITION, NULL);
 
 		if (!Stream) {
 #ifdef HAVE_SNPRINTF
@@ -783,7 +785,9 @@ void mpartition(int argc, char **argv, int dummy UNUSEDP)
 			(_DWORD(partTable[dev->partition].nr_sects) +
 			 (BEGIN(partTable[dev->partition]) % sec_per_cyl)) /
 			sec_per_cyl;
-		printf("mpartition -c -t %d -h %d -s %d -b %u %c:\n",
+		printf("mpartition -c -b %d -l %d -t %d -h %d -s %d -b %u %c:\n",
+		       BEGIN(partTable[dev->partition]),
+		       PART_SIZE(partTable[dev->partition]),
 		       used_dev.tracks, used_dev.heads, used_dev.sectors,
 		       BEGIN(partTable[dev->partition]), drive);
 	}

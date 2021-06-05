@@ -31,7 +31,6 @@
 #include "mtools.h"
 #include "msdos.h"
 #include "scsi.h"
-#include "partition.h"
 #include "floppyd_io.h"
 
 #ifdef USE_FLOPPYD

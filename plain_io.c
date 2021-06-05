@@ -29,7 +29,6 @@
 #include "msdos.h"
 #include "plain_io.h"
 #include "scsi.h"
-#include "partition.h"
 #include "llong.h"
 
 #ifdef HAVE_LINUX_FS_H
@@ -725,79 +724,6 @@ APIRET rc;
 
 	This->swap = DO_SWAP( dev );
 
-	if(!(mode2 & NO_OFFSET) &&
-	   dev && (dev->partition > 4))
-	    fprintf(stderr, 
-		    "Invalid partition %d (must be between 0 and 4), ignoring it\n", 
-		    dev->partition);
-
-	while(!(mode2 & NO_OFFSET) &&
-	      dev && dev->partition && dev->partition <= 4) {
-		int has_activated;
-		unsigned int last_end, j;
-		unsigned char buf[2048];
-		struct partition *partTable=(struct partition *)(buf+ 0x1ae);
-		size_t partOff;
-		
-		/* read the first sector, or part of it */
-		if (force_read((Stream_t *)This, (char*) buf, 0, 512) != 512)
-			break;
-		if( _WORD(buf+510) != 0xaa55)
-			break;
-
-		partOff = BEGIN(partTable[dev->partition]);
-		if (maxSize) {
-			if (partOff > *maxSize >> 9) {
-				close(This->fd);
-				Free(This);
-				if(errmsg)
-					sprintf(errmsg,"init: Big disks not supported");
-				return NULL;
-			}
-			*maxSize -= (mt_size_t) partOff << 9;
-		}
-			
-		This->offset += (mt_off_t) partOff << 9;
-		if(!partTable[dev->partition].sys_ind) {
-			if(errmsg)
-				sprintf(errmsg,
-					"init: non-existant partition");
-			close(This->fd);
-			Free(This);
-			return NULL;
-		}
-
-		if(!dev->tracks) {
-			/* CHS Info left by recent partitioning tools are
-			   completely unreliable => just use standard LBA 
-			   geometry */
-			dev->heads = 16;
-			dev->sectors = 63;
-			dev->tracks = PART_SIZE(partTable[dev->partition])
-				/(16*63);
-		}
-		if(!mtools_skip_check &&
-		   consistencyCheck((struct partition *)(buf+0x1ae), 0, 0,
-				    &has_activated, &last_end, &j, dev, 0)) {
-			fprintf(stderr,
-				"Warning: inconsistent partition table\n");
-			fprintf(stderr,
-				"Possibly unpartitioned device\n");
-			fprintf(stderr,
-				"\n*** Maybe try without partition=%d in "
-				"device definition ***\n\n",
-				dev->partition);
-			fprintf(stderr,
-                                "If this is a PCMCIA card, or a disk "
-				"partitioned on another computer, this "
-				"message may be in error: add "
-				"mtools_skip_check=1 to your .mtoolsrc "
-				"file to suppress this warning\n");
-
-		}
-		break;
-		/* NOTREACHED */
-	}
 
 	This->lastwhere = -This->offset;
 	/* provoke a seek on those devices that don't start on a partition

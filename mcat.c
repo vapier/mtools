@@ -24,9 +24,7 @@
 #include "mtools.h"
 #include "mainloop.h"
 #include "fsP.h"
-#include "xdf_io.h"
-#include "floppyd_io.h"
-#include "plain_io.h"
+#include "open_image.h"
 
 static void usage(void) NORETURN;
 static void usage(void) 
@@ -106,25 +104,9 @@ void mcat(int argc, char **argv, int type UNUSEDP)
                 strcpy(name, getVoldName(dev, name));
 #endif
 
-                Stream = 0;
-#ifdef USE_XDF
-                Stream = XdfOpen(&out_dev, name, mode, errmsg, 0);
-				if(Stream)
-                        out_dev.use_2m = 0x7f;
-
-#endif
-
-#ifdef USE_FLOPPYD
-                if(!Stream)
-                        Stream = FloppydOpen(&out_dev, name, 
-					     mode, errmsg, NULL);
-#endif
-
-
-                if (!Stream)
-                        Stream = SimpleFileOpen(&out_dev, dev, name, mode,
-						errmsg, 0, 1, 0);
-
+		Stream = OpenImage(&out_dev, dev, name, mode,
+				   errmsg, 0, mode, NULL,
+				   NULL, 0, NULL);
                 if( !Stream)
                         continue;
                 break;
