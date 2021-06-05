@@ -353,6 +353,12 @@ static void fat16_encode(Fs_t *Stream, unsigned int num, unsigned int code)
 }
 
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-align"
+/* Ignore alignment warnings about casting to type with higher
+ * alignment requirement. Requirement is met, as initial pointer is an
+ * even offset into a buffer allocated by malloc, which according to
+ * manpage is "suitably aligned for any built-in type */
 static unsigned int fast_fat16_decode(Fs_t *Stream, unsigned int num)
 {
 	unsigned short *address = 
@@ -374,7 +380,7 @@ static void fast_fat16_encode(Fs_t *Stream, unsigned int num, unsigned int code)
 	}
 	*address = (uint16_t) code;
 }
-
+#pragma GCC diagnostic pop
 
 
 
@@ -398,7 +404,8 @@ static void fat32_encode(Fs_t *Stream, unsigned int num, unsigned int code)
 	set_dword(address,(code&FAT32_ADDR) | (_DWORD(address)&FAT32_HIGH));
 }
 
-
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-align"
 static unsigned int fast_fat32_decode(Fs_t *Stream, unsigned int num)
 {
 	unsigned int *address = 
@@ -416,7 +423,7 @@ static void fast_fat32_encode(Fs_t *Stream, unsigned int num, unsigned int code)
 					    FAT_ACCESS_WRITE);
 	*address = (*address & FAT32_HIGH) | (code & FAT32_ADDR);
 }
-
+#pragma GCC diagnostic pop
 
 /*
  * Write the FAT table to the disk.  Up to now the FAT manipulation has
@@ -559,16 +566,16 @@ void set_fat12(Fs_t *This)
 	This->fat_encode = fat12_encode;
 }
 
-static char word_endian_test[] = { 0x34, 0x12 };
+static uint16_t word_endian_test = 0x1234;
 
 void set_fat16(Fs_t *This)
 {
+	uint8_t *t = (uint8_t *) &word_endian_test;
 	This->fat_bits = 16;
 	This->end_fat = 0xffff;
 	This->last_fat = 0xfff6;
 
-	if(sizeof(unsigned short) == 2 &&  
-	   * (unsigned short *) word_endian_test == 0x1234) {
+	if(t[0] == 0x34 && t[1] == 0x12) {
 		This->fat_decode = fast_fat16_decode;
 		This->fat_encode = fast_fat16_encode;
 	} else {
@@ -577,16 +584,16 @@ void set_fat16(Fs_t *This)
 	}
 }
 
-static char dword_endian_test[] = { 0x78, 0x56, 0x34, 0x12 };
+static uint32_t dword_endian_test = 0x12345678;
 
 void set_fat32(Fs_t *This)
 {
+	uint8_t *t = (uint8_t *) &dword_endian_test;
 	This->fat_bits = 32;
 	This->end_fat = 0xfffffff;
 	This->last_fat = 0xffffff6;
 	
-	if(sizeof(unsigned int) == 4 &&  
-	   * (unsigned int *) dword_endian_test == 0x12345678) {
+	if(t[0] == 0x78 && t[1] == 0x56 && t[2] == 0x34 && t[3] == 0x12) {
 		This->fat_decode = fast_fat32_decode;
 		This->fat_encode = fast_fat32_encode;
 	} else {
@@ -594,7 +601,6 @@ void set_fat32(Fs_t *This)
 		This->fat_encode = fat32_encode;
 	}
 }
-
 
 static int check_fat(Fs_t *This)
 {
