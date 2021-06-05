@@ -305,6 +305,7 @@ static __inline__ clash_action process_namematch(doscp_t *cp,
 	case NAMEMATCH_GREW:
 		return NAMEMATCH_NONE;
 	}
+	return action;
 }
 
 static int contains_illegals(const char *string, const char *illegals,
