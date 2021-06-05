@@ -39,6 +39,7 @@ typedef struct Remap_t {
 	struct Class_t *Class;
 	int refs;
 	struct Stream_t *Next;
+	struct Stream_t *Buffer;
 
 	struct map *map;
 	int mapSize;
