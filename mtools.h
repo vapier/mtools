@@ -122,15 +122,6 @@ extern const char *short_illegals, *long_illegals;
   } \
 } while(0)
 
-#define smaximize(target, max) do {		\
-  if(max < 0) { \
-    if(target > 0) \
-      target = 0; \
-  } else if(target > max) { \
-    target = max; \
-  } \
-} while(0)
-
 #define sizemaximize(target, max) do {		\
   if(max < 0) { \
     if(target > 0) \
