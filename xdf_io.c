@@ -524,7 +524,7 @@ static ssize_t xdf_read(Stream_t *Stream, char *buf,
 		return -1;
 	maximize(len, (size_t) ret - begin);
 	memcpy(buf, This->buffer + begin, len);
-	return end - begin;
+	return (ssize_t) (end - begin);
 }
 
 static ssize_t xdf_write(Stream_t *Stream, char *buf, mt_off_t where, size_t len)
@@ -547,7 +547,7 @@ static ssize_t xdf_write(Stream_t *Stream, char *buf, mt_off_t where, size_t len
 	maximize(len, (size_t) len2);
 	memcpy(This->buffer + begin, buf, len);
 	mark_dirty(This, begin, end);
-	return end - begin;
+	return (ssize_t) (end - begin);
 }
 
 static int xdf_flush(Stream_t *Stream)
