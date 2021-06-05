@@ -181,6 +181,7 @@ Stream_t *Remap(Stream_t *Next, const char *map, char *errmsg) {
 	}
 	memset((void*)This, 0, sizeof(Remap_t));
 	This->Class = &RemapClass;
+	This->refs = 1;
 	This->Next = Next;
 	
 	/* First count number of items */
