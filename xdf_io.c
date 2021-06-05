@@ -640,7 +640,8 @@ Stream_t *XdfOpen(struct device *dev, char *name,
 	unsigned int type;
 	uint16_t fatSize;
 	
-	if(dev && (!SHOULD_USE_XDF(dev) || check_geom(dev, 0, 0)))
+	if(dev && ((!SHOULD_USE_XDF(dev) && !getenv("MTOOLS_USE_XDF")) ||
+		   check_geom(dev, 0, 0)))
 		return NULL;
 
 	This = New(Xdf_t);
