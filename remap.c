@@ -14,7 +14,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with Mtools.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Buffer read/write module
+ * Remapping shim
  */
 
 #include "sysincludes.h"
@@ -39,7 +39,6 @@ typedef struct Remap_t {
 	struct Class_t *Class;
 	int refs;
 	struct Stream_t *Next;
-	struct Stream_t *Buffer;
 
 	struct map *map;
 	int mapSize;
