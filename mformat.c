@@ -33,6 +33,7 @@
 #ifdef HAVE_ASSERT_H
 #include <assert.h>
 #endif
+#include "stream.h"
 #include "partition.h"
 #include "open_image.h"
 #include "file_name.h"
@@ -56,15 +57,6 @@ static uint32_t mt_off_t_to_sectors(mt_off_t raw_sect) {
 	if (raw_sect > UINT32_MAX) {
 		fprintf(stderr, "Too many sectors for FAT %08x%08x\n",
 			(uint32_t)(raw_sect>>32), (uint32_t)raw_sect);
-		exit(1);
-	}
-	return (uint32_t) raw_sect;
-}
-
-static uint32_t ulong_to_sectors(unsigned long raw_sect) {
-	/* Number of sectors must fit into 32bit value */
-	if (raw_sect > ULONG_MAX) {
-		fprintf(stderr, "Too many sectors for FAT %8lx\n",raw_sect);
 		exit(1);
 	}
 	return (uint32_t) raw_sect;
@@ -754,81 +746,6 @@ static void usage(int ret)
 	exit(ret);
 }
 
-static uint32_t ulongToSectors(unsigned long r_sectors) {
-	if(r_sectors > UINT32_MAX) {
-		fprintf(stderr, "Too many sectors %ld\n", r_sectors);
-	}
-	return (uint32_t) r_sectors;
-}
-
-#ifdef OS_linux
-static int get_sector_size(int fd, char *errmsg) {
-	int sec_size;
-	if (ioctl(fd, BLKSSZGET, &sec_size) != 0 || sec_size <= 0) {
-		sprintf(errmsg, "Could not get sector size of device (%s)",
-			strerror(errno));
-		return -1;
-	}
-
-	/* Cap sector size at 4096 */
-	if(sec_size > 4096)
-		sec_size = 4096;
-	return sec_size;
-}
-
-static int get_block_geom(int fd, struct device *dev, char *errmsg) {
-	struct hd_geometry geom;
-	int sec_size;
-	unsigned long size;
-	uint16_t heads=dev->heads;
-	uint16_t sectors=dev->sectors;
-	uint32_t sect_per_track;
-
-	if (ioctl(fd, HDIO_GETGEO, &geom) < 0) {
-		sprintf(errmsg, "Could not get geometry of device (%s)",
-			strerror(errno));
-		return -1;
-	}
-
-	if (ioctl(fd, BLKGETSIZE, &size) < 0) {
-		sprintf(errmsg, "Could not get size of device (%s)",
-			strerror(errno));
-		return -1;
-	}
-
-	sec_size = get_sector_size(fd, errmsg);
-	if(sec_size < 0)
-		return -1;
-	
-	dev->ssize = 0;
-	while (dev->ssize < 0x7F && (128 << dev->ssize) < sec_size)
-		dev->ssize++;
-
-	if(!heads)
-		heads = geom.heads;
-	if(!sectors)
-		sectors = geom.sectors;
-
-	sect_per_track = heads * sectors;
-	if(!dev->hidden) {
-		uint32_t hidden;
-		hidden = geom.start % sect_per_track;
-		if(hidden && hidden != sectors) {
-			sprintf(errmsg,
-				"Hidden (%d) does not match sectors (%d)\n",
-				hidden, sectors);
-			return -1;
-		}
-		dev->hidden = hidden;
-	}
-	dev->heads = heads;
-	dev->sectors = sectors;
-	if(!dev->tracks)
-		dev->tracks = ulong_to_sectors((size + dev->hidden % sect_per_track) / sect_per_track);
-	return 0;
-}
-#endif
-
 static int get_lba_geom(Stream_t *Direct, uint32_t tot_sectors, struct device *dev, char *errmsg) {
 	unsigned int sect_per_track;
 	uint32_t tracks;
@@ -840,47 +757,6 @@ static int get_lba_geom(Stream_t *Direct, uint32_t tot_sectors, struct device *d
 	}
 
 	if (!tot_sectors) {
-#ifdef OS_linux
-		int fd;
-		int sec_size;
-		struct MT_STAT stbuf;
-
-		fd = get_fd(Direct);
-		if (MT_FSTAT(fd, &stbuf) < 0) {
-			sprintf(errmsg, "Could not stat file (%s)", strerror(errno));
-			return -1;
-		}
-
-		if (S_ISBLK(stbuf.st_mode)) {
-			unsigned long size;
-			unsigned long r_sectors;
-			if (ioctl(fd, BLKGETSIZE, &size) != 0) {
-				sprintf(errmsg, "Could not get size of device (%s)",
-					strerror(errno));
-				return -1;
-			}
-			sec_size = get_sector_size(fd, errmsg);
-			if(sec_size < 0)
-				return -1;
-
-			if (!(dev->ssize & 0x80)) {
-				dev->ssize = 0;
-				while (dev->ssize < 0x7F && (128 << dev->ssize) < sec_size)
-				dev->ssize++;
-			}
-			if ((dev->ssize & 0x7f) > 2)
-				r_sectors = size >> ((dev->ssize & 0x7f) - 2);
-			else
-				r_sectors = size << (2 - (dev->ssize & 0x7f));
-			tot_sectors = ulongToSectors(r_sectors);
-		} else if (S_ISREG(stbuf.st_mode)) {
-			tot_sectors = mt_off_t_to_sectors(stbuf.st_size >> ((dev->ssize & 0x7f) + 7));
-		} else {
-			sprintf(errmsg, "Could not get size of device (%s)",
-				"No method available");
-			return -1;
-		}
-#else
 		mt_size_t size;
 		GET_DATA(Direct, 0, &size, 0, 0);
 		if (size == 0) {
@@ -888,8 +764,13 @@ static int get_lba_geom(Stream_t *Direct, uint32_t tot_sectors, struct device *d
 				"No method available");
 			return -1;
 		}
-		tot_sectors = size >> ((dev->ssize & 0x7f) + 7);
-#endif
+		size = size >> ((dev->ssize & 0x7f) + 7);
+		if(size <= UINT32_MAX) {
+			tot_sectors = (uint32_t) size;
+		} else {
+			fprintf(stderr, "Too many sectors\n");
+			tot_sectors = UINT32_MAX; 
+		}
 	}
 
 	dev->sectors = 63;
@@ -1259,26 +1140,19 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 		if (!Fs.Direct)
 			continue;
 
-#ifdef OS_linux
-		if ((!used_dev.tracks || !used_dev.heads || !used_dev.sectors) &&
-			(!IS_SCSI(dev))) {
-			int fd= get_fd(Fs.Direct);
-			struct MT_STAT stbuf;
-
-			if (MT_FSTAT(fd, &stbuf) < 0) {
-				sprintf(errmsg, "Could not stat file (%s)", strerror(errno));
+		if ((!used_dev.tracks && !used_dev.tot_sectors) ||
+		     !used_dev.heads || !used_dev.sectors){
+			/* try to get parameters from physical device */
+			if(SET_GEOM(Fs.Direct, &used_dev, dev, 0xf0, NULL)){
+				sprintf(errmsg,"Can't set disk parameters: %s",
+					strerror(errno));
 				continue;
 			}
-
-			if (S_ISBLK(stbuf.st_mode))
-			    /* If the following get_block_geom fails, do not 
-			     * continue to next drive description, but allow
-			     * get_lba_geom to kick in
-			     */
-			    get_block_geom(fd, &used_dev, errmsg);
 		}
-#endif
 
+		if(!tot_sectors && used_dev.tot_sectors)
+			tot_sectors = used_dev.tot_sectors;
+		
 		if ((!used_dev.tracks && !tot_sectors) ||
 		     !used_dev.heads || !used_dev.sectors){
 			if (get_lba_geom(Fs.Direct, tot_sectors, &used_dev,
@@ -1295,14 +1169,6 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 			}
 		}
 
-#if 0
-		/* set parameters, if needed */
-		if(SET_GEOM(Fs.Direct, &used_dev, 0xf0, boot)){
-			sprintf(errmsg,"Can't set disk parameters: %s",
-				strerror(errno));
-			continue;
-		}
-#endif
 		Fs.sector_size = 512;
 		if( !(used_dev.use_2m & 0x7f)) {
 			Fs.sector_size = (uint16_t) (128u << (used_dev.ssize & 0x7f));

@@ -179,7 +179,7 @@ static int file_geom(Stream_t *Stream, struct device *dev,
 	DeclareThis(SimpleFile_t);
 	uint32_t tot_sectors;
 	int BootP, Infp0, InfpX, InfTm;
-	uint16_t sectors;
+	uint16_t sectors=0;
 	int j;
 	unsigned char sum;
 	uint16_t sect_per_track;
@@ -188,7 +188,8 @@ static int file_geom(Stream_t *Stream, struct device *dev,
 	dev->ssize = 2; /* allow for init_geom to change it */
 	dev->use_2m = 0x80; /* disable 2m mode to begin */
 
-	if(media == 0xf0 || media >= 0x100){		
+	if(boot == NULL) {
+	} else if(media == 0xf0 || media >= 0x100){		
 		dev->heads = WORD(nheads);
 		dev->sectors = WORD(nsect);
 		tot_sectors = DWORD(bigsect);
@@ -244,8 +245,10 @@ static int file_geom(Stream_t *Stream, struct device *dev,
 		if(setDeviceFromOldDos(media, dev) < 0)
 			exit(1);
 
-	sectors = dev->sectors;
-	dev->sectors = dev->sectors * WORD(secsiz) / 512;
+	if(boot) {
+		sectors = dev->sectors;
+		dev->sectors = dev->sectors * WORD(secsiz) / 512;
+	}
 
 #ifdef JPD
 	printf("file_geom:media=%0X=>cyl=%d,heads=%d,sects=%d,ssize=%d,use2m=%X\n",
@@ -253,7 +256,8 @@ static int file_geom(Stream_t *Stream, struct device *dev,
 	       dev->use_2m);
 #endif
 	ret = init_geom(This->fd,dev, orig_dev, &This->statbuf);
-	dev->sectors = sectors;
+	if(boot)
+		dev->sectors = sectors;
 #ifdef JPD
 	printf("f_geom: after init_geom(), sects=%d\n", dev->sectors);
 #endif

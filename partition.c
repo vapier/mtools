@@ -143,15 +143,16 @@ Stream_t *OpenPartition(Stream_t *Next, struct device *dev,
 			return NULL;
 		}
 
-		if(!dev->tracks) {
-			/* CHS Info left by recent partitioning tools are
-			   completely unreliable => just use standard LBA 
-			   geometry */
+		/* CHS Info left by recent partitioning tools are
+		   completely unreliable => just use standard LBA 
+		   geometry */
+		if(!dev->sectors)
 			dev->heads = 16;
+		if(!dev->sectors)
 			dev->sectors = 63;
-			dev->tracks = PART_SIZE(partTable[dev->partition])
-				/(16*63);
-		}
+
+		dev->tot_sectors = PART_SIZE(partTable[dev->partition]);
+
 		if(!mtools_skip_check &&
 		   consistencyCheck((struct partition *)(buf+0x1ae), 0, 0,
 				    &has_activated, &last_end, &j, dev, 0)) {
