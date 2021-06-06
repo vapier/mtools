@@ -566,12 +566,9 @@ static int xdf_free(Stream_t *Stream)
 }
 
 
-static int check_geom(struct device *dev, int media, union bootsector *boot)
+static int check_geom(Xdf_t *This, struct device *dev)
 {
-	int sect;
-
-	if(media >= 0xfc && media <= 0xff)
-		return 1; /* old DOS */
+	unsigned int sect;
 
 	if (!IS_MFORMAT_ONLY(dev)) {
 	    if(compare(dev->sectors, 19) &&
@@ -587,36 +584,32 @@ static int check_geom(struct device *dev, int media, union bootsector *boot)
 	}
 
 	/* check against info from boot */
-	if(boot) {
-		sect = WORD(nsect);
+	if(This) {
+		sect = This->track_size;
 		if((sect != 19 && sect != 23 && sect != 24 &&
 		    sect != 46 && sect != 48) ||
-		   (!IS_MFORMAT_ONLY(dev) && compare(dev->sectors, sect)) || 
-		   WORD(nheads) !=2)
-		    return 1;
+		   (!IS_MFORMAT_ONLY(dev) && compare(dev->sectors, sect)))
+			return 1;
 	}
 	return 0;
 }
 
-static void set_geom(union bootsector *boot, struct device *dev)
+static void set_geom(Xdf_t *This, struct device *dev)
 {
 	/* fill in config info to be returned to user */
 	dev->heads = 2;
 	dev->use_2m = 0xff;
-	if(boot) {
-		dev->sectors = WORD(nsect);
-		if(WORD(psect))
-			dev->tracks = WORD(psect) / dev->sectors / 2;
-	}
+	dev->sectors = (uint16_t) This->track_size;
+	dev->tracks = 80;
 }
 
 static int config_geom(Stream_t *Stream UNUSEDP, struct device *dev, 
-		       struct device *orig_dev UNUSEDP, int media,
-		       union bootsector *boot)
+		       struct device *orig_dev UNUSEDP)
 {
-	if(check_geom(dev, media, boot))
+	DeclareThis(Xdf_t);
+	if(check_geom(This, dev))
 		return 1;
-	set_geom(boot,dev);
+	set_geom(This, dev);
 	return 0;
 }
 
@@ -642,7 +635,7 @@ Stream_t *XdfOpen(struct device *dev, const char *name,
 	uint16_t fatSize;
 	
 	if(dev && ((!SHOULD_USE_XDF(dev) && !getenv("MTOOLS_USE_XDF")) ||
-		   check_geom(dev, 0, 0)))
+		   check_geom(NULL, dev)))
 		return NULL;
 
 	This = New(Xdf_t);
@@ -737,7 +730,7 @@ Stream_t *XdfOpen(struct device *dev, const char *name,
 	This->Next = 0;
 	This->Buffer = 0;
 	if(dev)
-		set_geom(boot, dev);
+		set_geom(This, dev);
 	return (Stream_t *) This;
 
 exit_3:

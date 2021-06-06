@@ -37,8 +37,7 @@ typedef struct Class_t {
 	ssize_t (*write)(Stream_t *, char *, mt_off_t, size_t);
 	int (*flush)(Stream_t *);
 	int (*freeFunc)(Stream_t *);
-	int (*set_geom)(Stream_t *, device_t *, device_t *, int media,
-					union bootsector *);
+	int (*set_geom)(Stream_t *, device_t *, device_t *);
 	int (*get_data)(Stream_t *, time_t *, mt_size_t *, int *, uint32_t *);
 	int (*pre_allocate)(Stream_t *, mt_off_t);
 
@@ -53,8 +52,8 @@ typedef struct Class_t {
 #define WRITES(stream, buf, address, size) \
 ((stream)->Class->write)( (stream), (char *) (buf), (address), (size) )
 
-#define SET_GEOM(stream, dev, orig_dev, media, boot) \
-(stream)->Class->set_geom( (stream), (dev), (orig_dev), (media), (boot) )
+#define SET_GEOM(stream, dev, orig_dev) \
+(stream)->Class->set_geom( (stream), (dev), (orig_dev))
 
 #define GET_DATA(stream, date, size, type, address) \
 (stream)->Class->get_data( (stream), (date), (size), (type), (address) )
@@ -87,9 +86,9 @@ copy_stream( (stream) )
 ssize_t force_write(Stream_t *Stream, char *buf, mt_off_t start, size_t len);
 ssize_t force_read(Stream_t *Stream, char *buf, mt_off_t start, size_t len);
 
-int set_geom_pass_through(Stream_t *Stream, device_t *dev,
-			  device_t *orig_dev, int media,
-			  union bootsector *boot);
+int set_geom_pass_through(Stream_t *Stream, device_t *dev, device_t *orig_dev);
+
+int set_geom_noop(Stream_t *Stream, device_t *dev, device_t *orig_dev);
 
 int get_data_pass_through(Stream_t *Stream, time_t *date, mt_size_t *size,
 						  int *type, uint32_t *address);

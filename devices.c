@@ -28,7 +28,7 @@
 
 #define INIT_NOOP
 
-#define DEF_ARG1(x) (x), 0x2,0,(char *)0, 0, 0, 0, 0, 0, NULL
+#define DEF_ARG1(x) (x), 0x2,0,(char *)0, 0, 0, 0, 0, 0, 0, NULL
 #define DEF_ARG0(x) 0,DEF_ARG1(x)
 
 #define MDEF_ARG 0L,DEF_ARG0(MFORMAT_ONLY_FLAG)

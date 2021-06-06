@@ -1143,7 +1143,7 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 		if ((!used_dev.tracks && !used_dev.tot_sectors) ||
 		     !used_dev.heads || !used_dev.sectors){
 			/* try to get parameters from physical device */
-			if(SET_GEOM(Fs.Direct, &used_dev, dev, 0xf0, NULL)){
+			if(SET_GEOM(Fs.Direct, &used_dev, dev)){
 				sprintf(errmsg,"Can't set disk parameters: %s",
 					strerror(errno));
 				continue;

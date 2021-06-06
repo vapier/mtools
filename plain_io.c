@@ -172,82 +172,14 @@ static int file_free(Stream_t *Stream)
 }
 
 static int file_geom(Stream_t *Stream, struct device *dev, 
-		     struct device *orig_dev,
-		     int media, union bootsector *boot)
+		     struct device *orig_dev)
 {
 	int ret;
 	DeclareThis(SimpleFile_t);
-	uint32_t tot_sectors;
-	int BootP, Infp0, InfpX, InfTm;
-	uint16_t sectors=0;
-	int j;
-	unsigned char sum;
-	uint16_t sect_per_track;
-	struct label_blk_t *labelBlock;
 
-	dev->ssize = 2; /* allow for init_geom to change it */
-	dev->use_2m = 0x80; /* disable 2m mode to begin */
-
-	if(boot == NULL) {
-	} else if(media == 0xf0 || media >= 0x100){		
-		dev->heads = WORD(nheads);
-		dev->sectors = WORD(nsect);
-		tot_sectors = DWORD(bigsect);
-		SET_INT(tot_sectors, WORD(psect));
-		sect_per_track = dev->heads * dev->sectors;
-		if(sect_per_track == 0) {
-		    if(mtools_skip_check) {
-			/* add some fake values if sect_per_track is
-			 * zero. Indeed, some atari disks lack the
-			 * geometry values (i.e. have zeroes in their
-			 * place). In order to avoid division by zero
-			 * errors later on, plug 1 everywhere
-			 */
-			dev->heads = 1;
-			dev->sectors = 1;
-			sect_per_track = 1;
-		    } else {
-			fprintf(stderr, "The devil is in the details: zero number of heads or sectors\n");
-			exit(1);
-		    }
-		}
-		dev->tracks = tot_sectors / sect_per_track;
-		if(tot_sectors % sect_per_track)
-			/* round size up */
-			dev->tracks++;
-		
-		BootP = WORD(ext.old.BootP);
-		Infp0 = WORD(ext.old.Infp0);
-		InfpX = WORD(ext.old.InfpX);
-		InfTm = WORD(ext.old.InfTm);
-		
-		if(WORD(fatlen)) {
-			labelBlock = &boot->boot.ext.old.labelBlock;
-		} else {
-			labelBlock = &boot->boot.ext.fat32.labelBlock;
-		}
-
-		if (boot->boot.descr >= 0xf0 &&
-		    has_BPB4 &&
-		    strncmp( boot->boot.banner,"2M", 2 ) == 0 &&
-		    BootP < 512 && Infp0 < 512 && InfpX < 512 && InfTm < 512 &&
-		    BootP >= InfTm + 2 && InfTm >= InfpX && InfpX >= Infp0 && 
-		    Infp0 >= 76 ){
-			for (sum=0, j=63; j < BootP; j++) 
-				sum += boot->bytes[j];/* checksum */
-			dev->ssize = boot->bytes[InfTm];
-			if (!sum && dev->ssize <= 7){
-				dev->use_2m = 0xff;
-				dev->ssize |= 0x80; /* is set */
-			}
-		}
-	} else
-		if(setDeviceFromOldDos(media, dev) < 0)
-			exit(1);
-
-	if(boot) {
-		sectors = dev->sectors;
-		dev->sectors = dev->sectors * WORD(secsiz) / 512;
+	if(dev->sector_size && dev->sector_size != 512) {
+		dev->sectors =
+			(uint16_t) (dev->sectors * dev->sector_size / 512);
 	}
 
 #ifdef JPD
@@ -256,8 +188,10 @@ static int file_geom(Stream_t *Stream, struct device *dev,
 	       dev->use_2m);
 #endif
 	ret = init_geom(This->fd,dev, orig_dev, &This->statbuf);
-	if(boot)
-		dev->sectors = sectors;
+	if(dev->sector_size && dev->sector_size != 512) {
+		dev->sectors =
+			(uint16_t) (dev->sectors * 512 / dev->sector_size);
+	}
 #ifdef JPD
 	printf("f_geom: after init_geom(), sects=%d\n", dev->sectors);
 #endif

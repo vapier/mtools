@@ -52,14 +52,6 @@ static ssize_t partition_write(Stream_t *Stream, char *buf,
 	return WRITES(This->Next, buf, start+This->offset, len);
 }
 
-static int partition_geometry(Stream_t *Stream, struct device *dev, 
-			      struct device *orig_dev,
-			      int media, union bootsector *boot)
-{
-	return 0;
-}
-
-
 static int partition_data(Stream_t *Stream, time_t *date, mt_size_t *size,
 			  int *type, uint32_t *address)
 {
@@ -80,7 +72,7 @@ static Class_t PartitionClass = {
 	partition_write,
 	0, /* flush */
 	0, /* free */
-	partition_geometry, /* set_geom */
+	set_geom_noop, /* set_geom */
 	partition_data, /* get_data */
 	0, /* pre-allocate */
 	get_dosConvert_pass_through, /* dos convert */

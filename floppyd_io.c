@@ -410,34 +410,6 @@ static int floppyd_free(Stream_t *Stream)
 	}
 }
 
-static int floppyd_geom(Stream_t *Stream, struct device *dev, 
-			struct device *orig_dev UNUSEDP,
-			int media, union bootsector *boot)
-{
-	uint32_t tot_sectors;
-	unsigned int sect_per_track;
-	DeclareThis(RemoteFile_t);
-
-	dev->ssize = 2; /* allow for init_geom to change it */
-	dev->use_2m = 0x80; /* disable 2m mode to begin */
-
-	if(media == 0xf0 || media >= 0x100){		
-		dev->heads = WORD(nheads);
-		dev->sectors = WORD(nsect);
-		tot_sectors = DWORD(bigsect);
-		SET_INT(tot_sectors, WORD(psect));
-		sect_per_track = dev->heads * dev->sectors;
-		tot_sectors += sect_per_track - 1; /* round size up */
-		dev->tracks = tot_sectors / sect_per_track;
-
-	} else
-		if(setDeviceFromOldDos(media, dev) < 0)
-			exit(1);
-
-	This->size = (mt_off_t) 512 * dev->sectors * dev->tracks * dev->heads;
-
-	return 0;
-}
 
 
 static int floppyd_data(Stream_t *Stream, time_t *date, mt_size_t *size,
@@ -465,7 +437,7 @@ static Class_t FloppydFileClass = {
 	floppyd_write,
 	floppyd_flush,
 	floppyd_free,
-	floppyd_geom,
+	set_geom_noop,
 	floppyd_data,
 	0, /* pre_allocate */
 	0, /* get_dosConvert */

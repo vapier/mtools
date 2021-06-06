@@ -162,7 +162,8 @@ int consistencyCheck(struct partition *partTable, int doprint,
 		     int verbose,
 		     int *has_activated, unsigned int *last_end,
 		     unsigned int *j,
-		     struct device *used_dev, unsigned int target_partition)
+		     struct device *used_dev UNUSEDP,
+		     unsigned int target_partition)
 {
 	unsigned int i;
 	bool inconsistency;

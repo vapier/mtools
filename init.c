@@ -114,6 +114,76 @@ Stream_t *GetFs(Stream_t *Fs)
 	return Fs;
 }
 
+static void boot_to_geom(struct device *dev, int media,
+			 union bootsector *boot) {
+	uint32_t tot_sectors;
+	int BootP, Infp0, InfpX, InfTm;
+	int j;
+	unsigned char sum;
+	uint16_t sect_per_track;
+	struct label_blk_t *labelBlock;
+
+	dev->ssize = 2; /* allow for init_geom to change it */
+	dev->use_2m = 0x80; /* disable 2m mode to begin */
+
+	if(media == 0xf0 || media >= 0x100){		
+		dev->heads = WORD(nheads);
+		dev->sectors = WORD(nsect);
+		tot_sectors = DWORD(bigsect);
+		SET_INT(tot_sectors, WORD(psect));
+		sect_per_track = dev->heads * dev->sectors;
+		if(sect_per_track == 0) {
+		    if(mtools_skip_check) {
+			/* add some fake values if sect_per_track is
+			 * zero. Indeed, some atari disks lack the
+			 * geometry values (i.e. have zeroes in their
+			 * place). In order to avoid division by zero
+			 * errors later on, plug 1 everywhere
+			 */
+			dev->heads = 1;
+			dev->sectors = 1;
+			sect_per_track = 1;
+		    } else {
+			fprintf(stderr, "The devil is in the details: zero number of heads or sectors\n");
+			exit(1);
+		    }
+		}
+		dev->tracks = tot_sectors / sect_per_track;
+		if(tot_sectors % sect_per_track)
+			/* round size up */
+			dev->tracks++;
+		
+		BootP = WORD(ext.old.BootP);
+		Infp0 = WORD(ext.old.Infp0);
+		InfpX = WORD(ext.old.InfpX);
+		InfTm = WORD(ext.old.InfTm);
+		
+		if(WORD(fatlen)) {
+			labelBlock = &boot->boot.ext.old.labelBlock;
+		} else {
+			labelBlock = &boot->boot.ext.fat32.labelBlock;
+		}
+
+		if (boot->boot.descr >= 0xf0 &&
+		    has_BPB4 &&
+		    strncmp( boot->boot.banner,"2M", 2 ) == 0 &&
+		    BootP < 512 && Infp0 < 512 && InfpX < 512 && InfTm < 512 &&
+		    BootP >= InfTm + 2 && InfTm >= InfpX && InfpX >= Infp0 && 
+		    Infp0 >= 76 ){
+			for (sum=0, j=63; j < BootP; j++) 
+				sum += boot->bytes[j];/* checksum */
+			dev->ssize = boot->bytes[InfTm];
+			if (!sum && dev->ssize <= 7){
+				dev->use_2m = 0xff;
+				dev->ssize |= 0x80; /* is set */
+			}
+		}
+		dev->sector_size = WORD(secsiz);
+	} else
+		if(setDeviceFromOldDos(media, dev) < 0)
+			exit(1);
+}
+
 /**
  * Tries out one device definition for the given drive number
  * Parameters
@@ -220,7 +290,8 @@ static Stream_t *try_device(struct device *dev,
 
 		/* set new parameters, if needed */
 		errno = 0;
-		if(SET_GEOM(Stream, out_dev, dev, *media, boot)){
+		boot_to_geom(out_dev, *media, boot);
+		if(SET_GEOM(Stream, out_dev, dev)){
 			if(errno == EBADF || errno == EPERM) {
 				/* Retry with write */
 				FREE(&Stream);
