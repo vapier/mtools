@@ -47,7 +47,6 @@ typedef struct SimpleFile_t {
 #ifdef OS_hpux
     int size_limited;
 #endif
-    void *extra_data; /* extra system dependent information for scsi */
 } SimpleFile_t;
 
 
@@ -445,11 +444,4 @@ int get_fd(Stream_t *Stream)
 	  return -1;
 	else
 	  return This->fd;
-}
-
-void *get_extra_data(Stream_t *Stream)
-{
-	DeclareThis(SimpleFile_t);
-	
-	return This->extra_data;
 }
