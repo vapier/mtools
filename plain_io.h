@@ -26,7 +26,6 @@
 
 /* plain io */
 #define NO_PRIV 1
-#define NO_OFFSET 2
 
 Stream_t *SimpleFileOpen(struct device *dev, struct device *orig_dev,
 			 const char *name, int mode, char *errmsg, int mode2,

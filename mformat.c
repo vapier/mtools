@@ -37,6 +37,7 @@
 #include "partition.h"
 #include "open_image.h"
 #include "file_name.h"
+#include "lba.h"
 
 #ifndef abs
 #define abs(x) ((x)>0?(x):-(x))
@@ -746,54 +747,6 @@ static void usage(int ret)
 	exit(ret);
 }
 
-static int get_lba_geom(Stream_t *Direct, uint32_t tot_sectors, struct device *dev, char *errmsg) {
-	unsigned int sect_per_track;
-	uint32_t tracks;
-
-	/* if one value is already specified we do not want to overwrite it */
-	if (dev->heads || dev->sectors || dev->tracks) {
-		sprintf(errmsg, "Number of heads or sectors or tracks was already specified");
-		return -1;
-	}
-
-	if (!tot_sectors) {
-		mt_size_t size;
-		GET_DATA(Direct, 0, &size, 0, 0);
-		if (size == 0) {
-			sprintf(errmsg, "Could not get size of device (%s)",
-				"No method available");
-			return -1;
-		}
-		size = size >> ((dev->ssize & 0x7f) + 7);
-		if(size <= UINT32_MAX) {
-			tot_sectors = (uint32_t) size;
-		} else {
-			fprintf(stderr, "Too many sectors\n");
-			tot_sectors = UINT32_MAX; 
-		}
-	}
-
-	dev->sectors = 63;
-
-	if (tot_sectors < 16*63*1024)
-		dev->heads = 16;
-	else if (tot_sectors < 32*63*1024)
-		dev->heads = 32;
-	else if (tot_sectors < 64*63*1024)
-		dev->heads = 64;
-	else if (tot_sectors < 128*63*1024)
-		dev->heads = 128;
-	else
-		dev->heads = 255;
-
-	sect_per_track = dev->heads * dev->sectors;
-	tracks = (tot_sectors + dev->hidden % sect_per_track) / sect_per_track;
-
-	dev->tracks = tracks;
-
-	return 0;
-}
-
 void mformat(int argc, char **argv, int dummy UNUSEDP) NORETURN;
 void mformat(int argc, char **argv, int dummy UNUSEDP)
 {
@@ -1136,38 +1089,21 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 				Fs.dir_len = info.RootDirSize;
 		}
 #endif
-		
+
 		if (!Fs.Direct)
 			continue;
 
-		if ((!used_dev.tracks && !used_dev.tot_sectors) ||
-		     !used_dev.heads || !used_dev.sectors){
-			/* try to get parameters from physical device */
-			if(SET_GEOM(Fs.Direct, &used_dev, dev)){
-				sprintf(errmsg,"Can't set disk parameters: %s",
-					strerror(errno));
-				continue;
-			}
-		}
+		if(getGeomIfNeeded(Fs.Direct, &used_dev, dev, errmsg))
+			continue;
+
+		if(tot_sectors && !used_dev.tot_sectors)
+			used_dev.tot_sectors = tot_sectors;
+
+		if(compute_lba_geom_from_tot_sectors(&used_dev, errmsg) < 0)
+			continue;
 
 		if(!tot_sectors && used_dev.tot_sectors)
 			tot_sectors = used_dev.tot_sectors;
-		
-		if ((!used_dev.tracks && !tot_sectors) ||
-		     !used_dev.heads || !used_dev.sectors){
-			if (get_lba_geom(Fs.Direct, tot_sectors, &used_dev,
-					 errmsg) < 0) {
-				sprintf(errmsg, "%s: "
-					"Complete geometry of the disk "
-					"was not specified, \n"
-					"neither in /etc/mtools.conf nor "
-					"on the command line. \n"
-					"LBA Assist Translation for "
-					"calculating CHS geometry "
-					"of the disk failed.\n", argv[0]);
-				continue;
-			}
-		}
 
 		Fs.sector_size = 512;
 		if( !(used_dev.use_2m & 0x7f)) {

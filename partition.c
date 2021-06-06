@@ -63,7 +63,19 @@ static int partition_data(Stream_t *Stream, time_t *date, mt_size_t *size,
 			return ret;
 	}
 	if(size)
-		*size = This->size;
+		*size = (size_t) This->size * 512;
+	return 0;
+}
+
+
+static int partition_geom(Stream_t *Stream, struct device *dev, 
+			  UNUSEDP struct device *orig_dev)
+{
+	DeclareThis(Partition_t);
+
+	if(!dev->tot_sectors)
+		dev->tot_sectors = This->size;
+
 	return 0;
 }
 
@@ -72,7 +84,7 @@ static Class_t PartitionClass = {
 	partition_write,
 	0, /* flush */
 	0, /* free */
-	set_geom_noop, /* set_geom */
+	partition_geom, /* set_geom */
 	partition_data, /* get_data */
 	0, /* pre-allocate */
 	get_dosConvert_pass_through, /* dos convert */
@@ -82,10 +94,16 @@ static Class_t PartitionClass = {
 Stream_t *OpenPartition(Stream_t *Next, struct device *dev,
 			char *errmsg, mt_size_t *maxSize) {
 	Partition_t *This;
+	int has_activated;
+	unsigned int last_end, j;
+	unsigned char buf[2048];
+	struct partition *partTable=(struct partition *)(buf+ 0x1ae);
+	size_t partOff;
+	struct partition *partition;
 
-	if(dev && (dev->partition > 4)) {
+	if(!dev || (dev->partition > 4) || (dev->partition <= 0)) {
 	    fprintf(stderr, 
-		    "Invalid partition %d (must be between 0 and 4), ignoring it\n", 
+		    "Invalid partition %d (must be between 1 and 4), ignoring it\n", 
 		    dev->partition);
 	    return NULL;
 	}
@@ -100,73 +118,60 @@ Stream_t *OpenPartition(Stream_t *Next, struct device *dev,
 	This->refs = 1;
 	This->Next = Next;
 
-	while(dev && dev->partition && dev->partition <= 4) {
-		int has_activated;
-		unsigned int last_end, j;
-		unsigned char buf[2048];
-		struct partition *partTable=(struct partition *)(buf+ 0x1ae);
-		size_t partOff;
 		
-		/* read the first sector, or part of it */
-		if (force_read(This->Next, (char*) buf, 0, 512) != 512)
-			break;
-		if( _WORD(buf+510) != 0xaa55)
-			break;
-
-		partOff = BEGIN(partTable[dev->partition]);
-		if (maxSize) {
-			if (partOff > *maxSize >> 9) {
-				Free(This);
-				if(errmsg)
-					sprintf(errmsg,"init: Big disks not supported");
-				return NULL;
-			}
-			*maxSize -= (mt_size_t) partOff << 9;
-		}
-			
-		This->offset = (mt_off_t) partOff << 9;
-		This->size = END(partTable[dev->partition])+1-
-			BEGIN(partTable[dev->partition]);
-		if(!partTable[dev->partition].sys_ind) {
-			if(errmsg)
-				sprintf(errmsg,
-					"init: non-existant partition");
-			Free(This);
-			return NULL;
-		}
-
-		/* CHS Info left by recent partitioning tools are
-		   completely unreliable => just use standard LBA 
-		   geometry */
-		if(!dev->sectors)
-			dev->heads = 16;
-		if(!dev->sectors)
-			dev->sectors = 63;
-
-		dev->tot_sectors = PART_SIZE(partTable[dev->partition]);
-
-		if(!mtools_skip_check &&
-		   consistencyCheck((struct partition *)(buf+0x1ae), 0, 0,
-				    &has_activated, &last_end, &j, dev, 0)) {
-			fprintf(stderr,
-				"Warning: inconsistent partition table\n");
-			fprintf(stderr,
-				"Possibly unpartitioned device\n");
-			fprintf(stderr,
-				"\n*** Maybe try without partition=%d in "
-				"device definition ***\n\n",
+	/* read the first sector, or part of it */
+	if (force_read(This->Next, (char*) buf, 0, 512) != 512)
+		goto exit_0;
+	if( _WORD(buf+510) != 0xaa55) {
+		/* Not a partition table */
+		if(errmsg)
+			sprintf(errmsg,
+				"Device does not have a BIOS partition table\n");
+		goto exit_0;
+	}
+	partition = &partTable[dev->partition];
+	if(!partition->sys_ind) {
+		if(errmsg)
+			sprintf(errmsg,
+				"Partition %d does not exist\n",
 				dev->partition);
-			fprintf(stderr,
-                                "If this is a PCMCIA card, or a disk "
-				"partitioned on another computer, this "
-				"message may be in error: add "
-				"mtools_skip_check=1 to your .mtoolsrc "
-				"file to suppress this warning\n");
-
+		goto exit_0;
+	}
+	
+	partOff = BEGIN(partition);
+	if (maxSize) {
+		if (partOff > *maxSize >> 9) {
+			if(errmsg)
+				sprintf(errmsg,"init: Big disks not supported");
+			goto exit_0;
 		}
-		break;
-		/* NOTREACHED */
+		*maxSize -= (mt_size_t) partOff << 9;
+	}
+
+	This->offset = (mt_off_t) partOff << 9;
+	dev->tot_sectors = This->size = PART_SIZE(partition);
+
+	if(!mtools_skip_check &&
+	   consistencyCheck((struct partition *)(buf+0x1ae), 0, 0,
+			    &has_activated, &last_end, &j, dev, 0)) {
+		fprintf(stderr,
+			"Warning: inconsistent partition table\n");
+		fprintf(stderr,
+			"Possibly unpartitioned device\n");
+		fprintf(stderr,
+			"\n*** Maybe try without partition=%d in "
+			"device definition ***\n\n",
+			dev->partition);
+		fprintf(stderr,
+			"If this is a PCMCIA card, or a disk "
+			"partitioned on another computer, this "
+			"message may be in error: add "
+			"mtools_skip_check=1 to your .mtoolsrc "
+			"file to suppress this warning\n");
 	}
 	return (Stream_t *) This;
+ exit_0:
+	Free(This);
+	return NULL;
 }
 

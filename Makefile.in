@@ -91,7 +91,8 @@ copyfile.c devices.c devices.h dirCache.c dirCache.h directory.c direntry.c \
 expand.c fat.c \
 fat_free.c file.c file.h file_name.h file_name.c files filter.c floppyd.1 \
 floppyd.c floppyd_io.c floppyd_io.h force_io.c fs.h fsP.h \
-getopt.h hash.c htable.h init.c llong.c mainloop.c match.c mattrib.1 \
+getopt.h hash.c htable.h init.c lba.c lba.h llong.c mainloop.c match.c \
+mattrib.1 \
 mattrib.c mbadblocks.1 mbadblocks.c mcat.1 mcat.c mcd.1 mcd.c mclasserase.c \
 mcopy.1 \
 mcopy.c mdel.1 mdel.c mdeltree.1 mdir.1 mdir.c mdu.c mdu.1 mformat.1 \
@@ -109,9 +110,9 @@ unixdir.c todo vfat.c vfat.h xdf_io.c xdf_io.h
 
 OBJS1 = buffer.o charsetConv.o codepages.o config.o copyfile.o \
 devices.o dirCache.o directory.o direntry.o expand.o fat.o fat_free.o file.o  \
-file_name.o filter.o floppyd_io.o force_io.o hash.o init.o llong.o lockdev.o \
-match.o mainloop.o mattrib.o mbadblocks.o mcat.o mcd.o mclasserase.o mcopy.o \
-mdel.o mdir.o mdoctorfat.o mdu.o \
+file_name.o filter.o floppyd_io.o force_io.o hash.o init.o lba.o llong.o \
+lockdev.o match.o mainloop.o mattrib.o mbadblocks.o mcat.o mcd.o mclasserase.o \
+mcopy.o mdel.o mdir.o mdoctorfat.o mdu.o \
 mformat.o minfo.o misc.o missFuncs.o mk_direntry.o mlabel.o mmd.o mmount.o \
 mmove.o mpartition.o mshortname.o mshowfat.o mzip.o mtools.o offset.o \
 old_dos.o open_image.o \
@@ -128,9 +129,9 @@ OBJS4 = floppyd_installtest.o misc.o expand.o privileges.o strtonum.o
 
 SRCS = buffer.c codepages.c config.c copyfile.c devices.c \
 dirCache.c directory.c direntry.c expand.c fat.c fat_free.c file.c file_name.c \
-file_read.c filter.c floppyd_io.c force_io.c hash.c init.c lockdev.c match.c \
-mainloop.c mattrib.c mbadblocks.c mcat.c mcd.c mclasserase.c mcopy.c mdel.c \
-mdir.c mdu.c mdoctorfat.c mformat.c minfo.c misc.c \
+file_read.c filter.c floppyd_io.c force_io.c hash.c init.c lba.c lockdev.c \
+match.c mainloop.c mattrib.c mbadblocks.c mcat.c mcd.c mclasserase.c mcopy.c \
+mdel.c mdir.c mdu.c mdoctorfat.c mformat.c minfo.c misc.c \
 missFuncs.c mk_direntry.c mlabel.c mmd.c mmount.c mmove.c mpartition.c \
 mshortname.c mshowfat.c mzip.c mtools.c offset.c old_dos.c open_image.c \
 partition.c plain_io.c precmd.c privileges.c remap.c \

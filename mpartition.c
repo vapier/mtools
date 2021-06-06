@@ -27,9 +27,9 @@
 #include "plain_io.h"
 #include "nameclash.h"
 #include "buffer.h"
-#include "scsi.h"
 #include "partition.h"
 #include "open_image.h"
+#include "lba.h"
 
 #ifdef OS_linux
 #include "linux/hdreg.h"
@@ -175,20 +175,21 @@ int consistencyCheck(struct partition *partTable, int doprint,
 	inconsistency = 0;
 	*has_activated = 0;
 	for(i=1; i<5; i++){
-		if(!partTable[i].sys_ind)
+		struct partition *partition = &partTable[i];
+		if(!partition->sys_ind)
 			continue;
-		if(partTable[i].boot_ind)
+		if(partition->boot_ind)
 			(*has_activated)++;
 
 		if(*j &&
-		   *last_end > BEGIN(partTable[i])) {
+		   *last_end > BEGIN(partition)) {
 			fprintf(stderr,
 				"Partitions %d and %d badly ordered or overlapping\n",
 				*j,i);
 			inconsistency=1;
 		}
 
-		*last_end = END(partTable[i]);
+		*last_end = END(partition);
 		*j = i;
 
 		if(doprint && verbose) {
@@ -198,14 +199,14 @@ int consistencyCheck(struct partition *partTable, int doprint,
 				putchar(' ');
 			printf("Partition %d\n",i);
 
-			printf("  active=%x\n", partTable[i].boot_ind);
+			printf("  active=%x\n", partition->boot_ind);
 			printf("  start:");
-			print_hsc(&partTable[i].start);
-			printf("  type=0x%x\n", partTable[i].sys_ind);
+			print_hsc(&partition->start);
+			printf("  type=0x%x\n", partition->sys_ind);
 			printf("  end:");
-			print_hsc(&partTable[i].end);
-			printf("  start=%d\n", BEGIN(partTable[i]));
-			printf("  nr=%d\n", _DWORD(partTable[i].nr_sects));
+			print_hsc(&partition->end);
+			printf("  start=%d\n", BEGIN(partition));
+			printf("  nr=%d\n", _DWORD(partition->nr_sects));
 			printf("\n");
 		}
 	}
@@ -354,9 +355,8 @@ void mpartition(int argc, char **argv, int dummy UNUSEDP)
 	int inconsistency=0;
 	unsigned int begin=0;
 	unsigned int end=0;
-	int sizetest=0;
 	int dirty = 0;
-	int open2flags = NO_OFFSET;
+	int open2flags = 0;
 
 	int c;
 	struct device used_dev;
@@ -369,7 +369,8 @@ void mpartition(int argc, char **argv, int dummy UNUSEDP)
 	struct device *dev;
 	char errmsg[2100];
 	char *bootSector=0;
-
+	struct partition *tpartition;
+	
 	argtracks = 0;
 	argheads = 0;
 	argsectors = 0;
@@ -445,15 +446,6 @@ void mpartition(int argc, char **argv, int dummy UNUSEDP)
 			case 'v':
 				verbose++;
 				break;
-			case 'S':
-				/* testing only */
-				/* could be abused to create partitions
-				 * extending beyond the actual size of the
-				 * device */
-				open2flags |= NO_PRIV;
-				tot_sectors = strtoui(optarg, &endptr, 0);
-				sizetest = 1;
-				break;
 			case 'b':
 				begin_set = 1;
 				begin = strtoui(optarg, &endptr, 0);
@@ -520,34 +512,13 @@ void mpartition(int argc, char **argv, int dummy UNUSEDP)
 			continue;
 		}
 
+		/* In case we do not yet have full geometry, try to get it
+		 * from back end */
+		if(getGeomIfNeeded(Stream, &used_dev, dev, errmsg))
+			continue;
 
-		/* try to find out the size */
-		if(!sizetest)
-			tot_sectors = 0;
-		if(IS_SCSI(dev)) {
-			unsigned char cmd[10];
-			unsigned char data[10];
-			cmd[0] = SCSI_READ_CAPACITY;
-			memset ((void *) &cmd[2], 0, 8);
-			memset ((void *) &data[0], 137, 10);
-			scsi_cmd(get_fd(Stream), cmd, 10, SCSI_IO_READ,
-				 data, 10, get_extra_data(Stream));
-
-			tot_sectors = 1u +
-				((uint32_t)data[0] << 24) +
-				((uint32_t)data[1] << 16) +
-				((uint32_t)data[2] <<  8) +
-				((uint32_t)data[3]      );
-			if(verbose)
-				printf("%lu sectors in total\n", tot_sectors);
-		}
-
-#ifdef OS_linux
-		if (tot_sectors == 0) {
-			ioctl(get_fd(Stream), BLKGETSIZE, &tot_sectors);
-		}
-#endif
-
+		tot_sectors = dev->tot_sectors;
+		
 		/* read the partition table */
 		if (READS(Stream, (char *) buf, 0, 512) != 512 && !initialize){
 #ifdef HAVE_SNPRINTF
@@ -605,12 +576,13 @@ void mpartition(int argc, char **argv, int dummy UNUSEDP)
 		inconsistency = 1;
 	}
 
+	tpartition=&partTable[dev->partition];
 	if(do_remove){
-		if(!partTable[dev->partition].sys_ind)
+		if(!tpartition->sys_ind)
 			fprintf(stderr,
 				"Partition for drive %c: does not exist\n",
 				drive);
-		if((partTable[dev->partition].sys_ind & 0x3f) == 5) {
+		if((tpartition->sys_ind & 0x3f) == 5) {
 			fprintf(stderr,
 				"Partition for drive %c: may be an extended partition\n",
 				drive);
@@ -618,10 +590,10 @@ void mpartition(int argc, char **argv, int dummy UNUSEDP)
 				"Use the -f flag to remove it anyways\n");
 			inconsistency = 1;
 		}
-		memset(&partTable[dev->partition], 0, sizeof(*partTable));
+		memset(tpartition, 0, sizeof(*tpartition));
 	}
 
-	if(create && partTable[dev->partition].sys_ind) {
+	if(create && tpartition->sys_ind) {
 		fprintf(stderr,
 			"Partition for drive %c: already exists\n", drive);
 		fprintf(stderr,
@@ -630,39 +602,25 @@ void mpartition(int argc, char **argv, int dummy UNUSEDP)
 
 	/* if number of heads and sectors not known yet, set "reasonable"
 	 * defaults */
-	if (!used_dev.heads)
-		used_dev.heads = 16;
-	if(!used_dev.sectors)
-		used_dev.sectors = 63;
+	compute_lba_geom_from_tot_sectors(&used_dev,errmsg);
 
 	/* find out whether there is any activated partition */
 	has_activated = 0;
 	for(i=1; i<5; i++){
-		if(!partTable[i].sys_ind)
+		struct partition *partition=&partTable[i];
+		if(!partition->sys_ind)
 			continue;
 
-		if(partTable[i].boot_ind)
+		if(partition->boot_ind)
 			has_activated++;
 
 		if(i<dev->partition && !begin_set)
-			begin = END(partTable[i]);
+			begin = END(partition);
 		if(i>dev->partition && !end_set && !size_set) {
-			end = BEGIN(partTable[i]);
+			end = BEGIN(partition);
 			end_set = 1;
 		}
 	}
-
-#ifdef OS_linux
-	if(!used_dev.sectors && !used_dev.heads) {
-		if(!IS_SCSI(dev)) {
-			struct hd_geometry geom;
-			if(ioctl(get_fd(Stream), HDIO_GETGEO, &geom) == 0) {
-				used_dev.heads = geom.heads;
-				used_dev.sectors = geom.sectors;
-			}
-		}
-	}
-#endif
 
 	if(!used_dev.sectors && !used_dev.heads) {
 		if(tot_sectors) {
@@ -717,29 +675,28 @@ void mpartition(int argc, char **argv, int dummy UNUSEDP)
 			exit(1);
 		}
 
-		setBeginEnd(&partTable[dev->partition], begin, end,
+		setBeginEnd(tpartition, begin, end,
 			    used_dev.heads, used_dev.sectors,
 			    !has_activated, type,
 			    dev->fat_bits);
 	}
 
 	if(activate) {
-		if(!partTable[dev->partition].sys_ind) {
+		if(!tpartition->sys_ind) {
 			fprintf(stderr,
 				"Partition for drive %c: does not exist\n",
 				drive);
 		} else {
 			switch(activate) {
 				case 1:
-					partTable[dev->partition].boot_ind=0x80;
+					tpartition->boot_ind=0x80;
 					break;
 				case -1:
-					partTable[dev->partition].boot_ind=0x00;
+					tpartition->boot_ind=0x00;
 					break;
 			}
 		}
 	}
-
 
 	inconsistency |= consistencyCheck(partTable, doprint, verbose,
 					  &has_activated, &last_end, &j,
@@ -779,18 +736,17 @@ void mpartition(int argc, char **argv, int dummy UNUSEDP)
 		}
 	}
 
-	if(doprint && partTable[dev->partition].sys_ind) {
+	if(doprint && tpartition->sys_ind) {
 		printf("The following command will recreate the partition for drive %c:\n",
 		       drive);
 		used_dev.tracks =
-			(_DWORD(partTable[dev->partition].nr_sects) +
-			 (BEGIN(partTable[dev->partition]) % sec_per_cyl)) /
+			(_DWORD(tpartition->nr_sects) +
+			 (BEGIN(tpartition) % sec_per_cyl)) /
 			sec_per_cyl;
 		printf("mpartition -c -b %d -l %d -t %d -h %d -s %d -b %u %c:\n",
-		       BEGIN(partTable[dev->partition]),
-		       PART_SIZE(partTable[dev->partition]),
+		       BEGIN(tpartition), PART_SIZE(tpartition),
 		       used_dev.tracks, used_dev.heads, used_dev.sectors,
-		       BEGIN(partTable[dev->partition]), drive);
+		       BEGIN(tpartition), drive);
 	}
 
 	if(dirty) {

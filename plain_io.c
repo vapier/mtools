@@ -133,6 +133,24 @@ static int file_free(Stream_t *Stream)
 		return 0;
 }
 
+static int init_geom_with_reg(int fd, struct device *dev,
+			      struct device *orig_dev,
+			      struct MT_STAT *statbuf) {
+	if(S_ISREG(statbuf->st_mode)) {
+		/* Regular file (image file) */
+		mt_off_t sectors = statbuf->st_size /
+			(dev->sector_size ? dev->sector_size : 512);
+		dev->tot_sectors =
+			(sectors > (mt_off_t) UINT32_MAX)
+			? UINT32_MAX
+			: (uint32_t) sectors;
+		return 0;
+	} else {
+		/* All the rest (devices, etc.) */
+		return init_geom(fd, dev, orig_dev, statbuf);
+	}
+}
+
 static int file_geom(Stream_t *Stream, struct device *dev, 
 		     struct device *orig_dev)
 {
@@ -149,7 +167,7 @@ static int file_geom(Stream_t *Stream, struct device *dev,
 	       media, dev->tracks, dev->heads, dev->sectors, dev->ssize,
 	       dev->use_2m);
 #endif
-	ret = init_geom(This->fd,dev, orig_dev, &This->statbuf);
+	ret = init_geom_with_reg(This->fd,dev, orig_dev, &This->statbuf);
 	if(dev->sector_size && dev->sector_size != 512) {
 		dev->sectors =
 			(uint16_t) (dev->sectors * 512 / dev->sector_size);
@@ -390,7 +408,8 @@ APIRET rc;
 	if (dev){
 		errno=0;
 		if ((!IS_MFORMAT_ONLY(dev) && dev->tracks) &&
-			init_geom(This->fd, dev, orig_dev, &This->statbuf)){
+			init_geom_with_reg(This->fd, dev, orig_dev,
+					   &This->statbuf)){
 			if(geomFailure && (errno==EBADF || errno==EPERM)) {
 				*geomFailure=1;
 				return NULL;

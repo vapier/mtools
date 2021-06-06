@@ -90,6 +90,9 @@ int set_geom_pass_through(Stream_t *Stream, device_t *dev, device_t *orig_dev);
 
 int set_geom_noop(Stream_t *Stream, device_t *dev, device_t *orig_dev);
 
+int getGeomIfNeeded(Stream_t *Stream, struct device *used_dev,
+		    struct device *orig_dev, char *errmsg);
+
 int get_data_pass_through(Stream_t *Stream, time_t *date, mt_size_t *size,
 						  int *type, uint32_t *address);
 
