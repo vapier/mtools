@@ -41,7 +41,6 @@ typedef struct SimpleFile_t {
     Stream_t *Buffer;
     struct MT_STAT statbuf;
     int fd;
-    mt_off_t offset;
     mt_off_t lastwhere;
     int seekable;
     int privileged;
@@ -74,8 +73,6 @@ static ssize_t file_io(Stream_t *Stream, char *buf, mt_off_t where, size_t len,
 {
 	DeclareThis(SimpleFile_t);
 	ssize_t ret;
-
-	where += This->offset;
 
 	if (This->seekable && where != This->lastwhere ){
 		if(mt_lseek( This->fd, where, SEEK_SET) < 0 ){
@@ -434,38 +431,18 @@ APIRET rc;
 				sprintf(errmsg,"init: set default params");
 			goto exit_0;
 		}
-		This->offset = (mt_off_t) dev->offset;
-	} else
-		This->offset = 0;
+	}
 
 	This->refs = 1;
 	This->Next = 0;
 	This->Buffer = 0;
 
-	if(maxSize) {
+	if(maxSize)
 		*maxSize = (mt_size_t) max_off_t_seek;
-		if(This->offset > (mt_off_t) *maxSize) {
-			if(errmsg)
-				sprintf(errmsg,"init: Big disks not supported");
-			goto exit_0;
-		}
-		
-		*maxSize -= (mt_size_t) This->offset;
-	}
-	/* partitioned drive */
-
-	/* jpd@usl.edu: assume a partitioned drive on these 2 systems is a ZIP*/
-	/* or similar drive that must be accessed by low-level scsi commands */
-	/* AK: introduce new "scsi=1" statement to specifically set
-	 * this option. Indeed, there could conceivably be partitioned
-	 * devices where low level scsi commands will not be needed */
 
 	This->swap = DO_SWAP( dev );
 
-
-	This->lastwhere = -This->offset;
-	/* provoke a seek on those devices that don't start on a partition
-	 * boundary */
+	This->lastwhere = 0;
 
 	return (Stream_t *) This;
  exit_0:

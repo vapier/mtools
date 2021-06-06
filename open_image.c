@@ -30,6 +30,7 @@ Buffer read/write module
 #include "scsi_io.h"
 #include "remap.h"
 #include "partition.h"
+#include "offset.h"
 
 /*
  * Open filesystem image
@@ -102,6 +103,16 @@ Stream_t *OpenImage(struct device *out_dev, struct device *dev,
 			return NULL;
 		}
 		Stream = Remapped;
+	}
+
+	if(dev->offset) {
+		Stream_t *Offset = OpenOffset(Stream, dev, dev->offset,
+					      errmsg, maxSize);
+		if(Offset == NULL) {
+			FREE(&Stream);
+			return NULL;
+		}
+		Stream = Offset;
 	}
 
 	if(dev->partition && !(skip & SKIP_PARTITION)) {
