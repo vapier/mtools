@@ -1,4 +1,4 @@
-/*  Copyright 1995-2007,2009,2011 Alain Knaff.
+/*  Copyright 2021 Alain Knaff.
  *  This file is part of mtools.
  *
  *  Mtools is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with Mtools.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Io to a SCSI device
+ * I/O to a SCSI device
  *
  * written by:
  *
@@ -59,7 +59,7 @@ typedef struct ScsiDevice_t {
    under Solaris 2.5 and SunOS 4.3.1_u1 using GCC.
 
    Note: the mtools.conf entry for a ZIP drive would look like this:
-(solaris) drive C: file="/dev/rdsk/c0t5d0s2" partition=4  FAT=16 nodelay  exclusive scsi=&
+(solaris) drive C: file="/dev/rdsk/c0t5d0s2" partition=4  FAT=16 nodelay  exclusive scsi=1
 (sunos) drive C: file="/dev/rsd5c" partition=4  FAT=16 nodelay  exclusive scsi=1
 
    Note 2: Sol 2.5 wants mtools to be suid-root, to use the ioctl.  SunOS is
@@ -233,7 +233,6 @@ static ssize_t scsi_io(Stream_t *Stream, char *buf,
 
 static ssize_t scsi_read(Stream_t *Stream, char *buf, mt_off_t where, size_t len)
 {
-	
 #ifdef JPD
 	printf("zip: to read %d bytes at %d\n", len, where);
 #endif
