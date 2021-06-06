@@ -48,25 +48,12 @@ typedef struct SimpleFile_t {
     int size_limited;
 #endif
     void *extra_data; /* extra system dependent information for scsi */
-    int swap; /* do the word swapping */
 } SimpleFile_t;
 
 
 #include "lockdev.h"
 
 typedef ssize_t (*iofn) (int, void *, size_t);
-
-
-static void swap_buffer(char *buf, size_t len)
-{
-	unsigned int i;
-	for (i=0; i<len; i+=2) {
-		char temp = buf[i];
-		buf[i] = buf[i+1];
-		buf[i+1] = temp;
-	}
-}
-
 
 static ssize_t file_io(Stream_t *Stream, char *buf, mt_off_t where, size_t len,
 		       iofn io)
@@ -117,33 +104,13 @@ static ssize_t file_io(Stream_t *Stream, char *buf, mt_off_t where, size_t len,
 static ssize_t file_read(Stream_t *Stream, char *buf,
 			 mt_off_t where, size_t len)
 {
-	DeclareThis(SimpleFile_t);
-
-	ssize_t result = file_io(Stream, buf, where, len, read);
-
-	if ( This->swap )
-		swap_buffer( buf, len );
-	return result;
+	return file_io(Stream, buf, where, len, read);
 }
 
 static ssize_t file_write(Stream_t *Stream, char *buf,
 			  mt_off_t where, size_t len)
 {
-	DeclareThis(SimpleFile_t);
-
-	if ( !This->swap )
-		return file_io(Stream, buf, where, len, (iofn) write);
-	else {
-		ssize_t result;
-		char *swapping = malloc( len );
-		memcpy( swapping, buf, len );
-		swap_buffer( swapping, len );
-
-		result = file_io(Stream, swapping, where, len, (iofn) write);
-
-		free(swapping);
-		return result;
-	}
+	return file_io(Stream, buf, where, len, (iofn) write);
 }
 
 static int file_flush(Stream_t *Stream UNUSEDP)
@@ -439,8 +406,6 @@ APIRET rc;
 
 	if(maxSize)
 		*maxSize = (mt_size_t) max_off_t_seek;
-
-	This->swap = DO_SWAP( dev );
 
 	This->lastwhere = 0;
 

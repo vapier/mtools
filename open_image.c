@@ -31,6 +31,7 @@ Buffer read/write module
 #include "remap.h"
 #include "partition.h"
 #include "offset.h"
+#include "swap.h"
 
 /*
  * Open filesystem image
@@ -115,6 +116,15 @@ Stream_t *OpenImage(struct device *out_dev, struct device *dev,
 		Stream = Offset;
 	}
 
+	if(DO_SWAP(dev)) {
+		Stream_t *Swap = OpenSwap(Stream);
+		if(Swap == NULL) {
+			FREE(&Stream);
+			return NULL;
+		}
+		Stream = Swap;
+	}
+	
 	if(dev->partition && !(skip & SKIP_PARTITION)) {
 		Stream_t *Partition = OpenPartition(Stream, out_dev,
 						    errmsg, maxSize);
