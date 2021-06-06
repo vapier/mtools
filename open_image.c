@@ -27,6 +27,7 @@ Buffer read/write module
 #include "plain_io.h"
 #include "floppyd_io.h"
 #include "xdf_io.h"
+#include "scsi_io.h"
 #include "remap.h"
 #include "partition.h"
 
@@ -67,6 +68,13 @@ Stream_t *OpenImage(struct device *out_dev, struct device *dev,
 		}
 #endif
 
+		if (!Stream) {
+			Stream = OpenScsi(out_dev, name,
+					  mode,
+					  errmsg, mode2, 0,
+					  lockMode,
+					  maxSize);
+		}
 
 		if (!Stream) {
 			Stream = SimpleFileOpenWithLm(out_dev, dev, name,

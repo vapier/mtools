@@ -39,4 +39,8 @@ int check_parameters(struct device *ref, struct device *testee);
 
 int get_fd(Stream_t *Stream);
 void *get_extra_data(Stream_t *Stream);
+
+int LockDevice(int fd, struct device *dev,
+	       int locked, int lockMode,
+	       char *errmsg);
 #endif

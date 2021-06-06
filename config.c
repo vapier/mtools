@@ -495,8 +495,6 @@ static void finish_drive_clause(void)
     }
     devices[cur_dev].file_nr = file_nr;
     devices[cur_dev].cfg_filename = filename;
-    if(! (flag_mask & PRIV_FLAG) && IS_SCSI(&devices[cur_dev]))
-	devices[cur_dev].misc_flags |= PRIV_FLAG;
     if(!trusted && (devices[cur_dev].misc_flags & PRIV_FLAG)) {
 	fprintf(stderr,
 		"Warning: privileged flag ignored for drive %c: defined in file %s\n",

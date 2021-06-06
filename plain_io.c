@@ -28,7 +28,6 @@
 #include "mtools.h"
 #include "msdos.h"
 #include "plain_io.h"
-#include "scsi.h"
 #include "llong.h"
 
 #ifdef HAVE_LINUX_FS_H
@@ -49,7 +48,6 @@ typedef struct SimpleFile_t {
 #ifdef OS_hpux
     int size_limited;
 #endif
-    unsigned int scsi_sector_size;
     void *extra_data; /* extra system dependent information for scsi */
     int swap; /* do the word swapping */
 } SimpleFile_t;
@@ -229,192 +227,6 @@ static int file_discard(Stream_t *Stream)
 #endif
 }
 
-/* ZIP or other scsi device on Solaris or SunOS system.
-   Since Sun won't accept a non-Sun label on a scsi disk, we must
-   bypass Sun's disk interface and use low-level SCSI commands to read
-   or write the ZIP drive.  We thus replace the file_read and file_write
-   routines with our own scsi_read and scsi_write routines, that use the
-   uscsi ioctl interface.  By James Dugal, jpd@usl.edu, 11-96.  Tested
-   under Solaris 2.5 and SunOS 4.3.1_u1 using GCC.
-
-   Note: the mtools.conf entry for a ZIP drive would look like this:
-(solaris) drive C: file="/dev/rdsk/c0t5d0s2" partition=4  FAT=16 nodelay  exclusive scsi=&
-(sunos) drive C: file="/dev/rsd5c" partition=4  FAT=16 nodelay  exclusive scsi=1
-
-   Note 2: Sol 2.5 wants mtools to be suid-root, to use the ioctl.  SunOS is
-   happy if we just have access to the device, so making mtools sgid to a
-   group called, say, "ziprw" which has rw permission on /dev/rsd5c, is fine.
- */
-
-static void scsi_init(SimpleFile_t *This)
-{
-   int fd = This->fd;
-   unsigned char cdb[10],buf[8];
-
-   memset(cdb, 0, sizeof cdb);
-   memset(buf,0, sizeof(buf));
-   cdb[0]=SCSI_READ_CAPACITY;
-   if (scsi_cmd(fd, (unsigned char *)cdb, 
-		sizeof(cdb), SCSI_IO_READ, buf, sizeof(buf), This->extra_data)==0)
-   {
-       This->scsi_sector_size=
-	       ((unsigned)buf[5]<<16)|((unsigned)buf[6]<<8)|(unsigned)buf[7];
-       if (This->scsi_sector_size != 512)
-	   fprintf(stderr,"  (scsi_sector_size=%d)\n",This->scsi_sector_size);
-   }
-}
-
-static ssize_t scsi_io(Stream_t *Stream, char *buf,
-		       mt_off_t where, size_t len, scsi_io_mode_t rwcmd)
-{
-	unsigned int firstblock, nsect;
-	uint8_t clen;
-	int r;
-	unsigned int max;
-	off_t offset;
-	unsigned char cdb[10];
-	DeclareThis(SimpleFile_t);
-
-	firstblock=truncMtOffTo32u((where + This->offset)/This->scsi_sector_size);
-	/* 512,1024,2048,... bytes/sector supported */
-	offset=truncBytes32(where + This->offset - 
-			    firstblock*This->scsi_sector_size);
-	nsect=truncOffTo32u(offset+len+This->scsi_sector_size-1)/ This->scsi_sector_size;
-#if defined(OS_sun) && defined(OS_i386)
-	if (This->scsi_sector_size>512)
-		firstblock*=This->scsi_sector_size/512; /* work around a uscsi bug */
-#endif /* sun && i386 */
-
-	if (len>512) {
-		/* avoid buffer overruns. The transfer MUST be smaller or
-		* equal to the requested size! */
-		while (nsect*This->scsi_sector_size>len)
-			--nsect;
-		if(!nsect) {			
-			fprintf(stderr,"Scsi buffer too small\n");
-			exit(1);
-		}
-		if(rwcmd == SCSI_IO_WRITE && offset) {
-			/* there seems to be no memmove before a write */
-			fprintf(stderr,"Unaligned write\n");
-			exit(1);
-		}
-		/* a better implementation should use bounce buffers.
-		 * However, in normal operation no buffer overruns or
-		 * unaligned writes should happen anyways, as the logical
-		 * sector size is (hopefully!) equal to the physical one
-		 */
-	}
-
-
-	max = scsi_max_length();
-	
-	if (nsect > max)
-		nsect=max;
-	
-	/* set up SCSI READ/WRITE command */
-	memset(cdb, 0, sizeof cdb);
-
-	switch(rwcmd) {
-		case SCSI_IO_READ:
-			cdb[0] = SCSI_READ;
-			break;
-		case SCSI_IO_WRITE:
-			cdb[0] = SCSI_WRITE;
-			break;
-	}
-
-	cdb[1] = 0;
-
-	if (firstblock > 0x1fffff || nsect > 0xff) {
-		/* I suspect that the ZIP drive also understands Group 1
-		 * commands. If that is indeed true, we may chose Group 1
-		 * more aggressively in the future */
-
-		cdb[0] |= SCSI_GROUP1;
-		clen=10; /* SCSI Group 1 cmd */
-
-		/* this is one of the rare case where explicit coding is
-		 * more portable than macros... The meaning of scsi command
-		 * bytes is standardised, whereas the preprocessor macros
-		 * handling it might be not... */
-
-		cdb[2] = (unsigned char) (firstblock >> 24) & 0xff;
-		cdb[3] = (unsigned char) (firstblock >> 16) & 0xff;
-		cdb[4] = (unsigned char) (firstblock >> 8) & 0xff;
-		cdb[5] = (unsigned char) firstblock & 0xff;
-		cdb[6] = 0;
-		cdb[7] = (unsigned char) (nsect >> 8) & 0xff;
-		cdb[8] = (unsigned char) nsect & 0xff;
-		cdb[9] = 0;
-	} else {
-		clen = 6; /* SCSI Group 0 cmd */
-		cdb[1] |= (unsigned char) ((firstblock >> 16) & 0x1f);
-		cdb[2] = (unsigned char) ((firstblock >> 8) & 0xff);
-		cdb[3] = (unsigned char) firstblock & 0xff;
-		cdb[4] = (unsigned char) nsect;
-		cdb[5] = 0;
-	}
-	
-	if(This->privileged)
-		reclaim_privs();
-
-	r=scsi_cmd(This->fd, (unsigned char *)cdb, clen, rwcmd, buf,
-		   nsect*This->scsi_sector_size, This->extra_data);
-
-	if(This->privileged)
-		drop_privs();
-
-	if(r) {
-		perror(rwcmd == SCSI_IO_READ ? "SCMD_READ" : "SCMD_WRITE");
-		return -1;
-	}
-#ifdef JPD
-	printf("finished %u for %u\n", firstblock, nsect);
-#endif
-
-#ifdef JPD
-	printf("zip: read or write OK\n");
-#endif
-	if (offset>0)
-		memmove(buf,buf+offset,
-			truncOffToSize(nsect*This->scsi_sector_size-offset));
-	if (len==256) return 256;
-	else if (len==512) return 512;
-	else return truncOffToSsize(nsect*This->scsi_sector_size-offset);
-}
-
-static ssize_t scsi_read(Stream_t *Stream, char *buf, mt_off_t where, size_t len)
-{
-	
-#ifdef JPD
-	printf("zip: to read %d bytes at %d\n", len, where);
-#endif
-	return scsi_io(Stream, buf, where, len, SCSI_IO_READ);
-}
-
-static ssize_t scsi_write(Stream_t *Stream, char *buf,
-			  mt_off_t where, size_t len)
-{
-#ifdef JPD
-	Printf("zip: to write %d bytes at %d\n", len, where);
-#endif
-	return scsi_io(Stream, buf, where, len, SCSI_IO_WRITE);
-}
-
-static Class_t ScsiClass = {
-	scsi_read, 
-	scsi_write,
-	file_flush,
-	file_free,
-	file_geom,
-	file_data,
-	0, /* pre-allocate */
-	0, /* dos-convert */
-	file_discard
-};
-
-
 static Class_t SimpleFileClass = {
 	file_read, 
 	file_write,
@@ -426,6 +238,42 @@ static Class_t SimpleFileClass = {
 	0, /* dos-convert */
 	file_discard
 };
+
+
+int LockDevice(int fd, struct device *dev,
+	       int locked, int lockMode,
+	       char *errmsg)
+{
+#ifndef __EMX__
+#ifndef __CYGWIN__
+#ifndef OS_mingw32msvc
+	/* lock the device on writes */
+	if (locked && lock_dev(fd, (lockMode&O_ACCMODE) == O_RDWR, dev)) {
+		if(errmsg)
+#ifdef HAVE_SNPRINTF
+			snprintf(errmsg,199,
+				"plain floppy: device \"%s\" busy (%s):",
+				dev ? dev->name : "unknown", strerror(errno));
+#else
+			sprintf(errmsg,
+				"plain floppy: device \"%s\" busy (%s):",
+				(dev && strlen(dev->name) < 50) ? 
+				 dev->name : "unknown", strerror(errno));
+#endif
+
+		if(errno != EOPNOTSUPP || (lockMode&O_ACCMODE) == O_RDWR) {
+			/* If error is "not supported", and we're only
+			 * reading from the device anyways, then ignore. Some
+			 * OS'es don't support locks on read-only devices, even
+			 * if they are shared (read-only) locks */
+			return -1;
+		}
+	}
+#endif
+#endif
+#endif
+	return 0;
+}
 
 Stream_t *SimpleFileOpen(struct device *dev, struct device *orig_dev,
 			 const char *name, int mode, char *errmsg, 
@@ -446,13 +294,14 @@ HFILE FileHandle;
 ULONG Action;
 APIRET rc;
 #endif
+	if (IS_SCSI(dev))
+		return NULL;
 	This = New(SimpleFile_t);
 	if (!This){
 		printOom();
 		return 0;
 	}
 	memset((void*)This, 0, sizeof(SimpleFile_t));
-	This->scsi_sector_size = 512;
 	This->seekable = 1;
 #ifdef OS_hpux
 	This->size_limited = 0;
@@ -522,10 +371,6 @@ APIRET rc;
 	} else
 #endif
 	    {
-		if (IS_SCSI(dev))
-		    This->fd = scsi_open(name, mode, IS_NOLOCK(dev)?0444:0666,
-					 &This->extra_data);
-		else
 		    This->fd = open(name, mode | O_LARGEFILE | O_BINARY, 
 				    IS_NOLOCK(dev)?0444:0666);
 	    }
@@ -534,8 +379,7 @@ APIRET rc;
 		drop_privs();
 		
 	if (This->fd < 0) {
-		Free(This);
-		if(errmsg)
+		if(errmsg) {
 #ifdef HAVE_SNPRINTF
 			snprintf(errmsg, 199, "Can't open %s: %s",
 				name, strerror(errno));
@@ -543,7 +387,8 @@ APIRET rc;
 			sprintf(errmsg, "Can't open %s: %s",
 				name, strerror(errno));
 #endif
-		return NULL;
+		}
+		goto exit_1;
 	}
 
 	if(IS_PRIVILEGED(dev) && !(mode2 & NO_PRIV))
@@ -557,7 +402,6 @@ APIRET rc;
 	    && strncmp(name, "\\\\.\\", 4) != 0
 #endif
 	   ) {
-		Free(This);
 		if(errmsg) {
 #ifdef HAVE_SNPRINTF
 			snprintf(errmsg,199,"Can't stat %s: %s", 
@@ -572,53 +416,23 @@ APIRET rc;
 			}
 #endif
 		}
-		return NULL;
+		goto exit_0;
 	}
-#ifndef __EMX__
-#ifndef __CYGWIN__
-#ifndef OS_mingw32msvc
-	/* lock the device on writes */
-	if (locked && lock_dev(This->fd, (lockMode&O_ACCMODE) == O_RDWR, dev)) {
-		if(errmsg)
-#ifdef HAVE_SNPRINTF
-			snprintf(errmsg,199,
-				"plain floppy: device \"%s\" busy (%s):",
-				dev ? dev->name : "unknown", strerror(errno));
-#else
-			sprintf(errmsg,
-				"plain floppy: device \"%s\" busy (%s):",
-				(dev && strlen(dev->name) < 50) ? 
-				 dev->name : "unknown", strerror(errno));
-#endif
 
-		if(errno != EOPNOTSUPP || (lockMode&O_ACCMODE) == O_RDWR) {
-			/* If error is "not supported", and we're only
-			 * reading from the device anyways, then ignore. Some
-			 * OS'es don't support locks on read-only devices, even
-			 * if they are shared (read-only) locks */
-			close(This->fd);
-			Free(This);
-			return NULL;
-		}
-	}
-#endif
-#endif
-#endif
+	if(LockDevice(This->fd, dev, locked, lockMode, errmsg) < 0)
+		goto exit_0;
+	
 	/* set default parameters, if needed */
 	if (dev){
 		errno=0;
 		if ((!IS_MFORMAT_ONLY(dev) && dev->tracks) &&
 			init_geom(This->fd, dev, orig_dev, &This->statbuf)){
-			int err=errno;
-			close(This->fd);
-			Free(This);
-			if(geomFailure && (err==EBADF || err==EPERM)) {
+			if(geomFailure && (errno==EBADF || errno==EPERM)) {
 				*geomFailure=1;
 				return NULL;
-			}
-			if(errmsg)
+			} else if(errmsg)
 				sprintf(errmsg,"init: set default params");
-			return NULL;
+			goto exit_0;
 		}
 		This->offset = (mt_off_t) dev->offset;
 	} else
@@ -629,17 +443,11 @@ APIRET rc;
 	This->Buffer = 0;
 
 	if(maxSize) {
-		if (IS_SCSI(dev)) {
-			*maxSize = MAX_SIZE_T_B(31+log_2(This->scsi_sector_size));
-		} else {
-			*maxSize = (mt_size_t) max_off_t_seek;
-		}
+		*maxSize = (mt_size_t) max_off_t_seek;
 		if(This->offset > (mt_off_t) *maxSize) {
-			close(This->fd);
-			Free(This);
 			if(errmsg)
 				sprintf(errmsg,"init: Big disks not supported");
-			return NULL;
+			goto exit_0;
 		}
 		
 		*maxSize -= (mt_size_t) This->offset;
@@ -651,14 +459,6 @@ APIRET rc;
 	/* AK: introduce new "scsi=1" statement to specifically set
 	 * this option. Indeed, there could conceivably be partitioned
 	 * devices where low level scsi commands will not be needed */
-	if(IS_SCSI(dev)) {
-		This->Class = &ScsiClass;
-		if(This->privileged)
-			reclaim_privs();
-		scsi_init(This);
-		if(This->privileged)
-			drop_privs();
-	}
 
 	This->swap = DO_SWAP( dev );
 
@@ -668,6 +468,11 @@ APIRET rc;
 	 * boundary */
 
 	return (Stream_t *) This;
+ exit_0:
+	close(This->fd);
+ exit_1:
+	Free(This);
+	return NULL;
 }
 
 int get_fd(Stream_t *Stream)
@@ -675,8 +480,7 @@ int get_fd(Stream_t *Stream)
 	Class_t *clazz;
 	DeclareThis(SimpleFile_t);
 	clazz = This->Class;
-	if(clazz != &ScsiClass &&
-	   clazz != &SimpleFileClass)
+	if(clazz != &SimpleFileClass)
 	  return -1;
 	else
 	  return This->fd;
