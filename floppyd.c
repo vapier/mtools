@@ -560,7 +560,7 @@ static uint16_t getportnum(char *portnum)
 
 	for (port = 0; isdigit(*digits); ++digits)
 		{
-			port = (port * 10) + (*digits - '0');
+			port = (port * 10) + (uint8_t)(*digits - '0');
 		}
 
 	if ((*digits != '\0') || (port <= 0))
@@ -751,7 +751,7 @@ static void alarm_signal(int a UNUSEDP)
  * This is the main loop when running as a server.
  */
 static void server_main_loop(int sock, char **device_name,
-			     unsigned  int n_dev) NORETURN;
+			     unsigned int n_dev) NORETURN;
 static void server_main_loop(int sock, char **device_name,
 			     unsigned int n_dev)
 {
@@ -885,7 +885,7 @@ int main (int argc, char** argv)
 
 	if(optind < argc) {
 		device_name = argv + optind;
-		n_dev = argc - optind;
+		n_dev = (unsigned int) (argc - optind);
 	} else {
 		device_name = (char **)&floppy0;
 		n_dev = 1;
@@ -1036,7 +1036,7 @@ static void send_reply64(int rval, io_buffer sock, mt_off_t len) {
 	Packet reply = newPacket();
 
 	make_new(reply, 12);
-	put_qword(reply, 0, len);
+	put_qword(reply, 0, (Qword) len);
 	if (rval == -1) {
 		put_dword(reply, 8, 0);
 	} else {
@@ -1228,7 +1228,7 @@ void serve_client(int sockhandle, char **device_name, unsigned int n_dev,
 				} else {
 					rval = write_packet(parm, devFd);
 				}
-				send_reply(devFd, sock, rval);
+				send_reply(devFd, sock, (Dword) rval);
 				break;
 			case OP_SEEK:
 #if DEBUG
@@ -1236,7 +1236,8 @@ void serve_client(int sockhandle, char **device_name, unsigned int n_dev,
 #endif
 
 				lseek(devFd, 
-				      get_dword(parm, 0), get_dword(parm, 4));
+				      get_dword(parm, 0),
+				      (int) get_dword(parm, 4));
 				send_reply(devFd, 
 					   sock, 
 					   (Dword) lseek(devFd, 0, SEEK_CUR));
@@ -1254,7 +1255,8 @@ void serve_client(int sockhandle, char **device_name, unsigned int n_dev,
 				fprintf(stderr, "SEEK64:\n");
 #endif
 				mt_lseek(devFd, 
-					 get_qword(parm,0), get_dword(parm,8));
+					 (mt_off_t) get_qword(parm,0),
+					 (int) get_dword(parm,8));
 				send_reply64(devFd, 
 					     sock, 
 					     mt_lseek(devFd, 0, SEEK_CUR));
