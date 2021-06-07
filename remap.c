@@ -80,10 +80,10 @@ static ssize_t remap_write(Stream_t *Stream, char *buf,
 	DeclareThis(Remap_t);	
 	if(remap(This, &start, &len)==DATA)
 		return WRITES(This->Next, buf, start, len);
-	else {
-		errno=EFAULT;
-		return -1;
-	}
+	else
+		/* Ignore writes to zero zones rather than erroring,
+		 * because this might happen while flushing a buffer */
+		return (ssize_t) len;
 }
 
 static int remap_free(Stream_t *Stream)
