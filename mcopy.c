@@ -135,7 +135,6 @@ static int _unix_write(MainParam_t *mp, int needfilter, const char *unixFile)
 				}
 				sFd = get_fd(File);
 				if(sFd == -1) {
-					fprintf(stderr, "Not ok Unix file ==> good\n");
 				} else if((!MT_FSTAT(sFd, &srcStbuf)) &&
 					   stbuf.st_dev == srcStbuf.st_dev &&
 					   stbuf.st_ino == srcStbuf.st_ino) {
