@@ -263,6 +263,8 @@ off_t str_to_offset(char *str) {
 	return ofs;
 }
 
+
+
 #if 0
 
 #undef free

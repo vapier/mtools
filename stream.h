@@ -111,5 +111,7 @@ Stream_t *find_device(char drive, int mode, struct device *out_dev,
 		      char *name, int *media, mt_size_t *maxSize,
 		      int *isRop);
 
+int adjust_tot_sectors(struct device *dev, mt_off_t offset, char *errmsg);
+
 #endif
 

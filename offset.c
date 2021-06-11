@@ -83,17 +83,9 @@ Stream_t *OpenOffset(Stream_t *Next, struct device *dev, off_t offset,
 		*maxSize -= (mt_size_t) This->offset;
 	}
 
-	if(dev->tot_sectors) {
-		mt_off_t offs_sectors = This->offset /
-			(dev->sector_size ? dev->sector_size : 512);
-		if(dev->tot_sectors < offs_sectors) {
-			if(errmsg)
-				sprintf(errmsg,"init: Offset bigger than base image");
-			goto exit_0;
-		}
-		dev->tot_sectors -= offs_sectors;
-	}
-		
+	if(adjust_tot_sectors(dev, This->offset, errmsg) < 0)
+		goto exit_0;
+
 	return (Stream_t *) This;
  exit_0:
 	Free(This);

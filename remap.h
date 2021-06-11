@@ -20,6 +20,6 @@
 
 #include "stream.h"
 
-Stream_t *Remap(Stream_t *Next, const char *map, char *errmsg);
+Stream_t *Remap(Stream_t *Next, struct device *dev, char *errmsg);
 #endif
 

@@ -117,3 +117,23 @@ int getGeomIfNeeded(Stream_t *Stream, struct device *used_dev,
 	}
 	return 0;
 }
+
+/*
+ * Adjust number of total sectors by given offset in bytes
+ */
+int adjust_tot_sectors(struct device *dev, mt_off_t offset, char *errmsg)
+{
+	if(!dev->tot_sectors)
+		/* tot_sectors not set, do nothing */
+		return 0;
+	
+	mt_off_t offs_sectors = offset /
+		(dev->sector_size ? dev->sector_size : 512);
+	if(offs_sectors > 0 && dev->tot_sectors < offs_sectors) {
+		if(errmsg)
+			sprintf(errmsg,"init: Offset bigger than base image");
+		return -1;
+	}
+	dev->tot_sectors -= offs_sectors;
+	return 0;
+}

@@ -98,7 +98,7 @@ Stream_t *OpenImage(struct device *out_dev, struct device *dev,
 		return NULL;
 
 	if(dev->data_map) {
-		Stream_t *Remapped = Remap(Stream, dev->data_map, errmsg);
+		Stream_t *Remapped = Remap(Stream, out_dev, errmsg);
 		if(Remapped == NULL) {
 			FREE(&Stream);
 			return NULL;
@@ -107,7 +107,7 @@ Stream_t *OpenImage(struct device *out_dev, struct device *dev,
 	}
 
 	if(dev->offset) {
-		Stream_t *Offset = OpenOffset(Stream, dev, dev->offset,
+		Stream_t *Offset = OpenOffset(Stream, out_dev, dev->offset,
 					      errmsg, maxSize);
 		if(Offset == NULL) {
 			FREE(&Stream);
