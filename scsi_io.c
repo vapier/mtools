@@ -29,6 +29,8 @@
 #include "msdos.h"
 #include "llong.h"
 
+#include "open_image.h"
+
 #include "scsi.h"
 #include "plain_io.h"
 #include "scsi_io.h"

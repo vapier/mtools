@@ -1076,10 +1076,14 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 		if(!format_xdf)
 			used_dev.misc_flags |= USE_XDF_FLAG;
 #endif
-
+		if(tot_sectors)
+			used_dev.tot_sectors = tot_sectors;
+		
 		Fs.Direct = OpenImage(&used_dev, dev, name,
-				      O_RDWR|create, errmsg, 0, O_RDWR,
-				      &maxSize, NULL, 0, &info);
+				      O_RDWR|create, errmsg,
+				      ALWAYS_GET_GEOMETRY,
+				      O_RDWR,
+				      &maxSize, NULL, &info);
 
 #ifdef USE_XDF
 		if(Fs.Direct && info.FatSize) {
@@ -1093,16 +1097,7 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 		if (!Fs.Direct)
 			continue;
 
-		if(getGeomIfNeeded(Fs.Direct, &used_dev, dev, errmsg))
-			continue;
-
-		if(tot_sectors && !used_dev.tot_sectors)
-			used_dev.tot_sectors = tot_sectors;
-
-		if(compute_lba_geom_from_tot_sectors(&used_dev, errmsg) < 0)
-			continue;
-
-		if(!tot_sectors && used_dev.tot_sectors)
+		if(!tot_sectors)
 			tot_sectors = used_dev.tot_sectors;
 
 		Fs.sector_size = 512;

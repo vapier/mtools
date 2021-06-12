@@ -243,7 +243,7 @@ static Stream_t *try_device(struct device *dev,
 
 		Stream = OpenImage(out_dev, dev, name, openMode, errmsg,
 				   0, lockMode,
-				   maxSize, &geomFailure, 0, NULL);
+				   maxSize, &geomFailure, NULL);
 		if(Stream == NULL) {
 			if(geomFailure && (mode & O_ACCMODE) == O_RDONLY) {
 				/* Our first attempt was to open read-only,

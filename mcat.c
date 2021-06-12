@@ -106,7 +106,7 @@ void mcat(int argc, char **argv, int type UNUSEDP)
 
 		Stream = OpenImage(&out_dev, dev, name, mode,
 				   errmsg, 0, mode, NULL,
-				   NULL, 0, NULL);
+				   NULL, NULL);
                 if( !Stream)
                         continue;
                 break;

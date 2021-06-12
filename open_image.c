@@ -21,6 +21,7 @@ Buffer read/write module
 #include "sysincludes.h"
 #include "msdos.h"
 #include "mtools.h"
+#include "lba.h"
 
 #include "open_image.h"
 
@@ -35,7 +36,9 @@ Buffer read/write module
 
 /*
  * Open filesystem image
- *   dev: device descriptor to use
+ *   out_dev: device descriptor, adapted to current media and context
+ *   dev: initial template device descriptor (not modified)
+ *   name: file name (if applicable)
  *   maxSize: if set, max size will be returned here
  *   geomFailureP: if set, geometry failure will be returned here. This means
  *     that caller should retry again opening the same image read/write
@@ -44,9 +47,8 @@ Buffer read/write module
  */
 Stream_t *OpenImage(struct device *out_dev, struct device *dev,
 		    const char *name, int mode, char *errmsg,
-		    int mode2, int lockMode,
-		    mt_size_t *maxSize, int *geomFailureP,
-		    int skip
+		    int flags, int lockMode,
+		    mt_size_t *maxSize, int *geomFailureP
 #ifdef USE_XDF
 		    , struct xdf_info *xdf_info
 #endif
@@ -73,7 +75,7 @@ Stream_t *OpenImage(struct device *out_dev, struct device *dev,
 		if (!Stream) {
 			Stream = OpenScsi(out_dev, name,
 					  mode,
-					  errmsg, mode2, 0,
+					  errmsg, flags, 0,
 					  lockMode,
 					  maxSize);
 		}
@@ -81,7 +83,7 @@ Stream_t *OpenImage(struct device *out_dev, struct device *dev,
 		if (!Stream) {
 			Stream = SimpleFileOpenWithLm(out_dev, dev, name,
 						      mode,
-						      errmsg, mode2, 0,
+						      errmsg, flags, 0,
 						      lockMode,
 						      maxSize,
 						      &geomFailure);
@@ -99,42 +101,41 @@ Stream_t *OpenImage(struct device *out_dev, struct device *dev,
 
 	if(dev->data_map) {
 		Stream_t *Remapped = Remap(Stream, out_dev, errmsg);
-		if(Remapped == NULL) {
-			FREE(&Stream);
-			return NULL;
-		}
+		if(Remapped == NULL)
+			goto exit_0;
 		Stream = Remapped;
 	}
 
 	if(dev->offset) {
 		Stream_t *Offset = OpenOffset(Stream, out_dev, dev->offset,
 					      errmsg, maxSize);
-		if(Offset == NULL) {
-			FREE(&Stream);
-			return NULL;
-		}
+		if(Offset == NULL)
+			goto exit_0;
 		Stream = Offset;
 	}
 
 	if(DO_SWAP(dev)) {
 		Stream_t *Swap = OpenSwap(Stream);
-		if(Swap == NULL) {
-			FREE(&Stream);
-			return NULL;
-		}
+		if(Swap == NULL)
+			goto exit_0;
 		Stream = Swap;
 	}
 	
-	if(dev->partition && !(skip & SKIP_PARTITION)) {
+	if((flags & ALWAYS_GET_GEOMETRY) &&
+	   compute_lba_geom_from_tot_sectors(out_dev, errmsg) < 0)
+		goto exit_0;
+
+	if(dev->partition && !(flags & SKIP_PARTITION)) {
 		Stream_t *Partition = OpenPartition(Stream, out_dev,
 						    errmsg, maxSize);
-		if(Partition == NULL) {
-			FREE(&Stream);
-			return NULL;
-		}
+		if(Partition == NULL)
+			goto exit_0;
 		Stream = Partition;
 	}
 	
 	return Stream;
+ exit_0:
+	FREE(&Stream);
+	return NULL;
 }
 

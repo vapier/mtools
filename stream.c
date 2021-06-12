@@ -99,25 +99,6 @@ doscp_t *get_dosConvert_pass_through(Stream_t *Stream)
 	return GET_DOSCONVERT(Stream->Next);
 }
 
-/**
- * Get geometry if we do not yet have a full geometry
- * Returns -1 if geometry could not be gotten and/or set
- * Returns 0 otherwise
- */
-int getGeomIfNeeded(Stream_t *Stream, struct device *used_dev,
-		    struct device *orig_dev, char *errmsg) {
-	if ((!used_dev->tracks && !used_dev->tot_sectors) ||
-	    !used_dev->heads || !used_dev->sectors){
-		/* try to get parameters from physical device */
-		if(SET_GEOM(Stream, used_dev, orig_dev)){
-			sprintf(errmsg,"Can't set disk parameters: %s",
-				strerror(errno));
-			return -1;
-		}
-	}
-	return 0;
-}
-
 /*
  * Adjust number of total sectors by given offset in bytes
  */

@@ -498,9 +498,9 @@ void mpartition(int argc, char **argv, int dummy UNUSEDP)
 #ifdef USING_NEW_VOLD
 		strcpy(name, getVoldName(dev, name));
 #endif
-		Stream = OpenImage(&used_dev, dev, name, mode,
-				   errmsg, open2flags, mode, NULL, NULL,
-				   SKIP_PARTITION, NULL);
+		Stream = OpenImage(&used_dev, dev, name, mode, errmsg, 
+				   open2flags | SKIP_PARTITION | ALWAYS_GET_GEOMETRY,
+				   mode, NULL, NULL, NULL);
 
 		if (!Stream) {
 #ifdef HAVE_SNPRINTF
@@ -511,11 +511,6 @@ void mpartition(int argc, char **argv, int dummy UNUSEDP)
 #endif
 			continue;
 		}
-
-		/* In case we do not yet have full geometry, try to get it
-		 * from back end */
-		if(getGeomIfNeeded(Stream, &used_dev, dev, errmsg))
-			continue;
 
 		tot_sectors = dev->tot_sectors;
 		

@@ -1,11 +1,14 @@
 #include "xdf_io.h"
-#define SKIP_PARTITION 1
+
+/* plain io */
+#define NO_PRIV 1
+#define SKIP_PARTITION 2
+#define ALWAYS_GET_GEOMETRY 4
 
 Stream_t *OpenImage(struct device *out_dev, struct device *dev,
 		    const char *name, int mode, char *errmsg,
-		    int mode2, int lockMode,
-		    mt_size_t *maxSize, int *geomFailureP,
-		    int skip
+		    int flags, int lockMode,
+		    mt_size_t *maxSize, int *geomFailureP
 #ifdef USE_XDF
 		    , struct xdf_info *xdf_info
 #endif

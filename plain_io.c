@@ -27,6 +27,7 @@
 #include "stream.h"
 #include "mtools.h"
 #include "msdos.h"
+#include "open_image.h"
 #include "plain_io.h"
 #include "llong.h"
 
@@ -406,9 +407,10 @@ APIRET rc;
 	/* set default parameters, if needed */
 	if (dev){
 		errno=0;
-		if ((!IS_MFORMAT_ONLY(dev) && dev->tracks) &&
-			init_geom_with_reg(This->fd, dev, orig_dev,
-					   &This->statbuf)){
+		if (((!IS_MFORMAT_ONLY(dev) && dev->tracks) ||
+		     mode2 & ALWAYS_GET_GEOMETRY) &&
+		    init_geom_with_reg(This->fd, dev, orig_dev,
+				       &This->statbuf)){
 			if(geomFailure && (errno==EBADF || errno==EPERM)) {
 				*geomFailure=1;
 				return NULL;
