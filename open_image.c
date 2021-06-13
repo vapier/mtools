@@ -122,7 +122,7 @@ Stream_t *OpenImage(struct device *out_dev, struct device *dev,
 	}
 	
 	if((flags & ALWAYS_GET_GEOMETRY) &&
-	   compute_lba_geom_from_tot_sectors(out_dev, errmsg) < 0)
+	   compute_lba_geom_from_tot_sectors(out_dev) < 0)
 		goto exit_0;
 
 	if(dev->partition && !(flags & SKIP_PARTITION)) {

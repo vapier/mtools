@@ -21,7 +21,7 @@
 #include "mtools.h"
 #include "lba.h"
 
-int compute_lba_geom_from_tot_sectors(struct device *dev, char *errmsg)
+int compute_lba_geom_from_tot_sectors(struct device *dev)
 {
 	unsigned int sect_per_track;
 	uint32_t tracks;
@@ -30,11 +30,11 @@ int compute_lba_geom_from_tot_sectors(struct device *dev, char *errmsg)
 	if(dev->heads && dev->sectors && dev->tracks)
 		return 0;
 
-	/* If tot_sectors missing, nothing much we can do here... */
+	/* If tot_sectors missing, return. Hopefully size still
+	 * specified somewhere that will be read at a later stage
+	 * (such as mformat command line) */
 	if(dev->tot_sectors == 0) {
-		if(errmsg)
-			sprintf(errmsg, "Total disk size not known");
-		return -1;
+		return 0;
 	}
 
 	/* Heads or sectors not known => fill them in both... */
