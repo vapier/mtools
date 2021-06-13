@@ -55,6 +55,12 @@ static void displayInfosector(Stream_t *Stream, union bootsector *boot)
 		printf("last allocated cluster=%u\n", _DWORD(infosec->pos));
 }
 
+/*
+ * Number of hidden sector is only a 4 byte quantity if number of sectors is
+ */
+static uint32_t getHidden(union bootsector *boot) {
+	return WORD(psect) ? WORD(nhs) : DWORD(nhs);
+}
 
 static void displayBPB(Stream_t *Stream, union bootsector *boot) {
 	struct label_blk_t *labelBlock;
@@ -73,7 +79,7 @@ static void displayBPB(Stream_t *Stream, union bootsector *boot) {
 	printf("sectors per fat: %d\n", WORD(fatlen));
 	printf("sectors per track: %d\n", WORD(nsect));
 	printf("heads: %d\n", WORD(nheads));
-	printf("hidden sectors: %d\n", DWORD(nhs));
+	printf("hidden sectors: %d\n", getHidden(boot));
 	printf("big size: %u sectors\n", DWORD(bigsect));
 
 	if(WORD(fatlen)) {
@@ -202,7 +208,7 @@ void minfo(int argc, char **argv, int type UNUSEDP)
 					}
 				}
 				if(media == 0xf0)
-					hidden = DWORD_S(nhs);
+					hidden = getHidden(&boot);
 				else
 					hidden = 0;
 			} else {

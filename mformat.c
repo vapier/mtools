@@ -80,12 +80,14 @@ static uint16_t init_geometry_boot(union bootsector *boot, struct device *dev,
 	assert(*tot_sectors != 0);
 #endif
 
-	if (*tot_sectors <= UINT16_MAX){
+	if (*tot_sectors <= UINT16_MAX && dev->hidden <= UINT16_MAX){
 		set_word(boot->boot.psect, (uint16_t) *tot_sectors);
 		set_dword(boot->boot.bigsect, 0);
+		set_word(boot->boot.nhs, (uint16_t) dev->hidden);
 	} else if(*tot_sectors <= UINT32_MAX){
 		set_word(boot->boot.psect, 0);
 		set_dword(boot->boot.bigsect, (uint32_t) *tot_sectors);
+		set_dword(boot->boot.nhs, dev->hidden);
 	} else {
 		fprintf(stderr, "Too many sectors %u\n", *tot_sectors);
 		exit(1);
@@ -1155,9 +1157,15 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 	if(tot_sectors == 0) {
 		uint32_t sect_per_track = used_dev.heads*used_dev.sectors;
 		mt_off_t rtot_sectors =
-			used_dev.tracks*(mt_off_t)sect_per_track -
-			used_dev.hidden%sect_per_track;
+			used_dev.tracks*(mt_off_t)sect_per_track;
+		if(rtot_sectors > used_dev.hidden%sect_per_track)
+			rtot_sectors -= used_dev.hidden%sect_per_track;
 		tot_sectors = mt_off_t_to_sectors(rtot_sectors);
+	}
+
+	if(tot_sectors == 0) {
+		fprintf(stderr, "Number of sectors not known\n");
+		exit(1);
 	}
 
 	/* create the image file if needed */
@@ -1187,7 +1195,6 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 	}
 	if(!keepBoot && !(used_dev.use_2m & 0x7f))
 		memset(boot.characters, '\0', Fs.sector_size);
-	set_dword(boot.boot.nhs, used_dev.hidden);
 
 	Fs.Next = buf_init(Fs.Direct,
 			   blocksize * used_dev.heads * used_dev.sectors,
