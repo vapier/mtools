@@ -38,10 +38,20 @@ typedef struct Partition_t {
 	uint16_t cyclinders;
 } Partition_t;
 
+
+static int limit_size(Partition_t *This, mt_off_t start, size_t *len)
+{
+	if(start > This->size)
+		return -1;
+	maximize(*len, (size_t) (This->size - start));
+	return 0;
+}
+
 static ssize_t partition_read(Stream_t *Stream, char *buf,
-			  mt_off_t start, size_t len)
+			      mt_off_t start, size_t len)
 {
 	DeclareThis(Partition_t);
+	limit_size(This, start, &len);
 	return READS(This->Next, buf, start+This->offset, len);
 }
 
@@ -49,6 +59,7 @@ static ssize_t partition_write(Stream_t *Stream, char *buf,
 			       mt_off_t start, size_t len)
 {
 	DeclareThis(Partition_t);	
+	limit_size(This, start, &len);
 	return WRITES(This->Next, buf, start+This->offset, len);
 }
 
