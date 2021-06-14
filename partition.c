@@ -146,6 +146,7 @@ Stream_t *OpenPartition(Stream_t *Next, struct device *dev,
 			goto exit_0;
 		}
 		*maxSize -= (mt_size_t) partOff << 9;
+		maximize(*maxSize, (mt_size_t) (PART_SIZE(partition)) << 9);
 	}
 
 	This->offset = (mt_off_t) partOff << 9;

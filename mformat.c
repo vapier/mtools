@@ -1101,7 +1101,7 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 
 		if(!tot_sectors)
 			tot_sectors = used_dev.tot_sectors;
-
+		
 		Fs.sector_size = 512;
 		if( !(used_dev.use_2m & 0x7f)) {
 			Fs.sector_size = (uint16_t) (128u << (used_dev.ssize & 0x7f));
@@ -1127,6 +1127,14 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 		if(blocksize > MAX_SECTOR)
 			blocksize = MAX_SECTOR;
 
+		if((mt_off_t) tot_sectors * blocksize > maxSize) {
+			snprintf(errmsg, sizeof(errmsg)-1,
+				 "Requested size too large\n");
+			FREE(&Fs.Direct);
+			continue;
+		}
+
+
 		/* do a "test" read */
 		if (!create &&
 		    READS(Fs.Direct, &boot.characters, 0, Fs.sector_size) !=
@@ -1140,11 +1148,11 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 				"Error reading from '%s', wrong parameters?",
 				name);
 #endif
+			FREE(&Fs.Direct);
 			continue;
 		}
 		break;
 	}
-
 
 	/* print error msg if needed */
 	if ( dev->drive == 0 ){
