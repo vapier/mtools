@@ -1127,7 +1127,7 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 		if(blocksize > MAX_SECTOR)
 			blocksize = MAX_SECTOR;
 
-		if((mt_off_t) tot_sectors * blocksize > maxSize) {
+		if((mt_size_t) tot_sectors * blocksize > maxSize) {
 			snprintf(errmsg, sizeof(errmsg)-1,
 				 "Requested size too large\n");
 			FREE(&Fs.Direct);
