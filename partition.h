@@ -42,8 +42,7 @@ struct partition {
 #define sys_ind end.byte0
 
 int consistencyCheck(struct partition *partTable, int doprint, int verbose,
-		     int *has_activated, unsigned int *last_end,
-		     unsigned int *j, 
+		     int *has_activated, uint32_t tot_sectors,
 		     struct device *used_dev, unsigned int target_partition);
 
 void setBeginEnd(struct partition *partTable,
@@ -54,3 +53,5 @@ void setBeginEnd(struct partition *partTable,
 Stream_t *OpenPartition(Stream_t *Next, struct device *dev,
 			char *errmsg, mt_size_t *maxSize);
 
+unsigned int findOverlap(struct partition *partTable, unsigned int until,
+			 uint32_t start, uint32_t end);

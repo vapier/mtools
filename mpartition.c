@@ -36,16 +36,6 @@
 #include "linux/fs.h"
 #endif
 
-#define tolinear(x) \
-(sector(x)-1u+(head(x)+cyl(x)*used_dev->heads)*used_dev->sectors)
-
-
-static __inline__ void print_hsc(hsc *h)
-{
-	printf(" h=%d s=%d c=%d\n",
-	       head(*h), sector(*h), cyl(*h));
-}
-
 static void set_offset(hsc *h, unsigned long offset,
 		       uint16_t heads, uint16_t sectors)
 {
@@ -158,60 +148,6 @@ void setBeginEnd(struct partition *partTable,
 	partTable->sys_ind = type;
 }
 
-int consistencyCheck(struct partition *partTable, int doprint,
-		     int verbose,
-		     int *has_activated, unsigned int *last_end,
-		     unsigned int *j,
-		     struct device *used_dev UNUSEDP,
-		     unsigned int target_partition)
-{
-	unsigned int i;
-	bool inconsistency;
-
-	*j = 0;
-	*last_end = 1;
-
-	/* quick consistency check */
-	inconsistency = 0;
-	*has_activated = 0;
-	for(i=1; i<5; i++){
-		struct partition *partition = &partTable[i];
-		if(!partition->sys_ind)
-			continue;
-		if(partition->boot_ind)
-			(*has_activated)++;
-
-		if(*j &&
-		   *last_end > BEGIN(partition)) {
-			fprintf(stderr,
-				"Partitions %d and %d badly ordered or overlapping\n",
-				*j,i);
-			inconsistency=1;
-		}
-
-		*last_end = END(partition);
-		*j = i;
-
-		if(doprint && verbose) {
-			if(i==target_partition)
-				putchar('*');
-			else
-				putchar(' ');
-			printf("Partition %d\n",i);
-
-			printf("  active=%x\n", partition->boot_ind);
-			printf("  start:");
-			print_hsc(&partition->start);
-			printf("  type=0x%x\n", partition->sys_ind);
-			printf("  end:");
-			print_hsc(&partition->end);
-			printf("  start=%d\n", BEGIN(partition));
-			printf("  nr=%d\n", _DWORD(partition->nr_sects));
-			printf("\n");
-		}
-	}
-	return inconsistency;
-}
 
 /* setsize function.  Determines scsicam mapping if this cannot be inferred from
  * any existing partitions. Shamelessly snarfed from the Linux kernel ;-) */
@@ -331,7 +267,7 @@ void mpartition(int argc, char **argv, int dummy UNUSEDP)
 	Stream_t *Stream;
 	unsigned int dummy2;
 
-	unsigned int i,j;
+	unsigned int i;
 
 	uint16_t sec_per_cyl;
 	int doprint = 0;
@@ -342,14 +278,13 @@ void mpartition(int argc, char **argv, int dummy UNUSEDP)
 	int do_remove = 0;
 	int initialize = 0;
 
-	unsigned long tot_sectors=0;
+	uint32_t tot_sectors=0;
 	/* Needs to be long due to BLKGETSIZE ioctl */
 
 	uint8_t type = 0;
 	int begin_set = 0;
 	int size_set = 0;
 	int end_set = 0;
-	unsigned int last_end = 0;
 	int activate = 0;
 	int has_activated = 0;
 	int inconsistency=0;
@@ -512,7 +447,7 @@ void mpartition(int argc, char **argv, int dummy UNUSEDP)
 			continue;
 		}
 
-		tot_sectors = dev->tot_sectors;
+		tot_sectors = used_dev.tot_sectors;
 		
 		/* read the partition table */
 		if (READS(Stream, (char *) buf, 0, 512) != 512 && !initialize){
@@ -597,9 +532,12 @@ void mpartition(int argc, char **argv, int dummy UNUSEDP)
 
 	/* if number of heads and sectors not known yet, set "reasonable"
 	 * defaults */
-	compute_lba_geom_from_tot_sectors(&used_dev,errmsg);
+	compute_lba_geom_from_tot_sectors(&used_dev);
 
-	/* find out whether there is any activated partition */
+	/* find out whether there is any activated partition. Moreover
+	 * if no offset of a partition to be created have been
+	 * specificed, find out whether it may be placed between the
+	 * preceding and following partition already existing */
 	has_activated = 0;
 	for(i=1; i<5; i++){
 		struct partition *partition=&partTable[i];
@@ -629,12 +567,13 @@ void mpartition(int argc, char **argv, int dummy UNUSEDP)
 	}
 
 	if(verbose)
-		fprintf(stderr,"sectors: %d heads: %d %lu\n",
+		fprintf(stderr,"sectors: %d heads: %d %u\n",
 			used_dev.sectors, used_dev.heads, tot_sectors);
 
 	sec_per_cyl = used_dev.sectors * used_dev.heads;
 	if(create) {
-		if(!end_set && tot_sectors) {
+		unsigned int overlap;
+		if(!end_set && !size_set && tot_sectors) {
 			checkTotalSectors(tot_sectors);
 			end = (uint32_t) tot_sectors -
 				(uint32_t) tot_sectors % sec_per_cyl;
@@ -645,28 +584,34 @@ void mpartition(int argc, char **argv, int dummy UNUSEDP)
 		 * the disk, keep one track unused to allow place for
 		 * the master boot record */
 		if(!begin && !begin_set)
-			begin = used_dev.sectors;
-		if(!size_set && used_dev.tracks) {
-			size_set = 2;
-			length = sec_per_cyl * used_dev.tracks;
+			begin = used_dev.sectors ? used_dev.sectors : 2048;
 
-			/*  round the size in order to take
-			 * into account any "hidden" sectors */
+		/* Do not try to align  partitions (other than first) on track
+		 * boundaries here: apparently this was a thing of the past */
 
-			/* do we anchor this at the beginning ?*/
-			if(begin_set || dev->partition <= 2 || !end_set)
-				length -= begin % sec_per_cyl;
-			else if(end - length < begin)
-				/* truncate any overlap */
-				length = end - begin;
-		}
 		if(size_set) {
-			if(!begin_set && dev->partition >2 && end_set)
+			if(!begin_set && end_set)
 				begin = end - length;
 			else
 				end = begin + length;
 		} else if(!end_set) {
 			fprintf(stderr,"Unknown size\n");
+			exit(1);
+		}
+
+		/* Make sure partition boundaries are correctly ordered
+		 * (end > begin) */
+		if(begin >= end) {
+			fprintf(stderr, "Begin larger than end\n");
+			exit(1);
+		}
+		
+		/* Check whether new partition doesn't overlap with
+		 * any of those already in place */
+		if((overlap=findOverlap(partTable, 4, begin, end))) {
+			fprintf(stderr,
+				"Partition would overlap with partition %d\n",
+				overlap);
 			exit(1);
 		}
 
@@ -694,16 +639,8 @@ void mpartition(int argc, char **argv, int dummy UNUSEDP)
 	}
 
 	inconsistency |= consistencyCheck(partTable, doprint, verbose,
-					  &has_activated, &last_end, &j,
+					  &has_activated, tot_sectors,
 					  &used_dev, dev->partition);
-
-	if(tot_sectors && last_end >tot_sectors) {
-		fprintf(stderr,
-			"Partition %d extends beyond end of disk\n",
-			j);
-		exit(1);
-	}
-
 
 	switch(has_activated) {
 		case 0:

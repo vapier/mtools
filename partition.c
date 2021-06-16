@@ -38,6 +38,98 @@ typedef struct Partition_t {
 	uint16_t cyclinders;
 } Partition_t;
 
+static __inline__ void print_hsc(hsc *h)
+{
+	printf(" h=%d s=%d c=%d\n",
+	       head(*h), sector(*h), cyl(*h));
+}
+
+/*
+ * Make sure range [ start, end ] does not overlap with partition i
+ */
+static int overlapCheck(struct partition *partTable, unsigned int i,
+			uint32_t start, uint32_t end) {
+	struct partition *partition = &partTable[i];
+	if(!partition->sys_ind)
+		return 0; /* Partition not allocated => ok */
+	if(end > BEGIN(partition) &&
+	   (start < END(partition) || END(partition) < BEGIN(partition)))
+		/* overlap */
+		return -1;
+	return 0;
+}
+
+unsigned int findOverlap(struct partition *partTable, unsigned int until,
+			 uint32_t start, uint32_t end)
+{
+	unsigned int i;
+	for(i=1; i <= until; i++)
+		if(overlapCheck(partTable, i, start, end))
+			return i;
+	return 0;
+}
+
+
+int consistencyCheck(struct partition *partTable, int doprint,
+		     int verbose,
+		     int *has_activated, uint32_t tot_sectors,
+		     struct device *used_dev UNUSEDP,
+		     unsigned int target_partition)
+{
+	unsigned int i;
+	bool inconsistency;
+
+	/* quick consistency check */
+	inconsistency = 0;
+	*has_activated = 0;
+	for(i=1; i<=4; i++){
+		unsigned int j;
+		struct partition *partition = &partTable[i];
+		if(!partition->sys_ind)
+			continue;
+		if(partition->boot_ind)
+			(*has_activated)++;
+
+		if(END(partition) < BEGIN(partition)) {
+			fprintf(stderr,
+				"End of partition %d before its begin\n",
+				i);
+		}
+
+		if((j = findOverlap(partTable, i-1,
+				    BEGIN(partition), END(partition)))) {
+			fprintf(stderr,
+				"Partitions %d and %d overlap\n",
+				j, i);
+			inconsistency=1;
+		}
+
+		if(tot_sectors && END(partition) >tot_sectors) {
+			fprintf(stderr,
+				"Partition %d extends beyond end of disk\n", i);
+		}
+
+		if(doprint && verbose) {
+			if(i==target_partition)
+				putchar('*');
+			else
+				putchar(' ');
+			printf("Partition %d\n",i);
+
+			printf("  active=%x\n", partition->boot_ind);
+			printf("  start:");
+			print_hsc(&partition->start);
+			printf("  type=0x%x\n", partition->sys_ind);
+			printf("  end:");
+			print_hsc(&partition->end);
+			printf("  start=%d\n", BEGIN(partition));
+			printf("  nr=%d\n", _DWORD(partition->nr_sects));
+			printf("\n");
+		}
+	}
+	return inconsistency;
+}
+
 
 static int limit_size(Partition_t *This, mt_off_t start, size_t *len)
 {
@@ -106,7 +198,6 @@ Stream_t *OpenPartition(Stream_t *Next, struct device *dev,
 			char *errmsg, mt_size_t *maxSize) {
 	Partition_t *This;
 	int has_activated;
-	unsigned int last_end, j;
 	unsigned char buf[2048];
 	struct partition *partTable=(struct partition *)(buf+ 0x1ae);
 	size_t partOff;
@@ -161,11 +252,10 @@ Stream_t *OpenPartition(Stream_t *Next, struct device *dev,
 	}
 
 	This->offset = (mt_off_t) partOff << 9;
-	dev->tot_sectors = This->size = PART_SIZE(partition);
 
 	if(!mtools_skip_check &&
 	   consistencyCheck((struct partition *)(buf+0x1ae), 0, 0,
-			    &has_activated, &last_end, &j, dev, 0)) {
+			    &has_activated, dev->tot_sectors, dev, 0)) {
 		fprintf(stderr,
 			"Warning: inconsistent partition table\n");
 		fprintf(stderr,
@@ -181,6 +271,7 @@ Stream_t *OpenPartition(Stream_t *Next, struct device *dev,
 			"mtools_skip_check=1 to your .mtoolsrc "
 			"file to suppress this warning\n");
 	}
+	dev->tot_sectors = This->size = PART_SIZE(partition);
 	return (Stream_t *) This;
  exit_0:
 	Free(This);
