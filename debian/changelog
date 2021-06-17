@@ -1,3 +1,25 @@
+mtools (4.0.30) stable; urgency=low
+
+  * Fixed XDF floppy disk access
+  * Fixed faulty behavior at end of image in mcat
+  * Device/Image size handling refactoring
+  * allow remap to write to zero-backed sectors (may happen if
+    buffer is flushed, and is not an error in that case)
+  * Raise an error when trying to mcopy multiple source files
+    over a single destination file (rather than directory)
+  * fix handling of "hidden" sectors (is a 2 byte quantity on
+    small disks, not 4 byte as previously assumed)
+  * Modernize partition support. Tuned consistency check to
+    actually check about important issues (such as overlapping
+    partitions) rather than stuff nobody else cares about
+    (alignment on entire cylinder boundaries)
+  * Move various "filter" options (partition, offset, swap,
+    scsi) into separate classes, rather than leaving almost
+    everything in plain_io
+  * Simplify and centralize geometry handling and LBA code
+  * Fix some more more compiler warnings
+
+ -- Alain Knaff <alain@knaff.lu>  Thu, 17 Jun 2021 22:23:39 +0200
 mtools (4.0.29) stable; urgency=low
 
   * -Fix bug in cluster preallocation, which was accidentally introduced by compiler warning "fixes" from v4_0_28

@@ -1,7 +1,7 @@
 %define _binary_payload w9.gzdio
 Name:           mtools
 Summary:        mtools, read/write/list/format DOS disks under Unix
-Version:        4.0.29
+Version:        4.0.30
 Release:        1
 License:        GPLv3+
 Group:          Utilities/System
@@ -135,6 +135,25 @@ if [ -f %{_bindir}/install-info ] ; then
 fi
 
 %changelog
+* Thu Jun 17 2021 Alain Knaff <alain@knaff.lu>
+- Fixed XDF floppy disk access
+- Fixed faulty behavior at end of image in mcat
+- Device/Image size handling refactoring
+- allow remap to write to zero-backed sectors (may happen if
+  buffer is flushed, and is not an error in that case)
+- Raise an error when trying to mcopy multiple source files
+  over a single destination file (rather than directory)
+- fix handling of "hidden" sectors (is a 2 byte quantity on
+  small disks, not 4 byte as previously assumed)
+- Modernize partition support. Tuned consistency check to
+  actually check about important issues (such as overlapping
+  partitions) rather than stuff nobody else cares about
+  (alignment on entire cylinder boundaries)
+- Move various "filter" options (partition, offset, swap,
+  scsi) into separate classes, rather than leaving almost
+  everything in plain_io
+- Simplify and centralize geometry handling and LBA code
+- Fix some more more compiler warnings
 * Mon May 31 2021 Alain Knaff <alain@knaff.lu>
 -Fix bug in cluster preallocation, which was accidentally introduced by compiler warning "fixes" from v4_0_28
 * Sat Nov 28 2020 Alain Knaff <alain@knaff.lu>
