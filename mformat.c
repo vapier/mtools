@@ -1085,7 +1085,13 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 				      O_RDWR|create, errmsg,
 				      ALWAYS_GET_GEOMETRY,
 				      O_RDWR,
-				      &maxSize, NULL, &info);
+				      &maxSize, NULL,
+#ifdef USE_XDF
+				      &info
+#else
+				      NULL
+#endif
+				      );
 
 #ifdef USE_XDF
 		if(Fs.Direct && info.FatSize) {
