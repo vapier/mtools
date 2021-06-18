@@ -798,6 +798,86 @@ static __inline__ int get_parameters(int fd, struct floppy_struct *floppy)
 	return ioctl(fd, FDGETPRM, floppy);
 }
 
+#include "linux/hdreg.h"
+#include "linux/fs.h"
+
+static uint32_t ulong_to_sectors(unsigned long raw_sect) {
+	/* Number of sectors must fit into 32bit value */
+	if (raw_sect > ULONG_MAX) {
+		fprintf(stderr, "Too many sectors for FAT %8lx\n",raw_sect);
+		exit(1);
+	}
+	return (uint32_t) raw_sect;
+}
+
+int get_sector_size(int fd) {
+	int sec_size;
+	if (ioctl(fd, BLKSSZGET, &sec_size) != 0 || sec_size <= 0) {
+		fprintf(stderr, "Could not get sector size of device (%s)",
+			strerror(errno));
+		return -1;
+	}
+
+	/* Cap sector size at 4096 */
+	if(sec_size > 4096)
+		sec_size = 4096;
+	return sec_size;
+}
+
+static int get_block_geom(int fd, struct device *dev) {
+	struct hd_geometry geom;
+	int sec_size;
+	unsigned long size;
+	uint16_t heads=dev->heads;
+	uint16_t sectors=dev->sectors;
+	uint32_t sect_per_track;
+
+	if (ioctl(fd, HDIO_GETGEO, &geom) < 0) {
+		fprintf(stderr, "Could not get geometry of device (%s)",
+			strerror(errno));
+		return -1;
+	}
+
+	if (ioctl(fd, BLKGETSIZE, &size) < 0) {
+		fprintf(stderr, "Could not get size of device (%s)",
+			strerror(errno));
+		return -1;
+	}
+
+	sec_size = get_sector_size(fd);
+	if(sec_size < 0)
+		return -1;
+	
+	dev->ssize = 0;
+	while (dev->ssize < 0x7F && (128 << dev->ssize) < sec_size)
+		dev->ssize++;
+
+	if(!heads)
+		heads = geom.heads;
+	if(!sectors)
+		sectors = geom.sectors;
+
+	sect_per_track = heads * sectors;
+	if(!dev->hidden) {
+		uint32_t hidden;
+		hidden = geom.start % sect_per_track;
+		if(hidden && hidden != sectors) {
+			fprintf(stderr,
+				"Hidden (%d) does not match sectors (%d)\n",
+				hidden, sectors);
+			return -1;
+		}
+		dev->hidden = hidden;
+	}
+	dev->heads = heads;
+	dev->sectors = sectors;
+	if(!dev->tracks)
+		dev->tracks = ulong_to_sectors((size + dev->hidden % sect_per_track) / sect_per_track);
+	return 0;
+}
+
+#define HAVE_GET_BLOCK_GEOM
+
 #endif /* linux */
 
 
@@ -986,90 +1066,13 @@ struct device devices[] = {
 #endif
 
 #undef INIT_NOOP
-#include "linux/hdreg.h"
-#include "linux/fs.h"
-
-static uint32_t ulong_to_sectors(unsigned long raw_sect) {
-	/* Number of sectors must fit into 32bit value */
-	if (raw_sect > ULONG_MAX) {
-		fprintf(stderr, "Too many sectors for FAT %8lx\n",raw_sect);
-		exit(1);
-	}
-	return (uint32_t) raw_sect;
-}
-
-int get_sector_size(int fd) {
-	int sec_size;
-	if (ioctl(fd, BLKSSZGET, &sec_size) != 0 || sec_size <= 0) {
-		fprintf(stderr, "Could not get sector size of device (%s)",
-			strerror(errno));
-		return -1;
-	}
-
-	/* Cap sector size at 4096 */
-	if(sec_size > 4096)
-		sec_size = 4096;
-	return sec_size;
-}
-
-static int get_block_geom(int fd, struct device *dev) {
-	struct hd_geometry geom;
-	int sec_size;
-	unsigned long size;
-	uint16_t heads=dev->heads;
-	uint16_t sectors=dev->sectors;
-	uint32_t sect_per_track;
-
-	if (ioctl(fd, HDIO_GETGEO, &geom) < 0) {
-		fprintf(stderr, "Could not get geometry of device (%s)",
-			strerror(errno));
-		return -1;
-	}
-
-	if (ioctl(fd, BLKGETSIZE, &size) < 0) {
-		fprintf(stderr, "Could not get size of device (%s)",
-			strerror(errno));
-		return -1;
-	}
-
-	sec_size = get_sector_size(fd);
-	if(sec_size < 0)
-		return -1;
-	
-	dev->ssize = 0;
-	while (dev->ssize < 0x7F && (128 << dev->ssize) < sec_size)
-		dev->ssize++;
-
-	if(!heads)
-		heads = geom.heads;
-	if(!sectors)
-		sectors = geom.sectors;
-
-	sect_per_track = heads * sectors;
-	if(!dev->hidden) {
-		uint32_t hidden;
-		hidden = geom.start % sect_per_track;
-		if(hidden && hidden != sectors) {
-			fprintf(stderr,
-				"Hidden (%d) does not match sectors (%d)\n",
-				hidden, sectors);
-			return -1;
-		}
-		dev->hidden = hidden;
-	}
-	dev->heads = heads;
-	dev->sectors = sectors;
-	if(!dev->tracks)
-		dev->tracks = ulong_to_sectors((size + dev->hidden % sect_per_track) / sect_per_track);
-	return 0;
-}
-
 int init_geom(int fd, struct device *dev, struct device *orig_dev,
 	      struct MT_STAT *statbuf)
 {
 	struct generic_floppy_struct floppy;
 	int change;
 
+#ifdef HAVE_GET_BLOCK_GEOM
 	/**
 	 * Block device which *isn't* a floppy device
 	 */
@@ -1078,6 +1081,7 @@ int init_geom(int fd, struct device *dev, struct device *orig_dev,
 		get_block_geom(fd, dev);
 		return compare_geom(dev, orig_dev);
 	}
+#endif
 	
 	/* 
 	 * succeed if we don't have a floppy
