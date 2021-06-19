@@ -138,6 +138,9 @@ typedef void *caddr_t;
 #define _LARGEFILE64_SOURCE
 #define _GNU_SOURCE
 
+#ifdef HAVE_ASSERT_H
+# include <assert.h>
+#endif
 
 #ifdef HAVE_FEATURES_H
 # include <features.h>

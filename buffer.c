@@ -355,6 +355,11 @@ Stream_t *buf_init(Stream_t *Next, size_t size,
 	Buffer_t *Buffer;
 	Stream_t *Stream;
 
+#ifdef HAVE_ASSERT_H
+	assert(size != 0);
+	assert(cylinderSize != 0);
+	assert(sectorSize != 0);
+#endif
 
 	if(size % cylinderSize != 0) {
 		fprintf(stderr, "size not multiple of cylinder size\n");
