@@ -138,7 +138,14 @@ static int init_geom_with_reg(int fd, struct device *dev,
 			      struct MT_STAT *statbuf) {
 	if(S_ISREG(statbuf->st_mode)) {
 		/* Regular file (image file) */
-		mt_off_t sectors = statbuf->st_size /
+		mt_off_t sectors;
+		if(statbuf->st_size == 0) {
+			/* zero sized image => newly created.
+			   Size not actually known...
+			*/
+			return 0;
+		}
+		sectors = statbuf->st_size /
 			(dev->sector_size ? dev->sector_size : 512);
 		dev->tot_sectors =
 			(sectors > (mt_off_t) UINT32_MAX)
