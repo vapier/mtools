@@ -753,7 +753,7 @@ void mformat(int argc, char **argv, int dummy UNUSEDP) NORETURN;
 void mformat(int argc, char **argv, int dummy UNUSEDP)
 {
 	int r; /* generic return value */
-	Fs_t Fs;
+	Fs_t *Fs;
 	unsigned int hs;
 	int hs_set;
 	unsigned int arguse_2m = 0;
@@ -818,22 +818,28 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 	serial = 0;
 	fsVersion = 0;
 
-	Fs.cluster_size = 0;
-	Fs.refs = 1;
-	Fs.dir_len = 0;
+	Fs = New(Fs_t);
+	if (!Fs) {
+		fprintf(stderr, "Out of memory\n");
+		exit(1);
+	}
+		
+	Fs->cluster_size = 0;
+	Fs->refs = 1;
+	Fs->dir_len = 0;
 	if(getenv("MTOOLS_DIR_LEN")) {
-		Fs.dir_len = atou16(getenv("MTOOLS_DIR_LEN"));
-	  if(Fs.dir_len <= 0)
-	    Fs.dir_len=0;
+		Fs->dir_len = atou16(getenv("MTOOLS_DIR_LEN"));
+	  if(Fs->dir_len <= 0)
+	    Fs->dir_len=0;
 	}
-	Fs.fat_len = 0;
-	Fs.num_fat = 2;
+	Fs->fat_len = 0;
+	Fs->num_fat = 2;
 	if(getenv("MTOOLS_NFATS")) {
-		Fs.num_fat = atou8(getenv("MTOOLS_NFATS"));
-	  if(Fs.num_fat <= 0)
-	    Fs.num_fat=2;
+		Fs->num_fat = atou8(getenv("MTOOLS_NFATS"));
+	  if(Fs->num_fat <= 0)
+	    Fs->num_fat=2;
 	}
-	Fs.Class = &FsClass;
+	Fs->Class = &FsClass;
 	rate_0 = mtools_rate_0;
 	rate_any = mtools_rate_any;
 
@@ -972,14 +978,14 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 				break;
 
 			case 'c':
-				Fs.cluster_size = atoui(optarg);
+				Fs->cluster_size = atoui(optarg);
 				break;
 
 			case 'r':
-				Fs.dir_len = strtou16(optarg,&endptr,0);
+				Fs->dir_len = strtou16(optarg,&endptr,0);
 				break;
 			case 'L':
-				Fs.fat_len = strtoui(optarg,&endptr,0);
+				Fs->fat_len = strtoui(optarg,&endptr,0);
 				break;
 
 
@@ -1004,7 +1010,7 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 				argheads = atou16(optarg);
 				break;
 			case 'd':
-				Fs.num_fat = atou8(optarg);
+				Fs->num_fat = atou8(optarg);
 				break;
 			case 'm':
 				mediaDesc = strtou8(optarg,&endptr,0);
@@ -1052,10 +1058,10 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 
 	/* check out a drive whose letter and parameters match */
 	sprintf(errmsg, "Drive '%c:' not supported", drive);
-	Fs.Direct = NULL;
+	Fs->Direct = NULL;
 	blocksize = 0;
 	for(dev=devices;dev->drive;dev++) {
-		FREE(&(Fs.Direct));
+		FREE(&(Fs->Direct));
 		/* drive letter */
 		if (dev->drive != drive)
 			continue;
@@ -1081,7 +1087,7 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 		if(tot_sectors)
 			used_dev.tot_sectors = tot_sectors;
 		
-		Fs.Direct = OpenImage(&used_dev, dev, name,
+		Fs->Direct = OpenImage(&used_dev, dev, name,
 				      O_RDWR|create, errmsg,
 				      ALWAYS_GET_GEOMETRY,
 				      O_RDWR,
@@ -1094,39 +1100,39 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 				      );
 
 #ifdef USE_XDF
-		if(Fs.Direct && info.FatSize) {
-			if(!Fs.fat_len)
-				Fs.fat_len = info.FatSize;
-			if(!Fs.dir_len)
-				Fs.dir_len = info.RootDirSize;
+		if(Fs->Direct && info.FatSize) {
+			if(!Fs->fat_len)
+				Fs->fat_len = info.FatSize;
+			if(!Fs->dir_len)
+				Fs->dir_len = info.RootDirSize;
 		}
 #endif
 
-		if (!Fs.Direct)
+		if (!Fs->Direct)
 			continue;
 
 		if(!tot_sectors)
 			tot_sectors = used_dev.tot_sectors;
 		
-		Fs.sector_size = 512;
+		Fs->sector_size = 512;
 		if( !(used_dev.use_2m & 0x7f)) {
-			Fs.sector_size = (uint16_t) (128u << (used_dev.ssize & 0x7f));
+			Fs->sector_size = (uint16_t) (128u << (used_dev.ssize & 0x7f));
 		}
 
-		SET_INT(Fs.sector_size, msize);
+		SET_INT(Fs->sector_size, msize);
 		{
 		    unsigned int j;
 		    for(j = 0; j < 31; j++) {
-			if (Fs.sector_size == (unsigned int) (1 << j)) {
-			    Fs.sectorShift = j;
+			if (Fs->sector_size == (unsigned int) (1 << j)) {
+			    Fs->sectorShift = j;
 			    break;
 			}
 		    }
-		    Fs.sectorMask = Fs.sector_size - 1;
+		    Fs->sectorMask = Fs->sector_size - 1;
 		}
 
-		if(!used_dev.blocksize || used_dev.blocksize < Fs.sector_size)
-			blocksize = Fs.sector_size;
+		if(!used_dev.blocksize || used_dev.blocksize < Fs->sector_size)
+			blocksize = Fs->sector_size;
 		else
 			blocksize = used_dev.blocksize;
 
@@ -1136,15 +1142,15 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 		if((mt_size_t) tot_sectors * blocksize > maxSize) {
 			snprintf(errmsg, sizeof(errmsg)-1,
 				 "Requested size too large\n");
-			FREE(&Fs.Direct);
+			FREE(&Fs->Direct);
 			continue;
 		}
 
 
 		/* do a "test" read */
 		if (!create &&
-		    READS(Fs.Direct, &boot.characters, 0, Fs.sector_size) !=
-		    (signed int) Fs.sector_size) {
+		    READS(Fs->Direct, &boot.characters, 0, Fs->sector_size) !=
+		    (signed int) Fs->sector_size) {
 #ifdef HAVE_SNPRINTF
 			snprintf(errmsg, sizeof(errmsg)-1,
 				 "Error reading from '%s', wrong parameters?",
@@ -1154,7 +1160,7 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 				"Error reading from '%s', wrong parameters?",
 				name);
 #endif
-			FREE(&Fs.Direct);
+			FREE(&Fs->Direct);
 			continue;
 		}
 		break;
@@ -1162,7 +1168,7 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 
 	/* print error msg if needed */
 	if ( dev->drive == 0 ){
-		FREE(&Fs.Direct);
+		FREE(&Fs->Direct);
 		fprintf(stderr,"%s: %s\n", argv[0],errmsg);
 		exit(1);
 	}
@@ -1185,9 +1191,9 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 
 	/* create the image file if needed */
 	if (create) {
-		WRITES(Fs.Direct, &boot.characters,
-		       sectorsToBytes((Stream_t*)&Fs, tot_sectors-1),
-		       Fs.sector_size);
+		WRITES(Fs->Direct, &boot.characters,
+		       sectorsToBytes((Stream_t*)Fs, tot_sectors-1),
+		       Fs->sector_size);
 	}
 
 	/* the boot sector */
@@ -1209,15 +1215,15 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 		close(fd);
 	}
 	if(!keepBoot && !(used_dev.use_2m & 0x7f))
-		memset(boot.characters, '\0', Fs.sector_size);
+		memset(boot.characters, '\0', Fs->sector_size);
 
-	Fs.Next = buf_init(Fs.Direct,
-			   blocksize * used_dev.heads * used_dev.sectors,
-			   blocksize * used_dev.heads * used_dev.sectors,
-			   blocksize);
-	Fs.Buffer = 0;
+	Fs->Next = buf_init(Fs->Direct,
+			    blocksize * used_dev.heads * used_dev.sectors,
+			    blocksize * used_dev.heads * used_dev.sectors,
+			    blocksize);
+	Fs->Buffer = 0;
 
-	boot.boot.nfat = Fs.num_fat;
+	boot.boot.nfat = Fs->num_fat;
 	if(!keepBoot)
 		set_word(&boot.bytes[510], 0xaa55);
 
@@ -1225,7 +1231,7 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 	set_word(boot.boot.nsect, used_dev.sectors);
 	set_word(boot.boot.nheads, used_dev.heads);
 
-	used_dev.fat_bits = comp_fat_bits(&Fs,used_dev.fat_bits, tot_sectors, fat32);
+	used_dev.fat_bits = comp_fat_bits(Fs,used_dev.fat_bits, tot_sectors, fat32);
 
 	if(!keepBoot && !(used_dev.use_2m & 0x7f)) {
 		if(!used_dev.partition) {
@@ -1242,8 +1248,8 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 	}
 
 	if(used_dev.fat_bits == 32) {
-		Fs.primaryFat = 0;
-		Fs.writeAllFats = 1;
+		Fs->primaryFat = 0;
+		Fs->writeAllFats = 1;
 		if(resvSects) {
 			if(resvSects < 3) {
 				fprintf(stderr,
@@ -1253,20 +1259,20 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 
 			if(resvSects <= backupBoot && !backupBootSet)
 				backupBoot = resvSects - 1;
-			Fs.fat_start = resvSects;
+			Fs->fat_start = resvSects;
 		} else 
-			Fs.fat_start = 32;
+			Fs->fat_start = 32;
 
-		if(Fs.fat_start <= backupBoot) {
+		if(Fs->fat_start <= backupBoot) {
 			fprintf(stderr,
-				"Reserved sectors (%d) must be more than backupBoot (%d)\n", Fs.fat_start, backupBoot);
+				"Reserved sectors (%d) must be more than backupBoot (%d)\n", Fs->fat_start, backupBoot);
 			backupBoot = 6;
-			Fs.fat_start = 32;
+			Fs->fat_start = 32;
 		}
 
-		calc_fs_parameters_32(tot_sectors, &Fs, &boot);
+		calc_fs_parameters_32(tot_sectors, Fs, &boot);
 
-		Fs.clus_start = Fs.num_fat * Fs.fat_len + Fs.fat_start;
+		Fs->clus_start = Fs->num_fat * Fs->fat_len + Fs->fat_start;
 
 		/* extension flags: mirror fats, and use #0 as primary */
 		set_word(boot.boot.ext.fat32.extFlags,0);
@@ -1275,37 +1281,37 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 		set_word(boot.boot.ext.fat32.fsVersion,fsVersion);
 
 		/* root directory */
-		set_dword(boot.boot.ext.fat32.rootCluster, Fs.rootCluster = 2);
+		set_dword(boot.boot.ext.fat32.rootCluster, Fs->rootCluster = 2);
 
 		/* info sector */
-		set_word(boot.boot.ext.fat32.infoSector, Fs.infoSectorLoc = 1);
-		Fs.infoSectorLoc = 1;
+		set_word(boot.boot.ext.fat32.infoSector, Fs->infoSectorLoc = 1);
+		Fs->infoSectorLoc = 1;
 
 		/* no backup boot sector */
 		set_word(boot.boot.ext.fat32.backupBoot, backupBoot);
 
 		labelBlock = & boot.boot.ext.fat32.labelBlock;
 	} else {
-		Fs.infoSectorLoc = 0;
+		Fs->infoSectorLoc = 0;
 		if(resvSects) {
 			if(resvSects < 1) {
 				fprintf(stderr,
 					"Reserved sectors need to be at least 1\n");
 				resvSects = 1;
 			}
-			Fs.fat_start = resvSects;
+			Fs->fat_start = resvSects;
 		} else 
-			Fs.fat_start = 1;
-		calc_fs_parameters(&used_dev, tot_sectors, &Fs, &boot);
-		Fs.dir_start = Fs.num_fat * Fs.fat_len + Fs.fat_start;
-		Fs.clus_start = Fs.dir_start + Fs.dir_len;
+			Fs->fat_start = 1;
+		calc_fs_parameters(&used_dev, tot_sectors, Fs, &boot);
+		Fs->dir_start = Fs->num_fat * Fs->fat_len + Fs->fat_start;
+		Fs->clus_start = Fs->dir_start + Fs->dir_len;
 		labelBlock = & boot.boot.ext.old.labelBlock;
 
 	}
 
 	/* Set the codepage */
-	Fs.cp = cp_open(used_dev.codepage);
-	if(Fs.cp == NULL)
+	Fs->cp = cp_open(used_dev.codepage);
+	if(Fs->cp == NULL)
 		exit(1);
 
 	if (!keepBoot)
@@ -1320,17 +1326,17 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 	if (!serial_set)
 		serial=(uint32_t) random();
 	set_dword(labelBlock->serial, serial);
-	label_name_pc(GET_DOSCONVERT((Stream_t *)&Fs),
+	label_name_pc(GET_DOSCONVERT((Stream_t *)Fs),
 		      label[0] ? label : "NO NAME    ", 0,
 		      &mangled, &shortlabel);
 	strncpy(labelBlock->label, shortlabel.base, 8);
 	strncpy(labelBlock->label+8, shortlabel.ext, 3);
-	sprintf(labelBlock->fat_type, "FAT%2.2d  ", Fs.fat_bits);
+	sprintf(labelBlock->fat_type, "FAT%2.2d  ", Fs->fat_bits);
 	labelBlock->fat_type[7] = ' ';
 
-	set_word(boot.boot.secsiz, Fs.sector_size);
-	boot.boot.clsiz = (unsigned char) Fs.cluster_size;
-	set_word(boot.boot.nrsvsect, Fs.fat_start);
+	set_word(boot.boot.secsiz, Fs->sector_size);
+	boot.boot.clsiz = (unsigned char) Fs->cluster_size;
+	set_word(boot.boot.nrsvsect, Fs->fat_start);
 
 	bootOffset = init_geometry_boot(&boot, &used_dev, sectors0,
 					rate_0, rate_any,
@@ -1357,47 +1363,41 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 	  boot.boot.jump[2] = 0x90;
 	}
 	if(used_dev.use_2m & 0x7f)
-		Fs.num_fat = 1;
+		Fs->num_fat = 1;
 	if(haveMediaDesc)
 		boot.boot.descr=mediaDesc;
-	Fs.lastFatSectorNr = 0;
-	Fs.lastFatSectorData = 0;
-	zero_fat(&Fs, boot.boot.descr);
-	Fs.freeSpace = Fs.num_clus;
-	Fs.last = 2;
+	Fs->lastFatSectorNr = 0;
+	Fs->lastFatSectorData = 0;
+	zero_fat(Fs, boot.boot.descr);
+	Fs->freeSpace = Fs->num_clus;
+	Fs->last = 2;
 
 #ifdef USE_XDF
 	if(format_xdf)
 		for(i=0;
-		    i < (info.BadSectors+Fs.cluster_size-1)/Fs.cluster_size;
+		    i < (info.BadSectors+Fs->cluster_size-1)/Fs->cluster_size;
 		    i++)
-			fatEncode(&Fs, i+2, 0xfff7);
+			fatEncode(Fs, i+2, 0xfff7);
 #endif
 
-	format_root(&Fs, label, &boot);
-	if(WRITES((Stream_t *)&Fs, boot.characters,
-		  (mt_off_t) 0, Fs.sector_size) < 0) {
+	format_root(Fs, label, &boot);
+	if(WRITES((Stream_t *)Fs, boot.characters,
+		  (mt_off_t) 0, Fs->sector_size) < 0) {
 		fprintf(stderr, "Error writing boot sector\n");
 		exit(1);
 	}
 
-	if(Fs.fat_bits == 32 && WORD_S(ext.fat32.backupBoot) != MAX16) {
-		if(WRITES((Stream_t *)&Fs, boot.characters,
-			  sectorsToBytes((Stream_t*)&Fs,
+	if(Fs->fat_bits == 32 && WORD_S(ext.fat32.backupBoot) != MAX16) {
+		if(WRITES((Stream_t *)Fs, boot.characters,
+			  sectorsToBytes((Stream_t*)Fs,
 					 WORD_S(ext.fat32.backupBoot)),
-			  Fs.sector_size) < 0) {
+			  Fs->sector_size) < 0) {
 			fprintf(stderr, "Error writing backup boot sector\n");
 			exit(1);
 		}
 	}
 
-	/* The freeing of FS needs to be done manually, as it is a
-	 * local variable, rather than a pointer, where the FREE macro
-	 * from stream.c would not work */
-	FLUSH((Stream_t *)&Fs); /* flushes Fs.
-				 * This triggers the writing of the FAT */
-	FREE(&Fs.Next);
-	Fs.Class->freeFunc((Stream_t *)&Fs);
+	FREE((Stream_t **)&Fs);
 #ifdef USE_XDF
 	if(format_xdf && isatty(0) && !getenv("MTOOLS_USE_XDF"))
 		fprintf(stderr,
