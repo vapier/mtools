@@ -112,7 +112,7 @@ void dos_name(doscp_t *toDos, const char *name, int verbose UNUSEDP,
 		name = &name[2];
 
 	/* zap the leading path */
-	name = (char *) _basename(name);
+	name = _basename(name);
 	if ((s = strrchr(name, '\\')))
 		name = s + 1;
 	

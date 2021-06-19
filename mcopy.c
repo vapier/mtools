@@ -45,7 +45,7 @@ static void set_mtime(const char *target, time_t mtime)
 		tv[0].tv_usec = 0;
 		tv[1].tv_sec = mtime;
 		tv[1].tv_usec = 0;
-		utimes((char *)target, tv);
+		utimes(target, tv);
 #else
 #ifdef HAVE_UTIME
 		struct utimbuf utbuf;
