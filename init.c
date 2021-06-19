@@ -418,8 +418,10 @@ Stream_t *fs_init(char drive, int mode, int *isRop)
 		 * else result of the AND would be 0x1xx
 		 */
 		struct OldDos_t *params=getOldDosByMedia(media);
-		if(params == NULL)
+		if(params == NULL) {
+			fprintf(stderr, "Unknown media byte %02x\n", media);
 			return NULL;
+		}
 		This->cluster_size = params->cluster_size;
 		tot_sectors = cylinder_size * params->tracks;
 		This->fat_start = 1;
@@ -529,6 +531,7 @@ Stream_t *fs_init(char drive, int mode, int *isRop)
 
 	/* read the FAT sectors */
 	if(fat_read(This, &boot, tot_sectors, dev.use_2m&0x7f)){
+		fprintf(stderr, "Error reading FAT\n");
 		This->num_fat = 1;
 		FREE(&This->Next);
 		Free(This->Next);
@@ -538,6 +541,7 @@ Stream_t *fs_init(char drive, int mode, int *isRop)
 	/* Set the codepage */
 	This->cp = cp_open(dev.codepage);
 	if(This->cp == NULL) {
+		fprintf(stderr, "Error setting code page\n");
 		fs_free((Stream_t *)This);
 		FREE(&This->Next);
 		Free(This->Next);
