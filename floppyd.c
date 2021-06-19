@@ -108,7 +108,7 @@
 
 unsigned int mtools_lock_timeout=30;
 
-void serve_client(int sock, char **device_name, unsigned int n_dev,
+void serve_client(int sock, const char *const*device_name, unsigned int n_dev,
 		  int close_stderr);
 
 
@@ -750,9 +750,9 @@ static void alarm_signal(int a UNUSEDP)
 /*
  * This is the main loop when running as a server.
  */
-static void server_main_loop(int sock, char **device_name,
+static void server_main_loop(int sock, const char *const*device_name,
 			     unsigned int n_dev) NORETURN;
-static void server_main_loop(int sock, char **device_name,
+static void server_main_loop(int sock, const char *const*device_name,
 			     unsigned int n_dev)
 {
 	struct sockaddr_in	addr;
@@ -787,7 +787,7 @@ static void server_main_loop(int sock, char **device_name,
 				 * Start the proxy work in the new socket.
 				 */
 #endif
-				serve_client(new_sock,device_name, n_dev, 0);
+				serve_client(new_sock, device_name, n_dev, 0);
 				exit(0);
 #if DEBUG == 0
 		}
@@ -840,7 +840,7 @@ int main (int argc, char** argv)
 	char*			username = strdup("nobody");
 	int			sock;
 
-	char **device_name = NULL; 
+	const char *const* device_name = NULL; 
 	const char *floppy0 = "/dev/fd0";
 	unsigned int n_dev;
 
@@ -884,10 +884,10 @@ int main (int argc, char** argv)
 		}
 
 	if(optind < argc) {
-		device_name = argv + optind;
+		device_name = (const char * const *) argv + optind;
 		n_dev = (unsigned int) (argc - optind);
 	} else {
-		device_name = (char **)&floppy0;
+		device_name = &floppy0;
 		n_dev = 1;
 	}
 
@@ -1054,8 +1054,8 @@ static void cleanup(int x UNUSEDP) {
 
 #include "lockdev.h"
 
-void serve_client(int sockhandle, char **device_name, unsigned int n_dev,
-		  int close_stderr) {
+void serve_client(int sockhandle, const char *const*device_name,
+		  unsigned int n_dev, int close_stderr) {
 	Packet opcode;
 	Packet parm;
 
