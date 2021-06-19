@@ -691,9 +691,9 @@ Stream_t *XdfOpen(struct device *dev, const char *name,
 	 * for reading just the boot sector */
 	fill_boot(This);
 	This->rate = 0;
-	if (load_data(This, 0, 1, 1) < 0 ) {
+	if (load_data(This, 0, 1, 4) < 0 ) {
 		This->rate = 0x43;
-		if(load_data(This, 0, 1, 1) < 0)
+		if(load_data(This, 0, 1, 4) < 0)
 			goto exit_3;
 	}
 
