@@ -1075,7 +1075,7 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 #endif
 
 #ifdef USE_XDF
-		if(!format_xdf)
+		if(format_xdf)
 			used_dev.misc_flags |= USE_XDF_FLAG;
 #endif
 		if(tot_sectors)
