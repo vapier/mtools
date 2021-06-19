@@ -27,7 +27,6 @@
 #include "fsP.h"
 #include "file.h"
 #include "plain_io.h"
-#include "floppyd_io.h"
 #include "nameclash.h"
 #include "buffer.h"
 #ifdef HAVE_ASSERT_H
@@ -182,9 +181,9 @@ static int comp_fat_bits(Fs_t *Fs, int estimate,
 	TOTAL_DISK_SIZE((bits), Fs->sector_size, (clusters), \
 			Fs->num_fat, MAX_BYTES_PER_CLUSTER/Fs->sector_size)
 
-	if(tot_sectors > MAX_DISK_SIZE(12, FAT12-1))
+	if(tot_sectors > MAX_DISK_SIZE(12u, FAT12-1))
 		needed_fat_bits = 16;
-	if(fat32 || tot_sectors > MAX_DISK_SIZE(16, FAT16-1))
+	if(fat32 || tot_sectors > MAX_DISK_SIZE(16u, FAT16-1))
 		needed_fat_bits = 32;
 
 #undef MAX_DISK_SIZE
