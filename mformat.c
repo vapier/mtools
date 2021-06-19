@@ -1168,7 +1168,8 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 	}
 
 	/* calculate the total number of sectors */
-	if(tot_sectors == 0) {
+	if(tot_sectors == 0 &&
+	   used_dev.heads && used_dev.sectors && used_dev.tracks) {
 		uint32_t sect_per_track = used_dev.heads*used_dev.sectors;
 		mt_off_t rtot_sectors =
 			used_dev.tracks*(mt_off_t)sect_per_track;
