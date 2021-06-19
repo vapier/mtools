@@ -54,8 +54,7 @@ int free_stream(Stream_t **Stream)
 		if((*Stream)->Next)
 			ret |= free_stream(&(*Stream)->Next);
 		Free(*Stream);
-	} else if ( (*Stream)->Next )
-		ret |= flush_stream((*Stream)->Next);		
+	}
 	*Stream = NULL;
 	return ret;
 }
