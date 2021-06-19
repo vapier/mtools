@@ -590,10 +590,7 @@ void mpartition(int argc, char **argv, int dummy UNUSEDP)
 		 * boundaries here: apparently this was a thing of the past */
 
 		if(size_set) {
-			if(!begin_set && end_set)
-				begin = end - length;
-			else
-				end = begin + length;
+			end = begin + length;
 		} else if(!end_set) {
 			fprintf(stderr,"Unknown size\n");
 			exit(1);
