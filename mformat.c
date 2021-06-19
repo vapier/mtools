@@ -1375,20 +1375,25 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 #endif
 
 	format_root(&Fs, label, &boot);
-	WRITES((Stream_t *)&Fs, boot.characters,
-	       (mt_off_t) 0, Fs.sector_size);
-
-	if(used_dev.fat_bits == 32) {
-	  WRITES((Stream_t *)&Fs, boot.characters,
-		 (mt_off_t) backupBoot * Fs.sector_size, Fs.sector_size);
+	if(WRITES((Stream_t *)&Fs, boot.characters,
+		  (mt_off_t) 0, Fs.sector_size) < 0) {
+		fprintf(stderr, "Error writing boot sector\n");
+		exit(1);
 	}
 
 	if(Fs.fat_bits == 32 && WORD_S(ext.fat32.backupBoot) != MAX16) {
-		WRITES((Stream_t *)&Fs, boot.characters,
-		       sectorsToBytes((Stream_t*)&Fs,
-				      WORD_S(ext.fat32.backupBoot)),
-		       Fs.sector_size);
+		if(WRITES((Stream_t *)&Fs, boot.characters,
+			  sectorsToBytes((Stream_t*)&Fs,
+					 WORD_S(ext.fat32.backupBoot)),
+			  Fs.sector_size) < 0) {
+			fprintf(stderr, "Error writing backup boot sector\n");
+			exit(1);
+		}
 	}
+
+	/* The freeing of FS needs to be done manually, as it is a
+	 * local variable, rather than a pointer, where the FREE macro
+	 * from stream.c would not work */
 	FLUSH((Stream_t *)&Fs); /* flushes Fs.
 				 * This triggers the writing of the FAT */
 	FREE(&Fs.Next);
