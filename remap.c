@@ -82,10 +82,22 @@ static ssize_t remap_write(Stream_t *Stream, char *buf,
 	DeclareThis(Remap_t);	
 	if(remap(This, &start, &len)==DATA)
 		return WRITES(This->Next, buf, start, len);
-	else
-		/* Ignore writes to zero zones rather than erroring,
-		 * because this might happen while flushing a buffer */
+	else {
+		unsigned int i;
+		/* When writing to a "zero" sector, make sure that we
+		   indeed only write zeroes back to there. Helps catch
+		   putting filesystems with parameters unsuitable to
+		   the particular mapping */
+		fprintf(stderr, "Writing %ld bytes to %ld\n", len, start);
+		for(i=0; i<len; i++) {
+			if(buf[i]) {
+				fprintf(stderr, "Bad data written to unmapped sectors\n");
+				errno = EBADR;
+				return -1;
+			}
+		}
 		return (ssize_t) len;
+	}
 }
 
 static int remap_free(Stream_t *Stream)
@@ -213,5 +225,5 @@ Stream_t *Remap(Stream_t *Next, struct device *dev, char *errmsg) {
  exit_0:
 	free(This);
 	printOom();
-	return NULL;	
+	return NULL;
 }
