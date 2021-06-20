@@ -537,7 +537,7 @@ static unsigned char bootprog[]=
 
 static __inline__ void inst_boot_prg(union bootsector *boot, uint16_t offset)
 {
-	memcpy((char *) boot->boot.jump + offset,
+	memcpy((char *) boot + offset,
 	       (char *) bootprog, sizeof(bootprog) /sizeof(bootprog[0]));
 	if(offset - 2 < 0x80) {
 	  /* short jump */
