@@ -615,8 +615,10 @@ static int check_fat(Fs_t *This)
 		return 0;
 
 	/* too few sectors in the FAT */
-	if(This->fat_len < NEEDED_FAT_SIZE(This))
+	if(This->fat_len < NEEDED_FAT_SIZE(This)) {
+		fprintf(stderr, "Too few sectors in FAT\n");
 		return -1;
+	}
 	/* we do not warn about too much sectors in FAT, which may
 	 * happen when a partition has been shrunk using FIPS, or on
 	 * other occurrences */
