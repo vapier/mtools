@@ -71,7 +71,7 @@ static ssize_t remap_read(Stream_t *Stream, char *buf,
 	if(remap(This, &start, &len)==DATA)
 		return READS(This->Next, buf, start, len);
 	else {
-		bzero(buf, len);
+		memset(buf, 0, len);
 		return (ssize_t) len;
 	}
 }
@@ -88,7 +88,6 @@ static ssize_t remap_write(Stream_t *Stream, char *buf,
 		   indeed only write zeroes back to there. Helps catch
 		   putting filesystems with parameters unsuitable to
 		   the particular mapping */
-		fprintf(stderr, "Writing %ld bytes to %ld\n", len, start);
 		for(i=0; i<len; i++) {
 			if(buf[i]) {
 				fprintf(stderr, "Bad data written to unmapped sectors\n");
