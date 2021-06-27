@@ -638,15 +638,18 @@ static int old_dos_size_to_geom(size_t size,
 }
 
 
-static void calc_fs_parameters(struct device *dev, uint32_t tot_sectors,
-			       struct Fs_t *Fs, union bootsector *boot)
+static void calc_fs_parameters_12_16(struct device *dev, uint32_t tot_sectors,
+				     struct Fs_t *Fs, uint8_t *descr)
 {
 	struct OldDos_t *params=NULL;
+	Fs->infoSectorLoc = 0;
+	if(!Fs->fat_start)
+		Fs->fat_start = 1;
 	if(dev->fat_bits == 0 || abs(dev->fat_bits) == 12)
 		params = getOldDosByParams(dev->tracks,dev->heads,dev->sectors,
 					   Fs->dir_len, Fs->cluster_size);
 	if(params != NULL) {
-		boot->boot.descr = params->media;
+		*descr = params->media;
 		Fs->cluster_size = params->cluster_size;
 		Fs->dir_len = params->dir_len;
 		Fs->fat_len = params->fat_len;
@@ -656,11 +659,10 @@ static void calc_fs_parameters(struct device *dev, uint32_t tot_sectors,
 		int may_change_root_size = (Fs->dir_len == 0);
 
 		/* a non-standard format */
-		if(DWORD(nhs) || tot_sectors % (dev->sectors * dev->heads))
-			boot->boot.descr = 0xf8;
+		if(dev->hidden || tot_sectors % (dev->sectors * dev->heads))
+			*descr = 0xf8;
 		else
-			boot->boot.descr = 0xf0;
-
+			*descr = 0xf0;
 
 		if(!Fs->cluster_size) {
 			if (dev->heads == 1)
@@ -692,20 +694,43 @@ static void calc_fs_parameters(struct device *dev, uint32_t tot_sectors,
 			calc_fat_size(Fs, tot_sectors);
 		}
 	}
-
-	set_word(boot->boot.fatlen, (uint16_t) Fs->fat_len);
 }
 
 
-
-static void calc_fs_parameters_32(uint32_t tot_sectors,
-				  struct Fs_t *Fs, union bootsector *boot)
+static void calc_fs_parameters_32(uint32_t tot_sectors, struct Fs_t *Fs,
+				  uint32_t nhs, uint8_t *descr)
 {
 	unsigned long num_clus;
-	if(DWORD(nhs))
-		boot->boot.descr = 0xf8;
+
+	Fs->primaryFat = 0;
+	Fs->writeAllFats = 1;
+	if(Fs->fat_start) {
+		if(Fs->fat_start < 3) {
+			fprintf(stderr,
+				"For FAT 32, reserved sectors need to be at least 3\n");
+			Fs->fat_start = 32;
+		}
+	} else 
+		Fs->fat_start = 32;
+
+	if(!Fs->backupBoot) {
+		if(Fs->fat_start <= 6)
+			Fs->backupBoot = Fs->fat_start - 1;
+		else
+			Fs->backupBoot=6;
+	}
+	
+	if(Fs->fat_start <= Fs->backupBoot) {
+		fprintf(stderr,
+			"Reserved sectors (%d) must be more than backupBoot (%d)\n", Fs->fat_start, Fs->backupBoot);
+		Fs->backupBoot = 6;
+		Fs->fat_start = 32;
+	}
+	
+	if(nhs)
+		*descr = 0xf8;
 	else
-		boot->boot.descr = 0xf0;
+		*descr = 0xf0;
 
 	if(!Fs->cluster_size)
 		calc_cluster_size(Fs, tot_sectors, 32);
@@ -719,12 +744,48 @@ static void calc_fs_parameters_32(uint32_t tot_sectors,
 	Fs->num_clus = (unsigned int) num_clus;
 	set_fat32(Fs);
 	calc_fat_size(Fs, tot_sectors);
-	set_word(boot->boot.fatlen, 0);
-	set_dword(boot->boot.ext.fat32.bigFat, Fs->fat_len);
 }
 
+void calc_fs_parameters(struct device *dev, bool fat32, uint32_t tot_sectors,
+			struct Fs_t *Fs, uint8_t *descr)
+{
+	dev->fat_bits = comp_fat_bits(Fs, dev->fat_bits, tot_sectors, fat32);
+	if(dev->fat_bits == 32)
+		calc_fs_parameters_32(tot_sectors, Fs, dev->hidden, descr);
+	else
+		calc_fs_parameters_12_16(dev, tot_sectors, Fs, descr);
+}
 
+void initFsForFormat(Fs_t *Fs)
+{
+	memset(Fs, 0, sizeof(*Fs));
+	
+	Fs->Class = &FsClass;
+	Fs->refs = 1;
 
+	Fs->cluster_size = 0;
+	Fs->dir_len = 0;
+	Fs->fat_len = 0;
+	Fs->num_fat = 2;
+	Fs->backupBoot = 0;
+}
+
+void setFsSectorSize(Fs_t *Fs, struct device *dev, uint16_t msize) {
+	unsigned int j;
+	Fs->sector_size = 512;
+	if( !(dev->use_2m & 0x7f)) {
+		Fs->sector_size = (uint16_t) (128u << (dev->ssize & 0x7f));
+	}
+
+	SET_INT(Fs->sector_size, msize);
+	for(j = 0; j < 31; j++) {
+		if (Fs->sector_size == (unsigned int) (1 << j)) {
+			Fs->sectorShift = j;
+			break;
+		}
+	}
+	Fs->sectorMask = Fs->sector_size - 1;
+}
 
 static void usage(int ret) NORETURN;
 static void usage(int ret)
@@ -798,11 +859,6 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 
 	int Atari = 0; /* should we add an Atari-style serial number ? */
 
-	uint16_t backupBoot = 6;
-	int backupBootSet = 0;
-
-	uint8_t resvSects = 0;
-	
 	char *endptr;
 
 	hs = hs_set = 0;
@@ -821,23 +877,17 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 		fprintf(stderr, "Out of memory\n");
 		exit(1);
 	}
-		
-	Fs->cluster_size = 0;
-	Fs->refs = 1;
-	Fs->dir_len = 0;
+	initFsForFormat(Fs);
 	if(getenv("MTOOLS_DIR_LEN")) {
 		Fs->dir_len = atou16(getenv("MTOOLS_DIR_LEN"));
 	  if(Fs->dir_len <= 0)
 	    Fs->dir_len=0;
 	}
-	Fs->fat_len = 0;
-	Fs->num_fat = 2;
 	if(getenv("MTOOLS_NFATS")) {
 		Fs->num_fat = atou8(getenv("MTOOLS_NFATS"));
 	  if(Fs->num_fat <= 0)
 	    Fs->num_fat=2;
 	}
-	Fs->Class = &FsClass;
 	rate_0 = mtools_rate_0;
 	rate_any = mtools_rate_any;
 
@@ -994,15 +1044,14 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 				keepBoot = 1;
 				break;
 			case 'K':
-				backupBoot = atou16(optarg);
-				backupBootSet=1;
-				if(backupBoot < 2) {
+				Fs->backupBoot = atou16(optarg);
+				if(Fs->backupBoot < 2) {
 				  fprintf(stderr, "Backupboot must be greater than 2\n");
 				  exit(1);
 				}
 				break;
 			case 'R':
-				resvSects = atou8(optarg);
+				Fs->fat_start = atou8(optarg);
 				break;
 			case 'h':
 				argheads = atou16(optarg);
@@ -1084,7 +1133,7 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 #endif
 		if(tot_sectors)
 			used_dev.tot_sectors = tot_sectors;
-		
+		info.FatSize=0;
 		Fs->Direct = OpenImage(&used_dev, dev, name,
 				      O_RDWR|create, errmsg,
 				      ALWAYS_GET_GEOMETRY,
@@ -1111,23 +1160,8 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 
 		if(!tot_sectors)
 			tot_sectors = used_dev.tot_sectors;
-		
-		Fs->sector_size = 512;
-		if( !(used_dev.use_2m & 0x7f)) {
-			Fs->sector_size = (uint16_t) (128u << (used_dev.ssize & 0x7f));
-		}
 
-		SET_INT(Fs->sector_size, msize);
-		{
-		    unsigned int j;
-		    for(j = 0; j < 31; j++) {
-			if (Fs->sector_size == (unsigned int) (1 << j)) {
-			    Fs->sectorShift = j;
-			    break;
-			}
-		    }
-		    Fs->sectorMask = Fs->sector_size - 1;
-		}
+		setFsSectorSize(Fs, &used_dev, msize);
 
 		if(!used_dev.blocksize || used_dev.blocksize < Fs->sector_size)
 			blocksize = Fs->sector_size;
@@ -1229,7 +1263,7 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 	set_word(boot.boot.nsect, used_dev.sectors);
 	set_word(boot.boot.nheads, used_dev.heads);
 
-	used_dev.fat_bits = comp_fat_bits(Fs,used_dev.fat_bits, tot_sectors, fat32);
+	calc_fs_parameters(&used_dev, fat32, tot_sectors, Fs, &boot.boot.descr);
 
 	if(!keepBoot && !(used_dev.use_2m & 0x7f)) {
 		if(!used_dev.partition) {
@@ -1246,29 +1280,8 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 	}
 
 	if(used_dev.fat_bits == 32) {
-		Fs->primaryFat = 0;
-		Fs->writeAllFats = 1;
-		if(resvSects) {
-			if(resvSects < 3) {
-				fprintf(stderr,
-					"For FAT 32, reserved sectors need to be at least 3\n");
-				resvSects = 32;
-			}
-
-			if(resvSects <= backupBoot && !backupBootSet)
-				backupBoot = resvSects - 1;
-			Fs->fat_start = resvSects;
-		} else 
-			Fs->fat_start = 32;
-
-		if(Fs->fat_start <= backupBoot) {
-			fprintf(stderr,
-				"Reserved sectors (%d) must be more than backupBoot (%d)\n", Fs->fat_start, backupBoot);
-			backupBoot = 6;
-			Fs->fat_start = 32;
-		}
-
-		calc_fs_parameters_32(tot_sectors, Fs, &boot);
+		set_word(boot.boot.fatlen, 0);
+		set_dword(boot.boot.ext.fat32.bigFat, Fs->fat_len);
 
 		Fs->clus_start = Fs->num_fat * Fs->fat_len + Fs->fat_start;
 
@@ -1286,25 +1299,14 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 		Fs->infoSectorLoc = 1;
 
 		/* no backup boot sector */
-		set_word(boot.boot.ext.fat32.backupBoot, backupBoot);
+		set_word(boot.boot.ext.fat32.backupBoot, Fs->backupBoot);
 
 		labelBlock = & boot.boot.ext.fat32.labelBlock;
 	} else {
-		Fs->infoSectorLoc = 0;
-		if(resvSects) {
-			if(resvSects < 1) {
-				fprintf(stderr,
-					"Reserved sectors need to be at least 1\n");
-				resvSects = 1;
-			}
-			Fs->fat_start = resvSects;
-		} else 
-			Fs->fat_start = 1;
-		calc_fs_parameters(&used_dev, tot_sectors, Fs, &boot);
+		set_word(boot.boot.fatlen, (uint16_t) Fs->fat_len);
 		Fs->dir_start = Fs->num_fat * Fs->fat_len + Fs->fat_start;
 		Fs->clus_start = Fs->dir_start + Fs->dir_len;
 		labelBlock = & boot.boot.ext.old.labelBlock;
-
 	}
 
 	/* Set the codepage */

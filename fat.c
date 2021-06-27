@@ -649,12 +649,9 @@ static int check_fat(Fs_t *This)
  * Read the first sector of FAT table into memory.  Crude error detection on
  * wrong FAT encoding scheme.
  */
-static int check_media_type(Fs_t *This, union bootsector *boot, 
-			    unsigned int tot_sectors)
+static int check_media_type(Fs_t *This, union bootsector *boot)
 {
 	unsigned char *address;
-
-	This->num_clus = (tot_sectors - This->clus_start) / This->cluster_size;
 
 	This->FatMap = GetFatMap(This);
 	if (This->FatMap == NULL) {
@@ -676,7 +673,7 @@ static int check_media_type(Fs_t *This, union bootsector *boot,
 		/* Some Atari disks have zeroes where Dos has media descriptor
 		 * and 0xff.  Do not consider this as an error */
 		return 0;
-	
+
 	if((address[0] != boot->boot.descr && boot->boot.descr >= 0xf0 &&
 	    ((address[0] != 0xf9 && address[0] != 0xf7) 
 	     || boot->boot.descr != 0xf0)) || address[0] < 0xf0) {
@@ -688,15 +685,14 @@ static int check_media_type(Fs_t *This, union bootsector *boot,
 	}
 
 	if(address[1] != 0xff || address[2] != 0xff){
-		fprintf(stderr,"Initial byte of fat is not 0xff\n");
+		fprintf(stderr,"Initial bytes of fat is not 0xff\n");
 		return -1;
 	}
 
 	return 0;
 }
 
-static int fat_32_read(Fs_t *This, union bootsector *boot, 
-		       unsigned int tot_sectors)
+static int fat_32_read(Fs_t *This, union bootsector *boot)
 {
 	size_t size;
 
@@ -724,34 +720,27 @@ static int fat_32_read(Fs_t *This, union bootsector *boot,
 		free(infoSector);
 	}
 	
-	set_fat32(This);
-	return(check_media_type(This, boot, tot_sectors) ||
-	       check_fat(This));
+	return(check_media_type(This, boot) || check_fat(This));
 }
 
 
-static int old_fat_read(Fs_t *This, union bootsector *boot, 
-			uint32_t tot_sectors, int nodups)
+static int old_fat_read(Fs_t *This, union bootsector *boot, int nodups)
 {
 	This->writeAllFats = 1;
 	This->primaryFat = 0;
 	This->dir_start = This->fat_start + This->num_fat * This->fat_len;
-	This->clus_start = This->dir_start + This->dir_len;
 	This->infoSectorLoc = MAX32;
 
 	if(nodups)
 		This->num_fat = 1;
 
-	if(check_media_type(This,boot, tot_sectors))
+	if(check_media_type(This, boot))
 		return -1;
 
-	if(This->num_clus >= FAT12) {
-		set_fat16(This);
+	if(This->num_clus >= FAT12)
 		/* third FAT byte must be 0xff */
 		if(!mtools_skip_check && readByte(This, 3) != 0xff)
 			return -1;
-	} else
-		set_fat12(This);
 
 	return check_fat(This);
 }
@@ -760,8 +749,7 @@ static int old_fat_read(Fs_t *This, union bootsector *boot,
  * Read the first sector of the  FAT table into memory and initialize 
  * structures.
  */
-int fat_read(Fs_t *This, union bootsector *boot,
-	     uint32_t tot_sectors, int nodups)
+int fat_read(Fs_t *This, union bootsector *boot, int nodups)
 {
 	This->fat_error = 0;
 	This->fat_dirty = 0;
@@ -770,10 +758,10 @@ int fat_read(Fs_t *This, union bootsector *boot,
 	This->lastFatSectorNr = 0;
 	This->lastFatSectorData = 0;
 
-	if(This->fat_len)
-		return old_fat_read(This, boot, tot_sectors, nodups);
+	if(This->num_clus < FAT16)
+		return old_fat_read(This, boot, nodups);
 	else
-		return fat_32_read(This, boot, tot_sectors);
+		return fat_32_read(This, boot);
 }
 
 

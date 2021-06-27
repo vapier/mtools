@@ -68,6 +68,7 @@ typedef struct Fs_t {
 	uint32_t writeAllFats;
 	uint32_t rootCluster;
 	uint32_t infoSectorLoc;
+	uint16_t backupBoot;
 	uint32_t last; /* last sector allocated, or MAX32 if unknown */
 	uint32_t freeSpace; /* free space, or MAX32 if unknown */
 	unsigned int preallocatedClusters;
@@ -93,8 +94,7 @@ void fatDeallocate(Fs_t *This, unsigned int pos);
 void fatAllocate(Fs_t *This, unsigned int pos, unsigned int value);
 void fatEncode(Fs_t *This, unsigned int pos, unsigned int value);
 
-int fat_read(Fs_t *This, union bootsector *boot,
-	     uint32_t tot_sectors, int nodups);
+int fat_read(Fs_t *This, union bootsector *boot, int nodups);
 void fat_write(Fs_t *This);
 int zero_fat(Fs_t *Fs, uint8_t media_descriptor);
 extern Class_t FsClass;
@@ -102,5 +102,16 @@ int fsPreallocateClusters(Fs_t *Fs, uint32_t);
 void fsReleasePreallocateClusters(Fs_t *Fs, uint32_t);
 Fs_t *getFs(Stream_t *Stream);
 
+void calc_fs_parameters(struct device *dev, bool fat32, uint32_t tot_sectors,
+			struct Fs_t *Fs, uint8_t *descr);
+
+/* Fs_t *makeFsForFormat(void); */
+void initFsForFormat(Fs_t *Fs);
+void setFsSectorSize(Fs_t *Fs, struct device *dev, uint16_t msize);
+
+uint32_t parseFsParams(	Fs_t *This,
+			union bootsector *boot,
+			int media,
+			unsigned int cylinder_size);
 
 #endif

@@ -24,6 +24,7 @@
 #include "vfat.h"
 #include "mtools.h"
 #include "nameclash.h"
+#include "fsP.h"
 
 static void usage(int ret) NORETURN;
 static void usage(int ret)
@@ -122,6 +123,15 @@ static void displayBPB(Stream_t *Stream, union bootsector *boot) {
 	}
 }
 
+static void try(uint32_t tot_sectors, Fs_t *masterFs, Fs_t *tryFs,
+		struct device *master_dev, struct device *try_dev,
+		uint8_t *bootDescr) {
+	*tryFs = *masterFs;
+	*try_dev = *master_dev;
+	calc_fs_parameters(try_dev, 0, tot_sectors,
+			   tryFs, bootDescr);
+}
+
 void minfo(int argc, char **argv, int type UNUSEDP) NORETURN;
 void minfo(int argc, char **argv, int type UNUSEDP)
 {
@@ -130,8 +140,7 @@ void minfo(int argc, char **argv, int type UNUSEDP)
 	char name[EXPAND_BUF];
 	int media;
 	int haveBPB;
-	int size_code;
-	int i;
+	uint8_t size_code;
 	struct device dev;
 	char drive;
 	int verbose=0;
@@ -139,7 +148,7 @@ void minfo(int argc, char **argv, int type UNUSEDP)
 	Stream_t *Stream;
 	int have_drive = 0;
 
-	unsigned long sect_per_track;
+	uint32_t sect_per_track;
 
 	char *imgFile=NULL;
 	
@@ -190,29 +199,25 @@ void minfo(int argc, char **argv, int type UNUSEDP)
 
 		sect_per_track = dev.sectors * dev.heads;
 		if(sect_per_track != 0) {
-			unsigned int hidden;
-			unsigned long tot_sectors;
+			uint32_t hidden;
+			uint32_t tot_sectors;
 			int tracks_match=0;
-			printf("mformat command line: mformat ");
+			Fs_t masterFs, tryFs, actual;
+			struct device used_dev;
+			uint8_t tryMedia;
+			printf("mformat command line:\n  mformat ");
+
+			tot_sectors = parseFsParams(&actual, &boot,
+						    media | (haveBPB ? 0x100:0),
+						    sect_per_track);
 
 			if(haveBPB) {
-				int sector_size;
-				tot_sectors = DWORD_S(bigsect);
-				SET_INT(tot_sectors, WORD_S(psect));
-				sector_size = WORD_S(secsiz);
-				size_code=2;
-				for(i=0; i<7; i++) {
-					if(sector_size == 128 << i) {
-						size_code = i;
-						break;
-					}
-				}
 				if(media == 0xf0)
 					hidden = getHidden(&boot);
 				else
 					hidden = 0;
+				size_code = (uint8_t) actual.sectorShift-7;
 			} else {
-				tot_sectors = dev.tracks * sect_per_track;
 				size_code=2;
 				hidden = 0;
 			}
@@ -222,13 +227,71 @@ void minfo(int argc, char **argv, int type UNUSEDP)
 				tracks_match=1;
 				printf("-t %d ", dev.tracks);
 			} else {
-				printf("-T %ld ", tot_sectors);
+				printf("-T %d ", tot_sectors);
 			}
 			printf ("-h %d -s %d ", dev.heads, dev.sectors);
 			if(haveBPB && (hidden || !tracks_match))
 				printf("-H %d ", hidden);
-			if(size_code != 2)
+			used_dev=dev;
+			if(size_code != 2) {
 				printf("-S %d ",size_code);
+				used_dev.ssize = size_code;
+			}
+
+			initFsForFormat(&masterFs);
+			setFsSectorSize(&masterFs, &used_dev, 0);
+			
+			try(tot_sectors, &masterFs, &tryFs, &dev , &used_dev,
+			    &tryMedia);
+			
+			if(actual.cluster_size != tryFs.cluster_size) {
+				masterFs.cluster_size = actual.cluster_size;
+				printf("-c %d ", actual.cluster_size);
+				try(tot_sectors,
+				    &masterFs, &tryFs, &dev , &used_dev,
+				    &tryMedia);
+			}
+
+			if(actual.dir_len != tryFs.dir_len) {
+				masterFs.dir_len = actual.dir_len;
+				printf("-d %d ", actual.dir_len);
+				try(tot_sectors,
+				    &masterFs, &tryFs, &dev , &used_dev,
+				    &tryMedia);
+			}
+
+			if(actual.fat_start != tryFs.fat_start) {
+				masterFs.fat_start = actual.fat_start;
+				printf("-R %d ", actual.fat_start);
+				try(tot_sectors,
+				    &masterFs, &tryFs, &dev , &used_dev,
+				    &tryMedia);
+			}
+
+			if(actual.num_fat != tryFs.num_fat) {
+				masterFs.num_fat = actual.num_fat;
+				printf("-d %d ", actual.num_fat);
+				try(tot_sectors,
+				    &masterFs, &tryFs, &dev , &used_dev,
+				    &tryMedia);
+			}
+
+			if(actual.fat_len != tryFs.fat_len) {
+				masterFs.fat_len = actual.fat_len;
+				printf("-L %d ", actual.fat_len);
+				try(tot_sectors,
+				    &masterFs, &tryFs, &dev , &used_dev,
+				    &tryMedia);
+			}
+
+			if((media & 0xff) != (tryMedia & 0xff))
+				printf("-m %d ", (media & 0xff));
+			
+			if(actual.fat_bits == 32) {
+				if(actual.backupBoot != tryFs.backupBoot)
+					printf("-K %d ", actual.backupBoot);
+			}
+
 			if(imgFile != NULL)
 				printf("-i \"%s\" ", imgFile);
 			printf("%c:\n", ch_tolower(drive));

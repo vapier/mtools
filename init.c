@@ -375,6 +375,94 @@ Stream_t *find_device(char drive, int mode, struct device *out_dev,
 }
 
 
+uint32_t parseFsParams(	Fs_t *This,
+			union bootsector *boot,
+			int media,
+			unsigned int cylinder_size)
+{
+	uint32_t tot_sectors;
+
+	if ((media & ~7) == 0xf8){
+		/* This bit of code is only entered if there is no BPB, or
+		 * else result of the AND would be 0x1xx
+		 */
+		struct OldDos_t *params=getOldDosByMedia(media);
+		if(params == NULL) {
+			fprintf(stderr, "Unknown media byte %02x\n", media);
+			return 0;
+		}
+		This->cluster_size = params->cluster_size;
+		tot_sectors = cylinder_size * params->tracks;
+		This->fat_start = 1;
+		This->fat_len = params->fat_len;
+		This->dir_len = params->dir_len;
+		This->num_fat = 2;
+		This->sector_size = 512;
+		This->sectorShift = 9;
+		This->sectorMask = 511;
+	} else {
+		struct label_blk_t *labelBlock;
+		unsigned int i;
+
+		This->sector_size = WORD(secsiz);
+		if(This->sector_size > MAX_SECTOR){
+			fprintf(stderr,"init: sector size too big\n");
+			return 0;
+		}
+
+		i = log_2(This->sector_size);
+
+		if(i == 24) {
+			fprintf(stderr,
+				"init: sector size (%d) not a small power of two\n",
+				This->sector_size);
+			return 0;
+		}
+		This->sectorShift = i;
+		This->sectorMask = This->sector_size - 1;
+
+		/*
+		 * all numbers are in sectors, except num_clus
+		 * (which is in clusters)
+		 */
+		tot_sectors = WORD(psect);
+		if(!tot_sectors)
+			tot_sectors = DWORD(bigsect);	
+
+		This->cluster_size = boot->boot.clsiz;
+		This->fat_start = WORD(nrsvsect);
+		This->fat_len = WORD(fatlen);
+		This->dir_len = WORD(dirents) * MDIR_SIZE / This->sector_size;
+		This->num_fat = boot->boot.nfat;
+
+		if (This->fat_len) {
+			labelBlock = &boot->boot.ext.old.labelBlock;
+		} else {
+			labelBlock = &boot->boot.ext.fat32.labelBlock;
+			This->fat_len = DWORD(ext.fat32.bigFat);
+			This->backupBoot = WORD(ext.fat32.backupBoot);
+		}
+
+		if(has_BPB4) {
+			This->serialized = 1;
+			This->serial_number = _DWORD(labelBlock->serial);
+		}
+	}
+
+	This->clus_start = This->fat_start + This->num_fat * This->fat_len +
+		This->dir_len;
+	This->num_clus = (tot_sectors - This->clus_start) / This->cluster_size;
+	if(This->num_clus < FAT12)
+		set_fat12(This);
+	else if(This->num_clus < FAT16)
+		set_fat16(This);
+	else
+		set_fat32(This);
+		
+	return tot_sectors;
+}
+
+
 Stream_t *fs_init(char drive, int mode, int *isRop)
 {
 	uint32_t blocksize;
@@ -413,72 +501,13 @@ Stream_t *fs_init(char drive, int mode, int *isRop)
 
 	cylinder_size = dev.heads * dev.sectors;
 	This->serialized = 0;
-	if ((media & ~7) == 0xf8){
-		/* This bit of code is only entered if there is no BPB, or
-		 * else result of the AND would be 0x1xx
-		 */
-		struct OldDos_t *params=getOldDosByMedia(media);
-		if(params == NULL) {
-			fprintf(stderr, "Unknown media byte %02x\n", media);
-			return NULL;
-		}
-		This->cluster_size = params->cluster_size;
-		tot_sectors = cylinder_size * params->tracks;
-		This->fat_start = 1;
-		This->fat_len = params->fat_len;
-		This->dir_len = params->dir_len;
-		This->num_fat = 2;
-		This->sector_size = 512;
-		This->sectorShift = 9;
-		This->sectorMask = 511;
-		This->fat_bits = 12;
-	} else {
-		struct label_blk_t *labelBlock;
-		unsigned int i;
-		
-		This->sector_size = WORD_S(secsiz);
-		if(This->sector_size > MAX_SECTOR){
-			fprintf(stderr,"init %c: sector size too big\n", drive);
-			return NULL;
-		}
 
-		i = log_2(This->sector_size);
-
-		if(i == 24) {
-			fprintf(stderr,
-				"init %c: sector size (%d) not a small power of two\n",
-				drive, This->sector_size);
-			return NULL;
-		}
-		This->sectorShift = i;
-		This->sectorMask = This->sector_size - 1;
-
-		/*
-		 * all numbers are in sectors, except num_clus
-		 * (which is in clusters)
-		 */
-		tot_sectors = WORD_S(psect);
-		if(!tot_sectors)
-			tot_sectors = DWORD_S(bigsect);	
-
-		This->cluster_size = boot.boot.clsiz;
-		This->fat_start = WORD_S(nrsvsect);
-		This->fat_len = WORD_S(fatlen);
-		This->dir_len = WORD_S(dirents) * MDIR_SIZE / This->sector_size;
-		This->num_fat = boot.boot.nfat;
-
-		if (This->fat_len) {
-			labelBlock = &boot.boot.ext.old.labelBlock;
-		} else {
-			labelBlock = &boot.boot.ext.fat32.labelBlock;
-		}
-
-		if(has_BPB4) {
-			This->serialized = 1;
-			This->serial_number = _DWORD(labelBlock->serial);
-		}
+	tot_sectors = parseFsParams(This, &boot, media, cylinder_size);
+	if(tot_sectors == 0) {
+		/* Error raised by parseFsParams */
+		return NULL;
 	}
-
+	
 	if (tot_sectors >= (maxSize >> This->sectorShift)) {
 		fprintf(stderr, "Big disks not supported on this architecture\n");
 		exit(1);
@@ -530,7 +559,7 @@ Stream_t *fs_init(char drive, int mode, int *isRop)
 	}
 
 	/* read the FAT sectors */
-	if(fat_read(This, &boot, tot_sectors, dev.use_2m&0x7f)){
+	if(fat_read(This, &boot, dev.use_2m&0x7f)){
 		fprintf(stderr, "Error reading FAT\n");
 		This->num_fat = 1;
 		FREE(&This->Next);
