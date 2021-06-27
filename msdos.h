@@ -141,7 +141,7 @@ struct fat32_t {
 	unsigned char infoSector[2];	/* 48 changeable global info */
 	unsigned char backupBoot[2];	/* 50 back up boot sector */
 	unsigned char reserved[6];	/* 52 ? */
-	unsigned char reserved2[6];	/* 52 ? */
+	unsigned char reserved2[6];	/* 58 ? */
 	struct label_blk_t labelBlock;
 }; /* ends at 58 */
 
