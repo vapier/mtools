@@ -676,9 +676,15 @@ static void calc_fs_parameters_12_16(struct device *dev, uint32_t tot_sectors,
 
 		if(!Fs->dir_len) {
 			if (dev->heads == 1)
-				Fs->dir_len = 4;
-			else
-				Fs->dir_len = (tot_sectors > 2000) ? 32 : 7;
+                                Fs->dir_len = 4;
+                        else if(tot_sectors < 1200)
+                                /* Double density floppies */
+                                Fs->dir_len = 7;
+                        else if(tot_sectors <= 7680)
+                                /* High density and extra density floppies */
+                                Fs->dir_len = 14;
+                        else
+                                Fs->dir_len = 32;
 		}
 
 		calc_cluster_size(Fs, tot_sectors, dev->fat_bits);
