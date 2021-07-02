@@ -254,7 +254,7 @@ void minfo(int argc, char **argv, int type UNUSEDP)
 
 			if(actual.dir_len != tryFs.dir_len) {
 				masterFs.dir_len = actual.dir_len;
-				printf("-d %d ", actual.dir_len);
+				printf("-r %d ", actual.dir_len);
 				try(tot_sectors,
 				    &masterFs, &tryFs, &dev , &used_dev,
 				    &tryMedia);
