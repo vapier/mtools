@@ -93,7 +93,7 @@ dnl Checks for header files.
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
 AC_HEADER_STDBOOL
-AC_CHECK_HEADERS(assert.h getopt.h stdlib.h stdbool.h unistd.h linux/unistd.h \
+AC_CHECK_HEADERS(getopt.h stdlib.h stdbool.h unistd.h linux/unistd.h \
 libc.h fcntl.h limits.h sys/file.h sys/ioctl.h sys/time.h strings.h string.h \
 sys/param.h memory.h malloc.h io.h signal.h sys/signal.h utime.h sgtty.h \
 sys/floppy.h mntent.h sys/sysmacros.h netinet/in.h netinet/tcp.h assert.h \
