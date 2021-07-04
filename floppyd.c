@@ -398,7 +398,7 @@ static Dword get_length(Packet packet) {
 
 static int eat(unsigned char **ptr, size_t *len, unsigned char c) {
     /* remove length + size code + terminating 0 */
-    if (*len < c + 3)
+    if (*len < c + 3u)
 	return -1;
     (*ptr) += c + 2;
     (*len) -= c + 2;
