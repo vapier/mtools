@@ -81,7 +81,8 @@ static void displayBPB(Stream_t *Stream, union bootsector *boot) {
 	printf("sectors per track: %d\n", WORD(nsect));
 	printf("heads: %d\n", WORD(nheads));
 	printf("hidden sectors: %d\n", getHidden(boot));
-	printf("big size: %u sectors\n", DWORD(bigsect));
+	if(!WORD(psect))
+		printf("big size: %u sectors\n", DWORD(bigsect));
 
 	if(WORD(fatlen)) {
 		labelBlock = &boot->boot.ext.old.labelBlock;
