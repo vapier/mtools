@@ -213,6 +213,7 @@ union bootsector {
 */
 #define FAT12 0x0ff5 /* max. number + 1 of clusters described by a 12 bit FAT */
 #define FAT16 0xfff5 /* max number + 1 of clusters for a 16 bit FAT */
+#define FAT32 0xffffff5 /* max number + 1 of clusters for a 32 bit FAT */
 
 #define ATTR_ARCHIVE 0x20
 #define ATTR_DIR 0x10
@@ -248,8 +249,6 @@ union bootsector {
 	((n) * FAT_SIZE(bits, sec_siz, clusters) + \
 	 (clusters) * (cluster_size))
 
-#define TOTAL_DISK_SIZE(bits, sec_siz, clusters, n, cluster_size) \
-	(DISK_SIZE(bits, sec_siz, clusters, n, cluster_size) + 2)
 /* approx. total disk size: assume 1 boot sector and one directory sector */
 
 extern const char *mversion;

@@ -67,7 +67,7 @@ static void set_offset(hsc *h, unsigned long offset,
 void setBeginEnd(struct partition *partTable,
 		 uint32_t begin, uint32_t end,
 		 uint16_t iheads, uint16_t isectors,
-		 int activate, uint8_t type, int fat_bits)
+		 int activate, uint8_t type, unsigned int fat_bits)
 {
 	uint8_t heads, sectors;
 
@@ -615,7 +615,7 @@ void mpartition(int argc, char **argv, int dummy UNUSEDP)
 		setBeginEnd(tpartition, begin, end,
 			    used_dev.heads, used_dev.sectors,
 			    !has_activated, type,
-			    dev->fat_bits);
+			    abs(dev->fat_bits));
 	}
 
 	if(activate) {

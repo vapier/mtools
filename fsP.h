@@ -82,11 +82,13 @@ typedef struct Fs_t {
 	doscp_t *cp;
 } Fs_t;
 
+#ifndef abs
+#define abs(x) ((unsigned int)((x)>0?(x):-(x)))
+#endif
+
 int fs_free(Stream_t *Stream);
 
-void set_fat12(Fs_t *Fs);
-void set_fat16(Fs_t *Fs);
-void set_fat32(Fs_t *Fs);
+void set_fat(Fs_t *This);
 unsigned int get_next_free_cluster(Fs_t *Fs, unsigned int last);
 unsigned int fatDecode(Fs_t *This, unsigned int pos);
 void fatAppend(Fs_t *This, unsigned int pos, unsigned int newpos);
@@ -113,5 +115,7 @@ uint32_t parseFsParams(	Fs_t *This,
 			union bootsector *boot,
 			int media,
 			unsigned int cylinder_size);
+uint32_t calc_clus_start(Fs_t *Fs);
+void calc_num_clus(Fs_t *Fs, uint32_t tot_sectors);
 
 #endif

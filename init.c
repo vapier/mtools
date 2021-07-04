@@ -323,6 +323,15 @@ static Stream_t *try_device(struct device *dev,
 	return NULL;
 }
 
+uint32_t calc_clus_start(Fs_t *Fs) {
+	return Fs->fat_start + Fs->fat_len*Fs->num_fat + Fs->dir_len;
+}
+
+void calc_num_clus(Fs_t *Fs, uint32_t tot_sectors)
+{
+	Fs->clus_start = calc_clus_start(Fs);
+	Fs->num_clus = (tot_sectors - Fs->clus_start) / Fs->cluster_size;
+}
 
 /**
  * Tries out all device definitions for the given drive letter, until one
@@ -449,16 +458,9 @@ uint32_t parseFsParams(	Fs_t *This,
 		}
 	}
 
-	This->clus_start = This->fat_start + This->num_fat * This->fat_len +
-		This->dir_len;
-	This->num_clus = (tot_sectors - This->clus_start) / This->cluster_size;
-	if(This->num_clus < FAT12)
-		set_fat12(This);
-	else if(This->num_clus < FAT16)
-		set_fat16(This);
-	else
-		set_fat32(This);
-		
+	calc_num_clus(This, tot_sectors);
+	set_fat(This);
+	
 	return tot_sectors;
 }
 

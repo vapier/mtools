@@ -557,7 +557,7 @@ int zero_fat(Fs_t *Stream, uint8_t media_descriptor)
 }
 
 
-void set_fat12(Fs_t *This)
+static void set_fat12(Fs_t *This)
 {
 	This->fat_bits = 12;
 	This->end_fat = 0xfff;
@@ -568,7 +568,7 @@ void set_fat12(Fs_t *This)
 
 static uint16_t word_endian_test = 0x1234;
 
-void set_fat16(Fs_t *This)
+static void set_fat16(Fs_t *This)
 {
 	uint8_t *t = (uint8_t *) &word_endian_test;
 	This->fat_bits = 16;
@@ -586,7 +586,7 @@ void set_fat16(Fs_t *This)
 
 static uint32_t dword_endian_test = 0x12345678;
 
-void set_fat32(Fs_t *This)
+static void set_fat32(Fs_t *This)
 {
 	uint8_t *t = (uint8_t *) &dword_endian_test;
 	This->fat_bits = 32;
@@ -600,6 +600,15 @@ void set_fat32(Fs_t *This)
 		This->fat_decode = fat32_decode;
 		This->fat_encode = fat32_encode;
 	}
+}
+
+void set_fat(Fs_t *This) {
+	if(This->num_clus < FAT12)
+		set_fat12(This);
+	else if(This->num_clus < FAT16)
+		set_fat16(This);
+	else
+		set_fat32(This);
 }
 
 static int check_fat(Fs_t *This)
