@@ -561,6 +561,27 @@ void calc_fs_parameters(struct device *dev, bool fat32,
 		else if(Fs->dir_len == 0)
 			Fs->dir_len = saved_dir_len;
 
+		if(Fs->fat_bits == 32 &&
+		   may_change_cluster_size && may_change_fat_len) {
+			/*
+			   FAT32 cluster sizes for disks with 512 block size
+			   according to Microsoft specification fatgen103.doc:
+			
+			   ...
+			   	   -   8 GB   cluster_size =  8
+			      8 GB -  16 GB   cluster_size = 16
+			     16 GB -  32 GB   cluster_size = 32
+			     32 GB -   2 TB   cluster_size = 64
+			
+			   Below calculation is generalized and does not depend
+			   on 512 block size.
+			 */
+			Fs->cluster_size = tot_sectors >= 32*1024*1024*2 ? 64 :
+			                   tot_sectors >= 16*1024*1024*2 ? 32 :
+			                   tot_sectors >=  8*1024*1024*2 ? 16 :
+				Fs->cluster_size;
+		}
+		
 		if(getenv("MTOOLS_DEBUG_FAT")) {
 			fprintf(stderr, "FAT=%d Cluster=%d%s\n",
 				Fs->fat_bits, Fs->cluster_size,
@@ -601,16 +622,6 @@ void calc_fs_parameters(struct device *dev, bool fat32,
 			fprintf(stderr, " fit=%d\n", fit);
 		}
 		if(fit == 0) {
-			/* If number of clusters goes beyond 0x20000, start
-			 * raising cluster size before adding more clusters */
-			if(Fs->num_clus >= 0x1febfe &&
-			   may_change_cluster_size &&
-			   may_change_fat_len &&
-			   Fs->cluster_size < 64) {
-				Fs->cluster_size = Fs->cluster_size * 2;
-				continue;
-			}
-
 #ifdef HAVE_ASSERT_H
 			/* number of clusters must be within allowable
 			   range for fat bits */
