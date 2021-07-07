@@ -361,7 +361,6 @@ static void padFat(Fs_t *Fs, uint32_t tot_sectors, uint32_t maxClus,
 	}
 	fat_grow = (waste + Fs->num_fat - 1) / Fs->num_fat;
 	Fs->fat_len += fat_grow;
-	waste -= fat_grow * Fs->num_fat;
 			
 	/* Shrink directory again, but at most as by as much
 	 * as we grew it earlyer */
@@ -454,6 +453,103 @@ static int old_dos_size_to_geom(size_t size,
 		return 1;
 }
 
+/* Try given cluster- and fat_size (and other parameters), and say whether
+ * cluster_size/fat_bits should be increased, decreased, or is fine as is.
+ */
+static int try_cluster_size(Fs_t *Fs,
+			     uint32_t tot_sectors,
+			     bool may_change_fat_len,
+			     bool may_change_root_size,
+			     bool may_change_cluster_size,
+			     bool may_pad)
+{
+	uint32_t maxClus;
+	uint32_t minClus;
+
+	switch(Fs->fat_bits) {
+	case 12:
+		minClus = 1;
+		maxClus = FAT12;
+		break;
+	case 16:
+		minClus = 4096;
+		maxClus = FAT16;
+		break;
+	case 32:
+		minClus = FAT16;
+		maxClus = FAT32;
+		break;
+	default:
+#ifdef HAVE_ASSERT_H
+		assert(false && "Bad number of FAT bits");
+#endif
+	}
+
+	if(Fs->fat_bits == 32 &&
+	   may_change_cluster_size && may_change_fat_len) {
+		/*
+		  FAT32 cluster sizes for disks with 512 block size
+		  according to Microsoft specification fatgen103.doc:
+			
+		  ...
+		  -   8 GB   cluster_size =  8
+		  8 GB -  16 GB   cluster_size = 16
+		  16 GB -  32 GB   cluster_size = 32
+		  32 GB -   2 TB   cluster_size = 64
+			
+		  Below calculation is generalized and does not depend
+		  on 512 block size.
+		*/
+		Fs->cluster_size = tot_sectors >= 32*1024*1024*2 ? 64 :
+			tot_sectors >= 16*1024*1024*2 ? 32 :
+			tot_sectors >=  8*1024*1024*2 ? 16 :
+			Fs->cluster_size;
+	}
+		
+	if(getenv("MTOOLS_DEBUG_FAT")) {
+		fprintf(stderr, "FAT=%d Cluster=%d%s\n",
+			Fs->fat_bits, Fs->cluster_size,
+			may_pad ? " may_pad" : "");
+	}
+		
+	if(may_change_fat_len) {
+		int fit=calc_fat_len(Fs, tot_sectors);
+		if(fit != 0)
+			return fit;
+	}
+
+	while(true) {
+		calc_num_clus(Fs, tot_sectors);
+		if(Fs->num_clus < minClus)
+			return -1; /* Not enough clusters => loop
+				    * should shrink FAT bits again */
+
+		if(!may_change_fat_len) {
+			/* If fat_len has been explicitly specified by
+			 * user, make sure that number of clusters
+			 * fit within that fat_len */
+			if(Fs->num_clus >= FAT32 || !clusters_fit_into_fat(Fs))
+				return 2; /* Caller should should pick a
+					   * bigger cluster size, but not a
+					   * higher FAT bits */
+		}
+
+		if(Fs->num_clus < maxClus)
+			break;
+		if(!may_pad) 
+			return 1;
+
+		padFat(Fs, tot_sectors, maxClus, may_change_root_size);
+	}
+#ifdef HAVE_ASSERT_H
+	/* number of clusters must be within allowable range for fat
+	   bits */
+	assert(Fs->num_clus >= minClus);
+	assert(Fs->num_clus < maxClus);
+#endif
+	return 0;
+}
+
 void calc_fs_parameters(struct device *dev, bool fat32,
 			uint32_t tot_sectors,
 			struct Fs_t *Fs, uint8_t *descr)
@@ -525,30 +621,7 @@ void calc_fs_parameters(struct device *dev, bool fat32,
 	saved_dir_len = Fs->dir_len;
 
 	while(true) {
-		int fit=0;
-
-		uint32_t maxClus;
-		uint32_t minClus;
-
-		switch(Fs->fat_bits) {
-		case 12:
-			minClus = 1;
-			maxClus = FAT12;
-			break;
-		case 16:
-			minClus = 4096;
-			maxClus = FAT16;
-			break;
-		case 32:
-			minClus = FAT16;
-			maxClus = FAT32;
-			break;
-		default:
-#ifdef HAVE_ASSERT_H
-			assert(false && "Bad number of FAT bits");
-#endif
-		}
-		
+		int fit;
 		if(may_change_boot_size) {
 			if(Fs->fat_bits == 32)
 				Fs->fat_start = 32;
@@ -560,77 +633,18 @@ void calc_fs_parameters(struct device *dev, bool fat32,
 			Fs->dir_len = 0;
 		else if(Fs->dir_len == 0)
 			Fs->dir_len = saved_dir_len;
-
-		if(Fs->fat_bits == 32 &&
-		   may_change_cluster_size && may_change_fat_len) {
-			/*
-			   FAT32 cluster sizes for disks with 512 block size
-			   according to Microsoft specification fatgen103.doc:
-			
-			   ...
-			   	   -   8 GB   cluster_size =  8
-			      8 GB -  16 GB   cluster_size = 16
-			     16 GB -  32 GB   cluster_size = 32
-			     32 GB -   2 TB   cluster_size = 64
-			
-			   Below calculation is generalized and does not depend
-			   on 512 block size.
-			 */
-			Fs->cluster_size = tot_sectors >= 32*1024*1024*2 ? 64 :
-			                   tot_sectors >= 16*1024*1024*2 ? 32 :
-			                   tot_sectors >=  8*1024*1024*2 ? 16 :
-				Fs->cluster_size;
-		}
+		fit=try_cluster_size(Fs,
+				     tot_sectors,
+				     may_change_fat_len,
+				     may_change_root_size,
+				     may_change_cluster_size,
+				     may_pad);
 		
-		if(getenv("MTOOLS_DEBUG_FAT")) {
-			fprintf(stderr, "FAT=%d Cluster=%d%s\n",
-				Fs->fat_bits, Fs->cluster_size,
-				may_pad ? " may_pad" : "");
-		}
-		
-		if(may_change_fat_len)
-			fit=calc_fat_len(Fs, tot_sectors);
-
-		if(fit == 0) {
-			calc_num_clus(Fs, tot_sectors);
-
-			if(Fs->num_clus < minClus)
-				fit=-1; /* Not enough clusters => loop
-					 * should shrink FAT bits again */
-		}
-
-		if(fit == 0 && !may_change_fat_len) {
-			/* If fat_len has been explicitly specified by
-			 * user, make sure that number of cluster
-			 * fit within that fat_len */
-			if(Fs->num_clus >= FAT32 || !clusters_fit_into_fat(Fs))
-				fit=2; /* Caller should should pick a
-					* bigger cluster size, but not a
-					* higher FAT bits */
-		}
-
-		if(fit == 0 && Fs->num_clus >= maxClus) {
-			if(may_pad) {
-				padFat(Fs, tot_sectors, maxClus,
-				       may_change_root_size);
-				may_change_fat_len=false;
-				continue;
-			}
-			fit=1;
-		}
 		if(getenv("MTOOLS_DEBUG_FAT")) {
 			fprintf(stderr, " fit=%d\n", fit);
 		}
-		if(fit == 0) {
-#ifdef HAVE_ASSERT_H
-			/* number of clusters must be within allowable
-			   range for fat bits */
-			assert(Fs->num_clus >= minClus);
-			assert(Fs->num_clus < maxClus);
-#endif
-
+		if(fit == 0)
 			break;
-		}
 #ifdef HAVE_ASSERT_H
 		assert(!may_pad);
 		assert(fit != 2 || !may_change_fat_len);
@@ -652,10 +666,11 @@ void calc_fs_parameters(struct device *dev, bool fat32,
 			 * FAT entry now being larger), pushing the
 			 * number of clusters *below* new limit.  =>
 			 * we lower fat bits again */
-			if(!may_change_fat_bits || fat32) {
+			if(!may_change_fat_bits || !may_change_fat_len) {
 				fprintf(stderr,
 					"Too few clusters for %d bit fat\n",
 					Fs->fat_bits);
+				exit(1);
 			}
 			switch(Fs->fat_bits) {
 			case 12:
@@ -1009,7 +1024,6 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 			case 'L':
 				Fs->fat_len = strtoui(optarg,&endptr,0);
 				break;
-
 
 			case 'B':
 				bootSector = optarg;
