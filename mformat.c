@@ -165,6 +165,31 @@ static uint16_t init_geometry_boot(union bootsector *boot, struct device *dev,
 	}
 }
 
+static unsigned char bootprog[]=
+{0xfa, 0x31, 0xc0, 0x8e, 0xd8, 0x8e, 0xc0, 0xfc, 0xb9, 0x00, 0x01,
+ 0xbe, 0x00, 0x7c, 0xbf, 0x00, 0x80, 0xf3, 0xa5, 0xea, 0x00, 0x00,
+ 0x00, 0x08, 0xb8, 0x01, 0x02, 0xbb, 0x00, 0x7c, 0xba, 0x80, 0x00,
+ 0xb9, 0x01, 0x00, 0xcd, 0x13, 0x72, 0x05, 0xea, 0x00, 0x7c, 0x00,
+ 0x00, 0xcd, 0x19};
+
+static __inline__ void inst_boot_prg(union bootsector *boot, uint16_t offset)
+{
+	memcpy(boot->bytes + offset, bootprog, sizeof(bootprog));
+	if(offset - 2 < 0x80) {
+	  /* short jump */
+	  boot->boot.jump[0] = 0xeb;
+	  boot->boot.jump[1] = (uint8_t) (offset -2);
+	  boot->boot.jump[2] = 0x90;
+	} else {
+	  /* long jump, if offset is too large */
+	  boot->boot.jump[0] = 0xe9;
+	  boot->boot.jump[1] = (uint8_t) (offset - 3);
+	  boot->boot.jump[2] = (uint8_t) ( (offset - 3) >> 8);
+	}
+	set_word(boot->boot.jump + offset + 20, offset + 24);
+}
+
+/* Set up the root directory */
 static __inline__ void format_root(Fs_t *Fs, char *label, union bootsector *boot)
 {
 	Stream_t *RootDir;
@@ -208,30 +233,6 @@ static __inline__ void format_root(Fs_t *Fs, char *label, union bootsector *boot
 		set_word(boot->boot.dirents,
 			 (uint16_t) (Fs->dir_len * (Fs->sector_size / 32)));
 	free(buf);
-}
-
-static unsigned char bootprog[]=
-{0xfa, 0x31, 0xc0, 0x8e, 0xd8, 0x8e, 0xc0, 0xfc, 0xb9, 0x00, 0x01,
- 0xbe, 0x00, 0x7c, 0xbf, 0x00, 0x80, 0xf3, 0xa5, 0xea, 0x00, 0x00,
- 0x00, 0x08, 0xb8, 0x01, 0x02, 0xbb, 0x00, 0x7c, 0xba, 0x80, 0x00,
- 0xb9, 0x01, 0x00, 0xcd, 0x13, 0x72, 0x05, 0xea, 0x00, 0x7c, 0x00,
- 0x00, 0xcd, 0x19};
-
-static __inline__ void inst_boot_prg(union bootsector *boot, uint16_t offset)
-{
-	memcpy(boot->bytes + offset, bootprog, sizeof(bootprog));
-	if(offset - 2 < 0x80) {
-	  /* short jump */
-	  boot->boot.jump[0] = 0xeb;
-	  boot->boot.jump[1] = (uint8_t) (offset -2);
-	  boot->boot.jump[2] = 0x90;
-	} else {
-	  /* long jump, if offset is too large */
-	  boot->boot.jump[0] = 0xe9;
-	  boot->boot.jump[1] = (uint8_t) (offset - 3);
-	  boot->boot.jump[2] = (uint8_t) ( (offset - 3) >> 8);
-	}
-	set_word(boot->boot.jump + offset + 20, offset + 24);
 }
 
 /*
@@ -391,21 +392,6 @@ static void fat32_specific_init(Fs_t *Fs) {
 			"Reserved sectors (%d) must be more than backupBoot (%d)\n", Fs->fat_start, Fs->backupBoot);
 		Fs->backupBoot = 0;
 	}
-}
-
-static int old_dos_size_to_geom(size_t size,
-				unsigned int *cyls,
-				unsigned short *heads,
-				unsigned short *sects)
-{
-	struct OldDos_t *params = getOldDosBySize(size);
-	if(params != NULL) {
-		*cyls = params->tracks;
-		*heads = params->heads;
-		*sects = params->sectors;
-		return 0;
-	} else
-		return 1;
 }
 
 /* Try given cluster- and fat_size (and other parameters), and say whether
@@ -823,6 +809,21 @@ void setFsSectorSize(Fs_t *Fs, struct device *dev, uint16_t msize) {
 		}
 	}
 	Fs->sectorMask = Fs->sector_size - 1;
+}
+
+static int old_dos_size_to_geom(size_t size,
+				unsigned int *cyls,
+				unsigned short *heads,
+				unsigned short *sects)
+{
+	struct OldDos_t *params = getOldDosBySize(size);
+	if(params != NULL) {
+		*cyls = params->tracks;
+		*heads = params->heads;
+		*sects = params->sectors;
+		return 0;
+	} else
+		return 1;
 }
 
 static void usage(int ret) NORETURN;
