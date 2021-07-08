@@ -241,8 +241,6 @@ static __inline__ void inst_boot_prg(union bootsector *boot, uint16_t offset)
  *  into Fs->fat_len)
  *  1: if the specified number of FAT bits cannot accomodate that many
  *  sectors => caller should raise FAT bits
- *  -1: if the specified number of FAT bits cannot accomodate so little
- *  sectors => caller should lower FAT bits again
  */
 static int calc_fat_len(Fs_t *Fs, uint32_t tot_sectors)
 {
@@ -326,49 +324,6 @@ static int calc_fat_len(Fs_t *Fs, uint32_t tot_sectors)
 
 	Fs->fat_len = (numerator-1)/denominator+1+corr;
 	return 0;
-}
-
-/* As the number of clusters is specified nowhere in the boot sector,
- * it will be calculated by removing everything else from total number
- * of sectors, and dividing by sectors per cluster. This means that if
- * we reduced the number of sectors available for cluster by
- * increasing anything else, we will be able to get under the maximum.
- * We first try to augment the root directory's size, and then the
- * FAT's size itself.
- * This function returns true if the padding could be performed, and false
- * otherwise
- */
-static void padFat(Fs_t *Fs, uint32_t tot_sectors, uint32_t maxClus,
-		   bool allowDirLenChange) {
-	uint32_t bwaste; /* How many sectors we need to "waste" */
-	uint16_t waste;
-	uint16_t dir_grow=0;
-	uint16_t dir_shrink;
-	uint16_t fat_grow=0;
-
-	bwaste = tot_sectors - Fs->clus_start -
-		maxClus * Fs->cluster_size + 1;
-#ifdef HAVE_ASSERT_H
-	assert(bwaste <= UINT16_MAX);
-#endif
-	waste = (uint16_t) bwaste;
-
-	if(allowDirLenChange) {
-		dir_grow = 32 - Fs->dir_len;
-		if(dir_grow > waste)
-			dir_grow = waste;
-		waste -= dir_grow;
-	}
-	fat_grow = (waste + Fs->num_fat - 1) / Fs->num_fat;
-	Fs->fat_len += fat_grow;
-			
-	/* Shrink directory again, but at most as by as much
-	 * as we grew it earlyer */
-	dir_shrink = waste - fat_grow * Fs->num_fat;
-	if(dir_shrink > dir_grow)
-		dir_shrink = dir_grow;
-	dir_grow -= dir_shrink;
-	Fs->dir_len += dir_grow;
 }
 
 /* Is there enough space in the FAT for the descriptors for all clusters.
@@ -455,12 +410,36 @@ static int old_dos_size_to_geom(size_t size,
 
 /* Try given cluster- and fat_size (and other parameters), and say whether
  * cluster_size/fat_bits should be increased, decreased, or is fine as is.
+ * Parameters
+ *  Fs                    the file system object
+ *  tot_sectors           size of file system, in sectors
+ *  may_change_boot_size  try_cluster_size may increase number of boot
+ *                        (reserved) sectors to make everything fit
+ *  may_change_fat_len    try_cluster_size may change (compute) FAT length
+ *  may_change_root_size  try_cluster_size may increase root directory size
+ *                        to make everything fit
+ *  may_pad               if there are (slightly) too many clusters, 
+ *                        try_cluster_size may artificially inflate number of
+ *                        boot sectors, fat length or root_size to take up
+ *                        space in order to reduce number clusters below limit
+ * 
+ * Return values
+ *  -1 This cluster size leads to too few clusters for the FAT size.
+ *     Caller should either reduce cluster size or FAT size, and try again
+ *   0 Everything fits
+ *   1 This cluster size leads to too many clusters for the FAT
+ *     size. Caller should either increase cluster size or FAT size, and
+ *     try again
+ *   2 Fat length is set, and there are too many clusters to fit into
+ *     that Fat length. Caller should either increase cluster size, or 
+ *     decrease FAT size, and try again
+ * 
  */
 static int try_cluster_size(Fs_t *Fs,
 			     uint32_t tot_sectors,
+			     bool may_change_boot_size,
 			     bool may_change_fat_len,
 			     bool may_change_root_size,
-			     bool may_change_cluster_size,
 			     bool may_pad)
 {
 	uint32_t maxClus;
@@ -485,27 +464,6 @@ static int try_cluster_size(Fs_t *Fs,
 #endif
 	}
 
-	if(Fs->fat_bits == 32 &&
-	   may_change_cluster_size && may_change_fat_len) {
-		/*
-		  FAT32 cluster sizes for disks with 512 block size
-		  according to Microsoft specification fatgen103.doc:
-			
-		  ...
-		  -   8 GB   cluster_size =  8
-		  8 GB -  16 GB   cluster_size = 16
-		  16 GB -  32 GB   cluster_size = 32
-		  32 GB -   2 TB   cluster_size = 64
-			
-		  Below calculation is generalized and does not depend
-		  on 512 block size.
-		*/
-		Fs->cluster_size = tot_sectors >= 32*1024*1024*2 ? 64 :
-			tot_sectors >= 16*1024*1024*2 ? 32 :
-			tot_sectors >=  8*1024*1024*2 ? 16 :
-			Fs->cluster_size;
-	}
-		
 	if(getenv("MTOOLS_DEBUG_FAT")) {
 		fprintf(stderr, "FAT=%d Cluster=%d%s\n",
 			Fs->fat_bits, Fs->cluster_size,
@@ -519,6 +477,10 @@ static int try_cluster_size(Fs_t *Fs,
 	}
 
 	while(true) {
+		uint32_t bwaste; /* How many sectors we need to "waste" */
+		uint16_t waste;
+		uint16_t dir_grow=0;
+
 		calc_num_clus(Fs, tot_sectors);
 		if(Fs->num_clus < minClus)
 			return -1; /* Not enough clusters => loop
@@ -539,7 +501,65 @@ static int try_cluster_size(Fs_t *Fs,
 		if(!may_pad) 
 			return 1;
 
-		padFat(Fs, tot_sectors, maxClus, may_change_root_size);
+		/* "Pad" fat by artifically adding sectors to boot sectors,
+		   FAT or root directory to diminish number of clusters */
+
+		/* This is needed when a size of a FAT fs somehow is
+		 * "in between" 2 fat bits: too large for FAT12, too small
+		 * for FAT16.
+
+		 * This happens because if there slightly too may
+		 * clusters for FAT12, the system passes to
+		 * FAT16. However, this makes the space taken up by
+		 * the descriptor of each sector in the FAT larger,
+		 * making the FAT larger overall, leaving less space
+		 * for the clusters themselves, i.e. less
+		 * clusters. Sometimes this is enough to push the
+		 * number of clusters *below* the minimum for FAT12.
+
+		 * a similar situation happens when switching from
+		 * FAT16 to FAT32.
+
+		 * if this happens, we switch back to the lower FAT
+		 * bits, and allow "padding", i.e. artificially
+		 * "wasting" space by adding more reserved (boot)
+		 * sectors, adding "useless" extra sectors to the FAT,
+		 * or allowing more root directory entries.
+
+		 */
+		bwaste = tot_sectors - Fs->clus_start -
+			maxClus * Fs->cluster_size + 1;
+#ifdef HAVE_ASSERT_H
+		assert(bwaste <= UINT16_MAX);
+#endif
+		waste = (uint16_t) bwaste;
+
+		if(may_change_root_size) {
+			dir_grow = 32 - Fs->dir_len;
+			if(dir_grow > waste)
+				dir_grow = waste;
+			waste -= dir_grow;
+		}
+		if(may_change_fat_len &&
+		   (!may_change_boot_size || Fs->fat_bits == 12)) {
+			uint16_t fat_grow =
+				(waste + Fs->num_fat - 1) / Fs->num_fat;
+			uint16_t dir_shrink = 0;
+			Fs->fat_len += fat_grow;
+
+			/* Shrink directory again, but at most as by as much
+			 * as we grew it earlyer */
+			dir_shrink = waste - fat_grow * Fs->num_fat;
+			if(dir_shrink > dir_grow)
+				dir_shrink = dir_grow;
+			dir_grow -= dir_shrink;
+		} else if(may_change_boot_size) {
+			Fs->fat_start += waste;
+		}
+		Fs->dir_len += dir_grow;
+
+		/* If padding once failed, no point in keeping on retrying */
+		may_pad=false; 
 	}
 #ifdef HAVE_ASSERT_H
 	/* number of clusters must be within allowable range for fat
@@ -633,11 +653,33 @@ void calc_fs_parameters(struct device *dev, bool fat32,
 			Fs->dir_len = 0;
 		else if(Fs->dir_len == 0)
 			Fs->dir_len = saved_dir_len;
+
+		if(Fs->fat_bits == 32 &&
+		   may_change_cluster_size && may_change_fat_len) {
+			/*
+			  FAT32 cluster sizes for disks with 512 block size
+			  according to Microsoft specification fatgen103.doc:
+			
+			  ...
+			  -   8 GB   cluster_size =  8
+			  8 GB -  16 GB   cluster_size = 16
+			  16 GB -  32 GB   cluster_size = 32
+			  32 GB -   2 TB   cluster_size = 64
+			
+			  Below calculation is generalized and does not depend
+			  on 512 block size.
+			*/
+			Fs->cluster_size = tot_sectors >= 32*1024*1024*2 ? 64 :
+				tot_sectors >= 16*1024*1024*2 ? 32 :
+				tot_sectors >=  8*1024*1024*2 ? 16 :
+				Fs->cluster_size;
+		}
+
 		fit=try_cluster_size(Fs,
 				     tot_sectors,
+				     may_change_boot_size,
 				     may_change_fat_len,
 				     may_change_root_size,
-				     may_change_cluster_size,
 				     may_pad);
 		
 		if(getenv("MTOOLS_DEBUG_FAT")) {
@@ -646,7 +688,6 @@ void calc_fs_parameters(struct device *dev, bool fat32,
 		if(fit == 0)
 			break;
 #ifdef HAVE_ASSERT_H
-		assert(!may_pad);
 		assert(fit != 2 || !may_change_fat_len);
 #endif
 		if(fit < 0) {
@@ -666,7 +707,7 @@ void calc_fs_parameters(struct device *dev, bool fat32,
 			 * FAT entry now being larger), pushing the
 			 * number of clusters *below* new limit.  =>
 			 * we lower fat bits again */
-			if(!may_change_fat_bits || !may_change_fat_len) {
+			if(!may_change_fat_bits) {
 				fprintf(stderr,
 					"Too few clusters for %d bit fat\n",
 					Fs->fat_bits);
@@ -690,7 +731,7 @@ void calc_fs_parameters(struct device *dev, bool fat32,
 			continue;
 		}
 
-		if(fit == 1 && may_change_fat_bits) {
+		if(fit == 1 && may_change_fat_bits && !may_pad) {
 			/* If cluster_size reached
 			 * "maximum" for fat_bits,
 			 * switch over to next
@@ -718,6 +759,14 @@ void calc_fs_parameters(struct device *dev, bool fat32,
 		if(may_change_cluster_size && Fs->cluster_size < 128) {
 			/* Double cluster size, and try again */
 			Fs->cluster_size = 2 * Fs->cluster_size;
+			continue;
+		}
+
+		if(fit == 2 && may_change_fat_bits &&
+		   may_change_root_size &&
+		   Fs->fat_bits == 16) {
+			Fs->fat_bits=12;
+			may_pad=true;
 			continue;
 		}
 
