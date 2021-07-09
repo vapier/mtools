@@ -827,6 +827,49 @@ static int old_dos_size_to_geom(size_t size,
 		return 1;
 }
 
+static void checkOverflow(uint32_t tot_sectors, int bits) {
+	if(tot_sectors > UINT32_MAX >> bits) {
+		fprintf(stderr, "Too many sectors\n");
+		exit(1);
+	}
+}
+
+static uint32_t parseSize(char *sizeStr) {
+	char *eptr;
+	uint32_t tot_sectors = strtou32(sizeStr, &eptr, 10);
+	if(eptr == optarg) {
+		fprintf(stderr, "Bad size %s\n", sizeStr);
+		exit(1);
+	}
+	switch(toupper(*eptr)) {
+	case 'T':
+		checkOverflow(tot_sectors, 10);
+		tot_sectors *= 1024;
+		/* FALL THROUGH */
+	case 'G':
+		checkOverflow(tot_sectors, 10);
+		tot_sectors *= 1024;
+		/* FALL THROUGH */
+	case 'M':
+		checkOverflow(tot_sectors, 10);
+		tot_sectors *= 1024;
+		/* FALL THROUGH */
+	case 'K':
+		checkOverflow(tot_sectors, 1);
+		tot_sectors *= 2;
+		eptr++;
+		break;
+	case '\0':
+		/* By default, assume sectors */
+		break;
+	}
+	if(*eptr) {
+		fprintf(stderr, "Bad suffix %s\n", eptr);
+		exit(1);
+	}
+	return tot_sectors;
+}
+
 static void usage(int ret) NORETURN;
 static void usage(int ret)
 {
@@ -971,7 +1014,7 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 				break;
 
 			case 'T':
-				tot_sectors = atoui(optarg);
+				tot_sectors = parseSize(optarg);
 				break;
 
 			case 'n': /*non-standard*/
