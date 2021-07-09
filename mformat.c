@@ -581,6 +581,7 @@ void calc_fs_parameters(struct device *dev, bool fat32,
 		Fs->dir_len = params->dir_len;
 		Fs->fat_len = params->fat_len;
 		Fs->fat_bits = 12;
+		calc_num_clus(Fs, tot_sectors);
 		check_fs_params_and_set_fat(Fs, tot_sectors);
 		return;
 	}
