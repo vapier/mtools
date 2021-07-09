@@ -37,6 +37,35 @@ int compute_lba_geom_from_tot_sectors(struct device *dev)
 		return 0;
 	}
 
+	/* Floppy sizes, allowing for non-standard sizes with slightly
+	   more sectors per track than the default */
+	if(dev->tot_sectors &&
+	   dev->tot_sectors <= 8640 && dev->tot_sectors % 40 == 0) {
+		if(dev->tot_sectors <= 540) {
+			/* double density 48tpi single sided */
+			dev->tracks = 40;
+			dev->heads = 1;
+		} else if(dev->tot_sectors <= 1080) {
+			/* double density 48tpi double sided or 
+			   96 tpi single sided   */
+
+			if(dev->heads == 1)
+				dev->tracks = 80;
+			else {
+				dev->tracks = 40;
+				dev->heads = 2;
+			}
+		} else {
+			/* double density 96tpi double sided, 
+			 * high density, extra density */
+			dev->tracks = 80;
+			dev->heads = 2;
+		}
+		dev->sectors =
+			(uint16_t) dev->tot_sectors / dev->heads / dev->tracks;
+	}
+
+	
 	/* Heads or sectors not known => fill them in both... */
 	if(!dev->sectors || !dev->heads) {
 		dev->sectors = 63;
