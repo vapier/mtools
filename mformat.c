@@ -1478,7 +1478,7 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 	Fs->last = 2;
 
 #ifdef USE_XDF
-	if(format_xdf)
+	if(used_dev.misc_flags & USE_XDF_FLAG)
 		for(i=0;
 		    i < (info.BadSectors+Fs->cluster_size-1)/Fs->cluster_size;
 		    i++)
