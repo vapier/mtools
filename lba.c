@@ -72,11 +72,11 @@ int compute_lba_geom_from_tot_sectors(struct device *dev)
 
 		if (dev->tot_sectors < 16*dev->sectors*1024)
 			dev->heads = 16;
-		else if (dev->tot_sectors < 32*dev->sectors*1024)
+		else if (dev->tot_sectors < 32u*dev->sectors*1024)
 			dev->heads = 32;
-		else if (dev->tot_sectors < 64*dev->sectors*1024)
+		else if (dev->tot_sectors < 64u*dev->sectors*1024)
 			dev->heads = 64;
-		else if (dev->tot_sectors < 128*dev->sectors*1024)
+		else if (dev->tot_sectors < 128u*dev->sectors*1024)
 			dev->heads = 128;
 		else
 			dev->heads = 255;
