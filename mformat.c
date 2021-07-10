@@ -238,6 +238,7 @@ static __inline__ void format_root(Fs_t *Fs, char *label, union bootsector *boot
 /*
  * Calculate length of one FAT, in sectors, given the number of total sectors
  * Returns
+ *  -2: if there are less total sectors than even clus_start
  *  0: if a length was successfully calculated. (in that case, it is filled
  *  into Fs->fat_len)
  *  1: if the specified number of FAT bits cannot accomodate that many
@@ -249,6 +250,7 @@ static int calc_fat_len(Fs_t *Fs, uint32_t tot_sectors)
 	uint32_t numerator;
 	uint32_t denominator;
 	uint32_t corr=0; /* correct numeric overflow */
+	uint32_t clus_start;
 	unsigned int fat_nybbles;
 
 #ifdef HAVE_ASSERT_H
@@ -261,7 +263,10 @@ static int calc_fat_len(Fs_t *Fs, uint32_t tot_sectors)
 	fprintf(stderr, "dir_len=%d\n", Fs->dir_len);
 #endif
 	Fs->fat_len = 0;
-	rem_sect = tot_sectors - calc_clus_start(Fs);
+	clus_start = calc_clus_start(Fs);
+	if(tot_sectors < clus_start)
+		return -2;
+	rem_sect = tot_sectors - clus_start;
 	
 	/* Cheat a little bit to address the _really_ common case of
 	   odd number of remaining sectors while both nfat and cluster size
@@ -410,6 +415,8 @@ static void fat32_specific_init(Fs_t *Fs) {
  *                        space in order to reduce number clusters below limit
  * 
  * Return values
+ *  -2 Too few sectors to contain even the header (reserved sectors, minimal
+ *     FAT and root directory)
  *  -1 This cluster size leads to too few clusters for the FAT size.
  *     Caller should either reduce cluster size or FAT size, and try again
  *   0 Everything fits
@@ -467,7 +474,8 @@ static int try_cluster_size(Fs_t *Fs,
 		uint16_t waste;
 		uint16_t dir_grow=0;
 
-		calc_num_clus(Fs, tot_sectors);
+		if(calc_num_clus(Fs, tot_sectors) < 0)
+			return -2;
 		if(Fs->num_clus < minClus)
 			return -1; /* Not enough clusters => loop
 				    * should shrink FAT bits again */
@@ -581,7 +589,9 @@ void calc_fs_parameters(struct device *dev, bool fat32,
 		Fs->dir_len = params->dir_len;
 		Fs->fat_len = params->fat_len;
 		Fs->fat_bits = 12;
-		calc_num_clus(Fs, tot_sectors);
+		if(calc_num_clus(Fs, tot_sectors) < 0)
+			assert(false &&
+			       "Too few clusters for standard parameters");
 		check_fs_params_and_set_fat(Fs, tot_sectors);
 		return;
 	}
@@ -674,6 +684,10 @@ void calc_fs_parameters(struct device *dev, bool fat32,
 		}
 		if(fit == 0)
 			break;
+		if(fit == -2) {
+			fprintf(stderr, "Too few sectors\n");
+			exit(1);
+		}
 #ifdef HAVE_ASSERT_H
 		assert(fit != 2 || !may_change_fat_len);
 #endif
@@ -694,19 +708,13 @@ void calc_fs_parameters(struct device *dev, bool fat32,
 			 * FAT entry now being larger), pushing the
 			 * number of clusters *below* new limit.  =>
 			 * we lower fat bits again */
-			if(!may_change_fat_bits) {
+			if(!may_change_fat_bits || Fs->fat_bits == 12) {
 				fprintf(stderr,
 					"Too few clusters for %d bit fat\n",
 					Fs->fat_bits);
 				exit(1);
 			}
 			switch(Fs->fat_bits) {
-			case 12:
-				/* This should not happen */
-#ifdef HAVE_ASSERT_H
-				assert(false && "Too few clusters for FAT12");
-#endif
-				break;
 			case 16:
 				Fs->fat_bits=12;
 				break;

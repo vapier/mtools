@@ -327,10 +327,17 @@ uint32_t calc_clus_start(Fs_t *Fs) {
 	return Fs->fat_start + Fs->fat_len*Fs->num_fat + Fs->dir_len;
 }
 
-void calc_num_clus(Fs_t *Fs, uint32_t tot_sectors)
+/* Calculates number of clusters, and fills it in into Fs->num_clus
+ * Returns 0 if calculation could be performed, and -1 if less sectors than 
+ * clus_start
+ */
+int calc_num_clus(Fs_t *Fs, uint32_t tot_sectors)
 {
 	Fs->clus_start = calc_clus_start(Fs);
+	if(tot_sectors <= Fs->clus_start)
+		return -1;
 	Fs->num_clus = (tot_sectors - Fs->clus_start) / Fs->cluster_size;
+	return 0;
 }
 
 /**
@@ -458,7 +465,9 @@ uint32_t parseFsParams(	Fs_t *This,
 		}
 	}
 
-	calc_num_clus(This, tot_sectors);
+	if(calc_num_clus(This, tot_sectors) < 0)
+		/* Too few sectors */
+		return 0;
 	set_fat(This);
 	
 	return tot_sectors;

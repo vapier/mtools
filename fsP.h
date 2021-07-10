@@ -116,6 +116,6 @@ uint32_t parseFsParams(	Fs_t *This,
 			int media,
 			unsigned int cylinder_size);
 uint32_t calc_clus_start(Fs_t *Fs);
-void calc_num_clus(Fs_t *Fs, uint32_t tot_sectors);
+int calc_num_clus(Fs_t *Fs, uint32_t tot_sectors);
 
 #endif
