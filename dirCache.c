@@ -194,8 +194,9 @@ static int freeDirCacheRange(dirCache_t *cache,
 		
 		/* Due to the way this is called, we _always_ de-allocate
 		 * starting from beginning... */
+#ifdef HAVE_ASSERT_H
 		assert(entry->beginSlot == beginSlot);
-
+#endif
 		clearEnd = entry->endSlot;
 		if(clearEnd > endSlot)
 			clearEnd = endSlot;
