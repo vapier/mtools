@@ -1,3 +1,22 @@
+v4_0_32
+	- Simplify algorithm that choses filesystem parameters for
+          format, and align it more closely with what Win7 does
+	- Fix mformatting XDF when XDF not explicitly specified on
+          mformat command line
+	- easier way to enter sizes on mformat command line (mformat -C -T
+	  1440K)
+	- For small sizes, mformat assumes floppy geometries (heads 1 or 2,
+          tracks 40 or 80)
+	- Handle attempts to mformat too small filesystems more gracefully
+	- Enable minfo to print out additional mformat command line
+	  parameters, if the present filesystem uses non-default
+	  values for these
+	- minfo no longer prints bigsect if smallsect is set
+	- for remap filter, error when trying to write non-zero data
+          to unmapped sectors
+	- Fix misc compilation warnings occuring when disabling
+          certain features (largefiles, raw-term)
+
 v4_0_31
 	- Move Linux-specific block device sizing code into
           linux-specific section of devices.c
