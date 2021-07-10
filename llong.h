@@ -104,7 +104,6 @@ extern const mt_off_t max_off_t_seek;
 
 extern off_t truncBytes32(mt_off_t off); /* truncMtOffToOff */
 extern uint32_t truncMtOffTo32u(mt_off_t off);
-extern uint32_t truncOffTo32u(off_t off);
 extern uint32_t truncSizeTo32u(size_t siz);
 extern int fileTooBig(mt_off_t off);
 extern int fileSizeTooBig(mt_size_t off);

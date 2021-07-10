@@ -60,15 +60,6 @@ uint32_t truncMtOffTo32u(mt_off_t off)
 	return (uint32_t) off;
 }
 
-uint32_t truncOffTo32u(off_t off)
-{
-	if (off > UINT32_MAX) {
-		fprintf(stderr, "Internal error, offset too big\n");
-		exit(1);
-	}
-	return (uint32_t) off;
-}
-
 uint32_t truncSizeTo32u(size_t siz)
 {
 	if (fileSizeTooBig(siz)) {
