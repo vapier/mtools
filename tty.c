@@ -170,7 +170,7 @@ static void set_raw_tty(int mode)
 }
 #endif
 
-FILE *opentty(int mode)
+FILE *opentty(int mode UNUSEDP)
 {
 	if(notty)
 		return NULL;
