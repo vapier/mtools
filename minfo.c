@@ -29,9 +29,9 @@
 static void usage(int ret) NORETURN;
 static void usage(int ret)
 {
-	fprintf(stderr, 
+	fprintf(stderr,
 		"Mtools version %s, dated %s\n", mversion, mdate);
-	fprintf(stderr, 
+	fprintf(stderr,
 		"Usage: %s [-v] drive\n", progname);
 	exit(ret);
 }
@@ -45,7 +45,7 @@ static void displayInfosector(Stream_t *Stream, union bootsector *boot)
 		return;
 
 	infosec = (InfoSector_t *) safe_malloc(WORD(secsiz));
-	force_read(Stream, (char *) infosec, 
+	force_read(Stream, (char *) infosec,
 			   (mt_off_t) WORD(secsiz) * WORD(ext.fat32.infoSector),
 			   WORD(secsiz));
 	printf("\nInfosector:\n");
@@ -73,7 +73,7 @@ static void displayBPB(Stream_t *Stream, union bootsector *boot) {
 	printf("cluster size: %d sectors\n", boot->boot.clsiz);
 	printf("reserved (boot) sectors: %d\n", WORD(nrsvsect));
 	printf("fats: %d\n", boot->boot.nfat);
-	printf("max available root directory slots: %d\n", 
+	printf("max available root directory slots: %d\n",
 	       WORD(dirents));
 	printf("small size: %d sectors\n", WORD(psect));
 	printf("media descriptor byte: 0x%x\n", boot->boot.descr);
@@ -91,20 +91,20 @@ static void displayBPB(Stream_t *Stream, union bootsector *boot) {
 	}
 
 	if(has_BPB4) {
-		printf("physical drive id: 0x%x\n", 
+		printf("physical drive id: 0x%x\n",
 		       labelBlock->physdrive);
-		printf("reserved=0x%x\n", 
+		printf("reserved=0x%x\n",
 		       labelBlock->reserved);
-		printf("dos4=0x%x\n", 
+		printf("dos4=0x%x\n",
 		       labelBlock->dos4);
-		printf("serial number: %08X\n", 
+		printf("serial number: %08X\n",
 		       _DWORD(labelBlock->serial));
-		printf("disk label=\"%11.11s\"\n", 
+		printf("disk label=\"%11.11s\"\n",
 		       labelBlock->label);
-		printf("disk type=\"%8.8s\"\n", 
+		printf("disk type=\"%8.8s\"\n",
 		       labelBlock->fat_type);
 	}
-		
+
 	if(!WORD(fatlen)){
 		printf("Big fatlen=%u\n",
 		       DWORD(ext.fat32.bigFat));
@@ -148,7 +148,7 @@ static void print_mformat_commandline(const char *imgFile,
 	struct device used_dev;
 	uint8_t tryMedia;
 	int bad;
-	
+
 	sect_per_track = dev->sectors * dev->heads;
 	if(sect_per_track == 0)
 		return;
@@ -234,7 +234,7 @@ static void print_mformat_commandline(const char *imgFile,
 #endif
 	if((media & 0xff) != (tryMedia & 0xff))
 		printf("-m %d ", (media & 0xff));
-			
+
 	if(actual.fat_bits == 32) {
 		if(actual.backupBoot != tryFs.backupBoot)
 			printf("-K %d ", actual.backupBoot);
@@ -261,7 +261,7 @@ void minfo(int argc, char **argv, int type UNUSEDP)
 	int have_drive = 0;
 	int ex=0;
 	char *imgFile=NULL;
-	
+
 	if(helpFlag(argc, argv))
 		usage(0);
 	while ((c = getopt(argc, argv, "i:vh")) != EOF) {
@@ -295,7 +295,7 @@ void minfo(int argc, char **argv, int type UNUSEDP)
 		}
 		have_drive = 1;
 
-		if(! (Stream = find_device(drive, O_RDONLY, &dev, &boot, 
+		if(! (Stream = find_device(drive, O_RDONLY, &dev, &boot,
 					   name, &media, 0, NULL))) {
 			fprintf(stderr, "Could not open drive %c:\n", drive);
 			ex=1;
@@ -304,7 +304,7 @@ void minfo(int argc, char **argv, int type UNUSEDP)
 
 		haveBPB = media >= 0x100;
 		media = media & 0xff;
-		
+
 		printf("device information:\n");
 		printf("===================\n");
 		printf("filename=\"%s\"\n", name);
@@ -315,7 +315,7 @@ void minfo(int argc, char **argv, int type UNUSEDP)
 
 		print_mformat_commandline(imgFile, drive,
 					  &dev, &boot, media, haveBPB);
-		
+
 		if(haveBPB || verbose)
 			displayBPB(Stream, &boot);
 
@@ -326,7 +326,7 @@ void minfo(int argc, char **argv, int type UNUSEDP)
 
 			printf("\n");
 			size = WORD_S(secsiz);
-			
+
 			buf = (unsigned char *) malloc(size);
 			if(!buf) {
 				fprintf(stderr, "Out of memory error\n");

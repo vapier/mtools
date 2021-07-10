@@ -72,7 +72,7 @@ static void usage(int ret)
  *
  * @param   drive   the drive to erase
  * @param   debug   1: stop after each erase cycle, 0: normal mode
- * 
+ *
  * @returns n.a.
  *
  */
@@ -86,11 +86,11 @@ static void do_mclasserase(char drive,int debug)
   char name[EXPAND_BUF];
   Stream_t *Stream;
   struct label_blk_t *labelBlock;
-  
+
   FILE * fDevice;              /* Stores device's file descriptor */
-  
+
   char cCardType[12];
-  
+
   char drivel[3];		/* Stores the drive letter */
 
 
@@ -110,12 +110,12 @@ static void do_mclasserase(char drive,int debug)
   odat[0]=0xff;
   odat[1]=0x00;
   odat[2]=0xff;
-  
+
 
   if (debug == 1)
      printf("cycles: %i, odats: %i,%i,%i\n",CYCLES,odat[0],odat[1],odat[2]);
-  
-  
+
+
 
   /* Reading parameters from card. Exit with -1 if failed. */
   if(! (Stream = find_device(drive, O_RDONLY, &dev, &boot,
@@ -135,7 +135,7 @@ static void do_mclasserase(char drive,int debug)
 
   /* we use only FAT12/16 ...*/
   labelBlock = &boot.boot.ext.old.labelBlock;
-   
+
   /* store card type */
   sprintf(cCardType, "%11.11s", labelBlock->label);
 
@@ -144,20 +144,20 @@ static void do_mclasserase(char drive,int debug)
      printf("Using Device: %s\n",name);
      printf("Card-Type detected: %s\n",cCardType);
   }
-      
+
   /* Forming cat command to overwrite the medias content. */
   sprintf( drivel, "%c:", ch_tolower(drive) );
 
 #if 0
   media_sectors = dev.tracks * dev.sectors;
-  sector_size = WORD(secsiz) * dev.heads; 
-  
+  sector_size = WORD(secsiz) * dev.heads;
+
 
 	printf(mcat);
 	printf("\n%d\n", media_sectors);
 	printf("%d\n", sector_size);
 #endif
- 
+
   /*
    * Overwrite device
    */
@@ -169,7 +169,7 @@ static void do_mclasserase(char drive,int debug)
      }
 
      fDevice = fopen(name,"ab+");
-          
+
      if (fDevice == 0)
      {
         perror("Error opening device");
@@ -186,13 +186,13 @@ static void do_mclasserase(char drive,int debug)
      }
 
      /* iTotalErase = 0; */
-      
+
      /*
       * overwrite the whole device
       */
      while ((feof(fDevice)==0) && (ferror(fDevice)==0))
      {
-          		
+
 	fputc(odat[i],fDevice);
 
 	icount++;
@@ -200,41 +200,41 @@ static void do_mclasserase(char drive,int debug)
 	{
 	   /* flush device every 32KB of data...*/
 	   fflush( fDevice );
-           
+
 	   iTotalErase += icount;
 	   if (debug == 1)
 	   {
-	      printf(".");	   
+	      printf(".");
 	      fflush( stdout );
 	   }
 	   icount=0;
 	}
      }
-     
+
      if (debug==1)
      {
         printf("\nPress <ENTER> to continue\n");
         printf("Press <x> and <ENTER> to abort\n");
-	
+
 	if(scanf("%c",dummy) < 1)
 	  printf("Input error\n");
 	fflush( stdin );
-	
+
 	if (strcmp(dummy,"x") == 0)
 	{
 	   printf("exiting.\n");
 	   exit(0);
 	}
      }
-     
+
      fclose(fDevice);
 
   }
 
-   
+
   /*
    * Format device using shell script
-   */  
+   */
   if (debug == 0)
   {
   	/* redirect STDERR and STDOUT to the black hole... */
@@ -243,22 +243,22 @@ static void do_mclasserase(char drive,int debug)
 	if (dup2(open("/dev/null", O_WRONLY), STDOUT_FILENO) != STDOUT_FILENO)
 	        printf("Error with dup2() stdout\n");
   }
-	       
+
   if (debug == 1)
       printf("Calling amuFormat.sh with args: %s,%s\n",cCardType,drivel);
-	
+
   execlp("amuFormat.sh","",cCardType,drivel,NULL);
 
   /* we never come back...(we shouldn't come back ...) */
   exit(-1);
-    
+
 }
 
 
 /*
  * Total Erase of Data on a Disk. After using mclasserase there won't
  * be ANY bits of old files on the disk.<br>
- * 
+ *
  * @author  stefan feuz<br>
  *          thomas locher<br>
  *          stefan.feuz@ruag.com
@@ -270,7 +270,7 @@ static void do_mclasserase(char drive,int debug)
  * @param   type    generated automatically by operating systems
  *
  * @param   -d      stop after each erase cycle, for testing purposes
- * 
+ *
  * @returns int     0 if all is well done<br>
  *          int     -1 if there is something wrong
  *
@@ -309,16 +309,16 @@ void mclasserase(int argc, char **argv, int type UNUSEDP)
     {
       switch (c)
       {
-	
+
 	case 'd':
-           
+
 	   printf("=============\n");
 	   printf("Debug Mode...\n");
 	   printf("=============\n");
            debug = 1;
 	   break;
 	case 'p':
-           printf("option -p not implemented yet\n"); 
+           printf("option -p not implemented yet\n");
            break;
 	case 'h':
 	  usage(0);
@@ -344,9 +344,9 @@ void mclasserase(int argc, char **argv, int type UNUSEDP)
   }
 #ifdef DEBUG
   printf("mclasserase: found drive %c\n", drive);
-#endif 
+#endif
   /* remove all data on drive, you never come back if drive does
    * not exist */
-  
+
   do_mclasserase(drive,debug);
 }

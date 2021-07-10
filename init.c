@@ -47,7 +47,7 @@ static int read_boot(Stream_t *Stream, union bootsector * boot, size_t size)
 	if (force_read(Stream, boot->characters, 0, size) != (ssize_t) size)
 		return -1;
 
-	boot_sector_size = WORD(secsiz);		
+	boot_sector_size = WORD(secsiz);
 	if(boot_sector_size < sizeof(boot->bytes)) {
 		/* zero rest of in-memory boot sector */
 		memset(boot->bytes+boot_sector_size, 0,
@@ -126,7 +126,7 @@ static void boot_to_geom(struct device *dev, int media,
 	dev->ssize = 2; /* allow for init_geom to change it */
 	dev->use_2m = 0x80; /* disable 2m mode to begin */
 
-	if(media == 0xf0 || media >= 0x100){		
+	if(media == 0xf0 || media >= 0x100){
 		dev->heads = WORD(nheads);
 		dev->sectors = WORD(nsect);
 		tot_sectors = DWORD(bigsect);
@@ -152,12 +152,12 @@ static void boot_to_geom(struct device *dev, int media,
 		if(tot_sectors % sect_per_track)
 			/* round size up */
 			dev->tracks++;
-		
+
 		BootP = WORD(ext.old.BootP);
 		Infp0 = WORD(ext.old.Infp0);
 		InfpX = WORD(ext.old.InfpX);
 		InfTm = WORD(ext.old.InfTm);
-		
+
 		if(WORD(fatlen)) {
 			labelBlock = &boot->boot.ext.old.labelBlock;
 		} else {
@@ -168,9 +168,9 @@ static void boot_to_geom(struct device *dev, int media,
 		    has_BPB4 &&
 		    strncmp( boot->boot.banner,"2M", 2 ) == 0 &&
 		    BootP < 512 && Infp0 < 512 && InfpX < 512 && InfTm < 512 &&
-		    BootP >= InfTm + 2 && InfTm >= InfpX && InfpX >= Infp0 && 
+		    BootP >= InfTm + 2 && InfTm >= InfpX && InfpX >= Infp0 &&
 		    Infp0 >= 76 ){
-			for (sum=0, j=63; j < BootP; j++) 
+			for (sum=0, j=63; j < BootP; j++)
 				sum += boot->bytes[j];/* checksum */
 			dev->ssize = boot->bytes[InfTm];
 			if (!sum && dev->ssize <= 7){
@@ -247,7 +247,7 @@ static Stream_t *try_device(struct device *dev,
 		if(Stream == NULL) {
 			if(geomFailure && (mode & O_ACCMODE) == O_RDONLY) {
 				/* Our first attempt was to open read-only,
-				   but this resulted in failure setting the 
+				   but this resulted in failure setting the
 				   geometry */
 				openMode = modeFlags | O_RDWR;
 				continue;
@@ -328,7 +328,7 @@ uint32_t calc_clus_start(Fs_t *Fs) {
 }
 
 /* Calculates number of clusters, and fills it in into Fs->num_clus
- * Returns 0 if calculation could be performed, and -1 if less sectors than 
+ * Returns 0 if calculation could be performed, and -1 if less sectors than
  * clus_start
  */
 int calc_num_clus(Fs_t *Fs, uint32_t tot_sectors)
@@ -363,7 +363,7 @@ Stream_t *find_device(char drive, int mode, struct device *out_dev,
 {
 	char errmsg[200];
 	struct device *dev;
-	
+
 	sprintf(errmsg, "Drive '%c:' not supported", drive);
 					/* open the device */
 	for (dev=devices; dev->name; dev++) {
@@ -443,7 +443,7 @@ uint32_t parseFsParams(	Fs_t *This,
 		 */
 		tot_sectors = WORD(psect);
 		if(!tot_sectors)
-			tot_sectors = DWORD(bigsect);	
+			tot_sectors = DWORD(bigsect);
 
 		This->cluster_size = boot->boot.clsiz;
 		This->fat_start = WORD(nrsvsect);
@@ -469,7 +469,7 @@ uint32_t parseFsParams(	Fs_t *This,
 		/* Too few sectors */
 		return 0;
 	set_fat(This);
-	
+
 	return tot_sectors;
 }
 
@@ -518,7 +518,7 @@ Stream_t *fs_init(char drive, int mode, int *isRop)
 		/* Error raised by parseFsParams */
 		return NULL;
 	}
-	
+
 	if (tot_sectors >= (maxSize >> This->sectorShift)) {
 		fprintf(stderr, "Big disks not supported on this architecture\n");
 		exit(1);

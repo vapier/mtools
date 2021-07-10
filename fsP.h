@@ -31,7 +31,7 @@ typedef struct Fs_t {
 	int refs;
 	Stream_t *Next;
 	Stream_t *Buffer;
-	
+
 	int serialized;
 	unsigned long serial_number;
 	unsigned int cluster_size;

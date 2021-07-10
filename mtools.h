@@ -24,7 +24,7 @@ typedef struct dos_name_t dos_name_t;
 #define MAXPATHLEN 1024
 #include <signal.h>
 extern int lockf(int, int, off_t);  /* SCO has no proper include file for lockf */
-#endif 
+#endif
 
 #define SCSI_FLAG		0x001u
 #define PRIV_FLAG		0x002u
@@ -84,7 +84,7 @@ typedef struct device {
 				 * of a track) */
 
 	uint32_t sector_size; /* Non-default sector size */
-	
+
 	const char *cfg_filename; /* used for debugging purposes */
 } device_t;
 
@@ -92,7 +92,7 @@ struct OldDos_t {
 	unsigned int tracks;
 	uint16_t sectors;
 	uint16_t  heads;
-	
+
 	uint16_t dir_len;
 	unsigned int cluster_size;
 	unsigned int fat_len;
@@ -141,7 +141,7 @@ extern const char *short_illegals, *long_illegals;
 #define minimize(target, min) do { \
   if(target < min) \
     target = min; \
-} while(0) 
+} while(0)
 
 #ifdef OS_linux
 int get_sector_size(int fd);
@@ -154,7 +154,7 @@ int readwrite_sectors(int fd, /* file descriptor */
 		      int rate,
 		      int seektrack,
 		      int track, int head, int sector, int size, /* address */
-		      char *data, 
+		      char *data,
 		      int bytes,
 		      int direction,
 		      int retries);
@@ -241,10 +241,10 @@ UNUSED(static __inline__ size_t ptrdiff (const char *end, const char *begin))
 
 Stream_t *GetFs(Stream_t *Fs);
 
-void label_name_uc(doscp_t *cp, const char *filename, int verbose, 
+void label_name_uc(doscp_t *cp, const char *filename, int verbose,
 		   int *mangled, dos_name_t *ans);
 
-void label_name_pc(doscp_t *cp, const char *filename, int verbose, 
+void label_name_pc(doscp_t *cp, const char *filename, int verbose,
 		   int *mangled, dos_name_t *ans);
 
 /* environmental variables */
@@ -335,7 +335,7 @@ char *getVoldName(struct device *dev, char *name);
 
 
 Stream_t *OpenDir(const char *filename);
-/* int unix_dir_loop(Stream_t *Stream, MainParam_t *mp); 
+/* int unix_dir_loop(Stream_t *Stream, MainParam_t *mp);
 int unix_loop(MainParam_t *mp, char *arg); */
 
 struct dirCache_t **getDirCacheP(Stream_t *Stream);

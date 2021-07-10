@@ -34,14 +34,14 @@ typedef struct Offset_t {
 static ssize_t offset_read(Stream_t *Stream, char *buf,
 			  mt_off_t start, size_t len)
 {
-	DeclareThis(Offset_t);	
+	DeclareThis(Offset_t);
 	return READS(This->Next, buf, start+This->offset, len);
 }
 
 static ssize_t offset_write(Stream_t *Stream, char *buf,
 			   mt_off_t start, size_t len)
 {
-	DeclareThis(Offset_t);	
+	DeclareThis(Offset_t);
 	return WRITES(This->Next, buf, start+This->offset, len);
 }
 
@@ -79,7 +79,7 @@ Stream_t *OpenOffset(Stream_t *Next, struct device *dev, off_t offset,
 				sprintf(errmsg,"init: Big disks not supported");
 			goto exit_0;
 		}
-		
+
 		*maxSize -= (mt_size_t) This->offset;
 	}
 

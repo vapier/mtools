@@ -18,7 +18,7 @@
  *
  * written by:
  *
- * Alain L. Knaff			
+ * Alain L. Knaff
  * alain@knaff.lu
  *
  */
@@ -40,15 +40,15 @@ typedef struct ScsiDevice_t {
 	int refs;
 	Stream_t *Next;
 	Stream_t *Buffer;
-	
+
 	int fd;
 	int privileged;
-	
+
 	uint32_t scsi_sector_size;
 	mt_size_t device_size;
 	uint32_t tot_sectors;
 	void *extra_data; /* extra system dependent information for scsi.
-			     On some platforms, filled in by scsi_open, and to 
+			     On some platforms, filled in by scsi_open, and to
 			     be supplied to scsi_cmd */
 } ScsiDevice_t;
 
@@ -77,7 +77,7 @@ static int scsi_init(ScsiDevice_t *This)
    memset(cdb, 0, sizeof cdb);
    memset(buf,0, sizeof(buf));
    cdb[0]=SCSI_READ_CAPACITY;
-   if (scsi_cmd(fd, (unsigned char *)cdb, 
+   if (scsi_cmd(fd, (unsigned char *)cdb,
 		sizeof(cdb), SCSI_IO_READ, buf,
 		sizeof(buf), This->extra_data)==0)
    {
@@ -88,7 +88,7 @@ static int scsi_init(ScsiDevice_t *This)
 		   (unsigned)buf[3];
 	   if(This->tot_sectors < UINT32_MAX)
 		   This->tot_sectors++;
-       
+
 	   This->scsi_sector_size=
 		   ((unsigned)buf[5]<<16)|
 		   ((unsigned)buf[6]<<8)|
@@ -139,7 +139,7 @@ static ssize_t scsi_io(Stream_t *Stream, char *buf,
 		* equal to the requested size! */
 		while (nsect*This->scsi_sector_size>len)
 			--nsect;
-		if(!nsect) {			
+		if(!nsect) {
 			fprintf(stderr,"Scsi buffer too small\n");
 			exit(1);
 		}
@@ -157,10 +157,10 @@ static ssize_t scsi_io(Stream_t *Stream, char *buf,
 
 
 	max = scsi_max_length();
-	
+
 	if (nsect > max)
 		nsect=max;
-	
+
 	/* set up SCSI READ/WRITE command */
 	memset(cdb, 0, sizeof cdb);
 
@@ -204,7 +204,7 @@ static ssize_t scsi_io(Stream_t *Stream, char *buf,
 		cdb[4] = (unsigned char) nsect;
 		cdb[5] = 0;
 	}
-	
+
 	if(This->privileged)
 		reclaim_privs();
 
@@ -265,7 +265,7 @@ static int scsi_get_data(Stream_t *Stream, time_t *date, mt_size_t *size,
 
 
 static Class_t ScsiDeviceClass = {
-	scsi_read, 
+	scsi_read,
 	scsi_write,
 	0,
 	0,
@@ -276,8 +276,8 @@ static Class_t ScsiDeviceClass = {
 	0 /* discard */
 };
 
-Stream_t *OpenScsi(struct device *dev, 
-		   const char *name, int mode, char *errmsg, 
+Stream_t *OpenScsi(struct device *dev,
+		   const char *name, int mode, char *errmsg,
 		   int mode2, int locked, int lockMode,
 		   mt_size_t *maxSize)
 {
@@ -294,7 +294,7 @@ Stream_t *OpenScsi(struct device *dev,
 	memset((void*)This, 0, sizeof(ScsiDevice_t));
 	This->scsi_sector_size = 512;
 	This->Class = &ScsiDeviceClass;
-	
+
 	if(dev) {
 		if(!(mode2 & NO_PRIV))
 			This->privileged = IS_PRIVILEGED(dev);
@@ -312,7 +312,7 @@ Stream_t *OpenScsi(struct device *dev,
 
 	if(IS_PRIVILEGED(dev) && !(mode2 & NO_PRIV))
 		drop_privs();
-		
+
 	if (This->fd < 0) {
 		if(errmsg) {
 #ifdef HAVE_SNPRINTF

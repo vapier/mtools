@@ -59,7 +59,7 @@ int main(int argc, char **argv)
 
 static char *dos_name2(const char *name)
 {
-	static const char *dev[9] = {"con", "aux", "com1", "com2", "lpt1", 
+	static const char *dev[9] = {"con", "aux", "com1", "com2", "lpt1",
 				     "prn", "lpt2", "lpt3", "nul"};
 	char *s;
 	char *ext,*temp;
@@ -87,7 +87,7 @@ static char *dos_name2(const char *name)
 	else {
 		/* if name is a device */
 		for (i=0; i<9; i++) {
-			if (!strcasecmp(temp, dev[i])) 
+			if (!strcasecmp(temp, dev[i]))
 				*temp = 'x';
 		}
 		/* name too long? */
@@ -101,7 +101,7 @@ static char *dos_name2(const char *name)
 			*s = 'x';
 
 		while (ext && (s = strpbrk(ext, "^+=/[]:',?*\\<>|\". ")))
-			*s = 'x';	      
+			*s = 'x';
 		strncpy(ans, temp, 12);
 		ans[12] = '\0';
 	}

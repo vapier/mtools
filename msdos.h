@@ -202,11 +202,11 @@ union bootsector {
 #define OFFSET(x) (((char *) (boot->x)) - ((char *)(boot->jump)))
 
 /* max FAT12/FAT16 sizes, according to
-   
+
  https://staff.washington.edu/dittrich/misc/fatgen103.pdf
  https://download.microsoft.com/download/1/6/1/161ba512-40e2-4cc9-843a-923143f3456c/fatgen103.doc
 
- interestingly enough, another Microsoft document 
+ interestingly enough, another Microsoft document
  [http://support.microsoft.com/default.aspx?scid=kb%3ben-us%3b67321]
  gives different values, but the first seems to be more sure about
  itself, so we believe that one ;-)

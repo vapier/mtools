@@ -61,7 +61,7 @@ Stream_t *open_root_dir(char drive, int flags, int *isRop)
 	init_streamcache();
 
 	drive = (char)toupper(drive);
-	
+
 	/* open the drive */
 	if(fss[(unsigned char)drive])
 		Fs = fss[(unsigned char)drive];

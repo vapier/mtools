@@ -36,29 +36,29 @@ char *get_homedir(void)
 	uid_t uid;
 	char *homedir;
 	char *username;
-	
-	homedir = getenv ("HOME");    
-	/* 
-	 * first we call getlogin. 
-	 * There might be several accounts sharing one uid 
+
+	homedir = getenv ("HOME");
+	/*
+	 * first we call getlogin.
+	 * There might be several accounts sharing one uid
 	 */
 	if ( homedir )
 		return homedir;
-	
+
 	pw = 0;
-	
+
 	username = getenv("LOGNAME");
 	if ( !username )
 		username = getlogin();
 	if ( username )
 		pw = getpwnam( username);
-  
+
 	if ( pw == 0 ){
 		/* if we can't getlogin, look up the pwent by uid */
 		uid = geteuid();
 		pw = getpwuid(uid);
 	}
-	
+
 	/* we might still get no entry */
 	if ( pw )
 		return pw->pw_dir;
@@ -100,7 +100,7 @@ FILE *open_mcwd(const char *mode)
 	struct MT_STAT sbuf;
 	char file[MAXPATHLEN+1];
 	time_t now;
-	
+
 	get_mcwd_file_name(file);
 	if (*mode == 'r'){
 		if (MT_STAT(file, &sbuf) < 0)
@@ -117,10 +117,10 @@ FILE *open_mcwd(const char *mode)
 			return NULL;
 		}
 	}
-	
+
 	return  fopen(file, mode);
 }
-	
+
 
 
 void *safe_malloc(size_t size)
@@ -141,10 +141,10 @@ void print_sector(const char *message, unsigned char *data, int size)
 	int row;
 
 	printf("%s:\n", message);
-	
+
 	for(row = 0; row * 16 < size; row++){
 		printf("%03x  ", row * 16);
-		for(col = 0; col < 16; col++)			
+		for(col = 0; col < 16; col++)
 			printf("%02x ", data [row*16+col]);
 		for(col = 0; col < 16; col++) {
 			if(isprint(data [row*16+col]))
@@ -193,7 +193,7 @@ time_t getTimeNow(time_t *now)
 			}
 		}
 	}
-	
+
 	if(!haveTime) {
 		time(&sharedNow);
 		haveTime = 1;

@@ -23,7 +23,7 @@
  *
  * udbz@rz.uni-karlsruhe.de
  *
- * Large parts of the network code shamelessly stolen from 
+ * Large parts of the network code shamelessly stolen from
  * transproxy by John Saunders <john@nlc.net.au>
  *
  * Rewritten in C by Alain Knaff.  Apparently C++ is still not as
@@ -66,7 +66,7 @@
    Client sends his protocol-version. If the version between server and client
    differ: bail out.
 
-   After that,we send our .Xauthority-file (a maximum of MAX_XAUTHORITY_LENGTH 
+   After that,we send our .Xauthority-file (a maximum of MAX_XAUTHORITY_LENGTH
    Bytes long) to the server.
 
    The server then checks, if it already has a .Xauthority file. If so
@@ -98,7 +98,7 @@
 	    read the expected bytes from the socket stream. Don't know
 	    why this is necessary. Maybe the socket stream is nonblocking
 	    or something IT SHOULD NOT BE!
-	    
+
 */
 
 
@@ -116,11 +116,11 @@ void serve_client(int sock, const char *const*device_name, unsigned int n_dev,
 typedef struct io_buffer {
 	Byte out_buffer[BUFFERED_IO_SIZE];
 	Byte in_buffer[BUFFERED_IO_SIZE];
-	
+
 	size_t in_valid;
 	size_t in_start;
 	size_t out_valid;
-	
+
 	int handle;
 } *io_buffer;
 
@@ -153,15 +153,15 @@ static void free_io_buffer(io_buffer buffer) {
 
 static size_t buf_read (io_buffer buf, Byte* buffer, size_t nbytes) {
 	size_t ret;
-	
+
 	if (nbytes <= buf->in_valid) {
 		memcpy(buffer, buf->in_buffer+buf->in_start, nbytes);
 		buf->in_valid -= nbytes;
 		buf->in_start += nbytes;
 		ret = nbytes;
 	} else {
-		if (buf->in_valid) 
-			memcpy(buffer, buf->in_buffer+buf->in_start, 
+		if (buf->in_valid)
+			memcpy(buffer, buf->in_buffer+buf->in_start,
 				   buf->in_valid);
 		nbytes -= buf->in_valid;
 		buffer += buf->in_valid;
@@ -175,7 +175,7 @@ static size_t buf_read (io_buffer buf, Byte* buffer, size_t nbytes) {
 			}
 			buf->in_valid = buf->in_start = 0;
 		} else {
-			ssize_t rval = read(buf->handle, buf->in_buffer, 
+			ssize_t rval = read(buf->handle, buf->in_buffer,
 					    BUFFERED_IO_SIZE);
 			if (rval >= 0) {
 				if (rval < (ssize_t) nbytes) {
@@ -251,16 +251,16 @@ static Dword read_dword(io_buffer fp)
 	if (buf_read(fp, val, 4) < 4) {
 		return 0xffffffff;
 	}
-	
+
 	return byte2dword(val);
 }
 
 static void write_dword(io_buffer fp, Dword parm)
 {
 	Byte val[4];
-	
+
 	dword2byte(parm, val);
-	
+
 	buf_write(fp, val,4);
 }
 
@@ -320,7 +320,7 @@ static char send_packet(Packet packet, io_buffer fp)
 			fprintf(stderr, "%d ", packet->data[i]);
 		}
 		fprintf(stderr, "\n");
-#endif		
+#endif
 
 	}
 	return (packet->data != NULL);
@@ -351,14 +351,14 @@ static char recv_packet(Packet packet, io_buffer fp, Dword maxlength)
 #if DEBUG
 	fprintf(stderr, "*** read: %li\n", packet->len);
 #endif
-	
+
 #if DEBUG
 	fprintf(stderr, "recv_packet(): ");
 	for (i = 0; i < packet->len; i++) {
 		fprintf(stderr, "%d ", packet->data[i]);
 	}
 	fprintf(stderr, "\n");
-#endif		
+#endif
 	return 1;
 }
 
@@ -386,11 +386,11 @@ static void put_qword(Packet packet, int my_index, Qword val) {
 
 static Dword get_dword(Packet packet, int my_index) {
 	return byte2dword(packet->data+my_index);
-}	
+}
 
 static Qword get_qword(Packet packet, int my_index) {
 	return byte2qword(packet->data+my_index);
-}	
+}
 
 static Dword get_length(Packet packet) {
 	return packet->len;
@@ -409,7 +409,7 @@ static const char *dispName;
 
 static char XAUTHORITY[]="XAUTHORITY";
 
-static char do_auth(io_buffer sock, unsigned int *version) 
+static char do_auth(io_buffer sock, unsigned int *version)
 {
 	int fd;
 	Display* displ;
@@ -434,7 +434,7 @@ static char do_auth(io_buffer sock, unsigned int *version)
 	}
 
 	*version = get_dword(proto_version, 0);
-	if (*version > FLOPPYD_PROTOCOL_VERSION || 
+	if (*version > FLOPPYD_PROTOCOL_VERSION ||
 	    *version < FLOPPYD_PROTOCOL_VERSION_OLD) {
 		/* fail if client requests a newer version than us */
 		put_dword(reply, 0, AUTH_WRONGVERSION);
@@ -695,7 +695,7 @@ static int bind_to_port(in_addr_t bind_ip, uint16_t bind_port)
 	 */
 	{
 	 	int	on = 1;
-		if(setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, 
+		if(setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
 			      (char *)&on, sizeof(on)) < 0) {
 			perror("setsockopt");
 			exit(1);
@@ -731,7 +731,7 @@ static int bind_to_port(in_addr_t bind_ip, uint16_t bind_port)
 }
 
 static int sockethandle_now = -1;
-  
+
 /*
  * Catch alarm signals and exit.
  */
@@ -770,7 +770,7 @@ static void server_main_loop(int sock, const char *const*device_name,
 		 */
 		len = sizeof(addr);
 		while ((new_sock = accept(sock, (struct sockaddr *)&addr, &len)) < 0){}
-		
+
 		/*
 		 * Create a new process to handle the connection.
 		 */
@@ -781,7 +781,7 @@ static void server_main_loop(int sock, const char *const*device_name,
 				 * Under load conditions just ignore new connections.
 				 */
 				break;
-				
+
 			case 0:
 				/*
 				 * Start the proxy work in the new socket.
@@ -810,7 +810,7 @@ static void usage(char *prog, const char *opt, int ret)
 		{
 			fprintf(stderr, "%s: %s\n", prog, opt);
 		}
-	fprintf(stderr, "usage: %s [-s port [-r user] [-b ipaddr]] devicename [Names of local host]\n", 
+	fprintf(stderr, "usage: %s [-s port [-r user] [-b ipaddr]] devicename [Names of local host]\n",
 			prog);
 	fprintf(stderr, "    -d          Run as a server (default port 5703 + DISPLAY)\n");
 	fprintf(stderr, "    -s port     Run as a server bound to the specified port.\n");
@@ -828,7 +828,7 @@ static char *makeDisplayName(int dispNr)
 	return strdup(result);
 }
 
-int main (int argc, char** argv) 
+int main (int argc, char** argv)
 {
 	int sockfd = 0;
 	int			arg;
@@ -840,7 +840,7 @@ int main (int argc, char** argv)
 	char*			username = strdup("nobody");
 	int			sock;
 
-	const char *const* device_name = NULL; 
+	const char *const* device_name = NULL;
 	const char *floppy0 = "/dev/fd0";
 	unsigned int n_dev;
 
@@ -895,7 +895,7 @@ int main (int argc, char** argv)
 		dispName = getenv("DISPLAY");
 	if(dispName==NULL && bind_port != 0)
 		dispName=makeDisplayName((unsigned short)(bind_port - 5703));
-	if(dispName==NULL)		
+	if(dispName==NULL)
 		dispName=":0";
 
 	if(bind_port == 0) {
@@ -908,9 +908,9 @@ int main (int argc, char** argv)
 	if(!run_as_server) {
 		struct sockaddr_in	addr;
 		unsigned int len = sizeof(addr);
-		
+
 		/* try to find out port that we are connected to */
-		if(getsockname(0, (struct sockaddr*) &addr, &len) >= 0 && 
+		if(getsockname(0, (struct sockaddr*) &addr, &len) >= 0 &&
 		   len == sizeof(addr)) {
 			bind_port = ntohs(addr.sin_port);
 		}
@@ -937,7 +937,7 @@ int main (int argc, char** argv)
 		 * Start by binding to the port, the child inherits this socket.
 		 */
 		sock = bind_to_port(bind_ip, bind_port);
-		
+
 		/*
 		 * Start a server process. When DEBUG is defined, just run
 		 * in the foreground.
@@ -951,7 +951,7 @@ int main (int argc, char** argv)
 				case -1:
 					perror("fork()");
 					exit(1);
-					
+
 				case 0:
 					/*
 					 * Ignore some signals.
@@ -965,14 +965,14 @@ int main (int argc, char** argv)
 					signal(SIGCONT, SIG_IGN);
 					signal(SIGPIPE, alarm_signal);
 					/*signal(SIGALRM, alarm_signal);*/
-					
+
 					/*
 					 * Drop back to an untrusted user.
 					 */
 					setgid(run_gid);
 					initgroups(username, run_gid);
 					setuid(run_uid);
-					
+
 					/*
 					 * Start a new session and group.
 					 */
@@ -994,7 +994,7 @@ int main (int argc, char** argv)
 					server_main_loop(sock, device_name,
 							 n_dev);
 				}
-		
+
 		/*
 		 * Parent exits at this stage.
 		 */
@@ -1066,13 +1066,13 @@ void serve_client(int sockhandle, const char *const*device_name,
 	unsigned int version;
 	int needSendReply=0;
 	int rval=0;
-	
+
 	/*
 	 * Set the keepalive socket option to on.
 	 */
 	{
 		int		on = 1;
-		if(setsockopt(sockhandle, SOL_SOCKET, 
+		if(setsockopt(sockhandle, SOL_SOCKET,
 			      SO_KEEPALIVE, (char *)&on, sizeof(on)) < 0) {
 			perror("setsockopt");
 			exit(1);
@@ -1089,12 +1089,12 @@ void serve_client(int sockhandle, const char *const*device_name,
 #endif
 
 	sock = new_io_buffer(sockhandle);
-	
+
 	/*
 	 * Allow 60 seconds for any activity.
 	 */
 	alarm(60);
-	
+
 	version = 0;
 	if (!do_auth(sock, &version)) {
 		free_io_buffer(sock);
@@ -1122,10 +1122,10 @@ void serve_client(int sockhandle, const char *const*device_name,
 				/* old protocol */
 		readOnly = 0;
 		devFd = open(device_name[0], O_RDWR|O_LARGEFILE);
-		
+
 		if (devFd < 0) {
 			readOnly = 1;
-			devFd = open(device_name[0], 
+			devFd = open(device_name[0],
 				     O_RDONLY|O_LARGEFILE);
 		}
 		if(devFd < 0) {
@@ -1235,11 +1235,11 @@ void serve_client(int sockhandle, const char *const*device_name,
 				fprintf(stderr, "SEEK:\n");
 #endif
 
-				lseek(devFd, 
+				lseek(devFd,
 				      get_dword(parm, 0),
 				      (int) get_dword(parm, 4));
-				send_reply(devFd, 
-					   sock, 
+				send_reply(devFd,
+					   sock,
 					   (Dword) lseek(devFd, 0, SEEK_CUR));
 				break;
 			case OP_SEEK64:
@@ -1254,11 +1254,11 @@ void serve_client(int sockhandle, const char *const*device_name,
 #if DEBUG
 				fprintf(stderr, "SEEK64:\n");
 #endif
-				mt_lseek(devFd, 
+				mt_lseek(devFd,
 					 (mt_off_t) get_qword(parm,0),
 					 (int) get_dword(parm,8));
-				send_reply64(devFd, 
-					     sock, 
+				send_reply64(devFd,
+					     sock,
 					     mt_lseek(devFd, 0, SEEK_CUR));
 				break;
 			case OP_FLUSH:
@@ -1295,7 +1295,7 @@ void serve_client(int sockhandle, const char *const*device_name,
 		alarm(0);
 	}
 
-	
+
 
 #if DEBUG
 	fprintf(stderr, "Closing down...\n");
@@ -1320,10 +1320,10 @@ void serve_client(int sockhandle, const char *const*device_name,
 #else
 #include <stdio.h>
 
-int main(int argc, char **argv) 
+int main(int argc, char **argv)
 {
 	puts("Floppyd support not included!");
 	return -1;
 }
-	
+
 #endif

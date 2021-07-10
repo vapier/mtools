@@ -40,7 +40,7 @@ static void set_mtime(const char *target, time_t mtime)
 {
 	if (target && strcmp(target, "-") && mtime != 0L) {
 #ifdef HAVE_UTIMES
-		struct timeval tv[2];	
+		struct timeval tv[2];
 		tv[0].tv_sec = mtime;
 		tv[0].tv_usec = 0;
 		tv[1].tv_sec = mtime;
@@ -130,7 +130,7 @@ static int _unix_write(MainParam_t *mp, int needfilter, const char *unixFile)
 				if(!S_ISREG(stbuf.st_mode)) {
 					fprintf(stderr,"\"%s\" is not a regular file\n",
 						unixFile);
-				
+
 					return ERROR_ONE;
 				}
 				sFd = get_fd(File);
@@ -147,7 +147,7 @@ static int _unix_write(MainParam_t *mp, int needfilter, const char *unixFile)
 					     unixFile)) {
 				return ERROR_ONE;
 			}
-			
+
 		}
 	}
 
@@ -156,7 +156,7 @@ static int _unix_write(MainParam_t *mp, int needfilter, const char *unixFile)
 		mpPrintFilename(stderr,mp);
 		fprintf(stderr,"\n");
 	}
-	
+
 	if(got_signal) {
 		return ERROR_ONE;
 	}
@@ -221,7 +221,7 @@ static int unix_copydir(direntry_t *entry, MainParam_t *mp)
 	if (!arg->recursive && mp->basenameHasWildcard)
 		return 0;
 
-	File->Class->get_data(File, &mtime, 0, 0, 0);	
+	File->Class->get_data(File, &mtime, 0, 0, 0);
 	if (!arg->preserveTime)
 		mtime = 0L;
 	if(!arg->type && arg->verbose) {
@@ -248,11 +248,11 @@ static int unix_copydir(direntry_t *entry, MainParam_t *mp)
 		ret = mp->loop(File, &newArg.mp, "*");
 		set_mtime(unixFile, mtime);
 		free(unixFile);
-		return ret | GOT_ONE;		
+		return ret | GOT_ONE;
 	} else {
 		perror("mkdir");
-		fprintf(stderr, 
-			"Failure to make directory %s\n", 
+		fprintf(stderr,
+			"Failure to make directory %s\n",
 			unixFile);
 		free(unixFile);
 		return ERROR_ONE;
@@ -322,7 +322,7 @@ static int writeit(struct dos_name_t *dosname,
 	/* will it fit? */
 	if (!getfreeMinBytes(arg->mp.targetDir, filesize))
 		return -1;
-	
+
 	/* preserve mod time? */
 	if (arg->preserveTime)
 		now = date;
@@ -460,9 +460,9 @@ static int dos_copydir(direntry_t *entry, MainParam_t *mp)
 		/* maybe the directory already exist. Use it */
 		newArg.mp.targetDir = subDir(mp->targetDir, targetName);
 		if(!newArg.mp.targetDir)
-			newArg.mp.targetDir = createDir(mp->targetDir, 
+			newArg.mp.targetDir = createDir(mp->targetDir,
 							targetName,
-							&arg->ch, arg->attr, 
+							&arg->ch, arg->attr,
 							now);
 	} else
 		newArg.mp.targetDir = mp->targetDir;
@@ -495,7 +495,7 @@ static void usage(int ret)
 	fprintf(stderr,
 		"Usage: %s [-spatnmQVBT] [-D clash_option] sourcefile targetfile\n", progname);
 	fprintf(stderr,
-		"       %s [-spatnmQVBT] [-D clash_option] sourcefile [sourcefiles...] targetdirectory\n", 
+		"       %s [-spatnmQVBT] [-D clash_option] sourcefile [sourcefiles...] targetdirectory\n",
 		progname);
 	exit(ret);
 }
@@ -505,7 +505,7 @@ void mcopy(int argc, char **argv, int mtype)
 {
 	Arg_t arg;
 	int c, fastquit;
-	
+
 
 	/* get command line options */
 
@@ -597,7 +597,7 @@ void mcopy(int argc, char **argv, int mtype)
 		arg.mp.unixTarget = strdup("");
 		arg.mp.callback = dos_to_unix;
 		arg.mp.dirCallback = unix_copydir;
-		arg.mp.unixcallback = unix_to_unix;		
+		arg.mp.unixcallback = unix_to_unix;
 	} else {
 		const char *target;
 		if (argc - optind == 1) {

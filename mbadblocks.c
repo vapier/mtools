@@ -140,10 +140,10 @@ void mbadblocks(int argc, char **argv, int type UNUSEDP)
 			sectorMode = 1;
 			break;
 		case 'S':
-			startSector = atoui(optarg); 
+			startSector = atoui(optarg);
 			break;
 		case 'E':
-			endSector = atoui(optarg); 
+			endSector = atoui(optarg);
 			break;
 		case 'w':
 			writeMode = 1;
@@ -190,7 +190,7 @@ void mbadblocks(int argc, char **argv, int type UNUSEDP)
 	}
 	for(i=0; i < Fs->clus_start; i++ ){
 		ssize_t r;
-		r = READS(Fs->Next, in_buf, 
+		r = READS(Fs->Next, in_buf,
 			  sectorsToBytes((Stream_t*)Fs, i), Fs->sector_size);
 		if( r < 0 ){
 			perror("early error");
@@ -209,7 +209,7 @@ void mbadblocks(int argc, char **argv, int type UNUSEDP)
 
 	if(startSector < 2)
 		startSector = 2;
-	if(endSector > Fs->num_clus + 2 || endSector <= 0) 
+	if(endSector > Fs->num_clus + 2 || endSector <= 0)
 		endSector = Fs->num_clus + 2;
 
 	if(filename) {
@@ -249,7 +249,7 @@ void mbadblocks(int argc, char **argv, int type UNUSEDP)
 				if(got_signal)
 					break;
 				progress(i, Fs->num_clus);
-				ret |= scan(Fs, dev, i, badClus, 
+				ret |= scan(Fs, dev, i, badClus,
 					    pat_buf + in_len * (i % N_PATTERN),
 					    1);
 			}
@@ -264,7 +264,7 @@ void mbadblocks(int argc, char **argv, int type UNUSEDP)
 				if(got_signal)
 					break;
 				progress(i, Fs->num_clus);
-				ret |= scan(Fs, dev, i, badClus, 
+				ret |= scan(Fs, dev, i, badClus,
 					    pat_buf + in_len * (i % N_PATTERN),
 					    0);
 			}

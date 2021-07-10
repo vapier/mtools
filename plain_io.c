@@ -18,7 +18,7 @@
  *
  * written by:
  *
- * Alain L. Knaff			
+ * Alain L. Knaff
  * alain@knaff.lu
  *
  */
@@ -81,7 +81,7 @@ static ssize_t file_io(Stream_t *Stream, char *buf, mt_off_t where, size_t len,
 	ret = io(This->fd, buf, len);
 
 #ifdef OS_hpux
-	if (ret == -1 && 
+	if (ret == -1 &&
 		errno == EINVAL && /* if we got EINVAL */
 		len > MAX_SCSI_LEN) {
 		This->size_limited = 1;
@@ -98,7 +98,7 @@ static ssize_t file_io(Stream_t *Stream, char *buf, mt_off_t where, size_t len,
 	This->lastwhere = where + ret;
 	return ret;
 }
-	
+
 
 
 static ssize_t file_read(Stream_t *Stream, char *buf,
@@ -158,7 +158,7 @@ static int init_geom_with_reg(int fd, struct device *dev,
 	}
 }
 
-static int file_geom(Stream_t *Stream, struct device *dev, 
+static int file_geom(Stream_t *Stream, struct device *dev,
 		     struct device *orig_dev)
 {
 	int ret;
@@ -217,7 +217,7 @@ static int file_discard(Stream_t *Stream)
 }
 
 static Class_t SimpleFileClass = {
-	file_read, 
+	file_read,
 	file_write,
 	file_flush,
 	file_free,
@@ -246,7 +246,7 @@ int LockDevice(int fd, struct device *dev,
 #else
 			sprintf(errmsg,
 				"plain floppy: device \"%s\" busy (%s):",
-				(dev && strlen(dev->name) < 50) ? 
+				(dev && strlen(dev->name) < 50) ?
 				 dev->name : "unknown", strerror(errno));
 #endif
 
@@ -265,7 +265,7 @@ int LockDevice(int fd, struct device *dev,
 }
 
 Stream_t *SimpleFileOpen(struct device *dev, struct device *orig_dev,
-			 const char *name, int mode, char *errmsg, 
+			 const char *name, int mode, char *errmsg,
 			 int mode2, int locked, mt_size_t *maxSize) {
 	return SimpleFileOpenWithLm(dev, orig_dev, name, mode,
 				    errmsg, mode2, locked, mode, maxSize,
@@ -273,7 +273,7 @@ Stream_t *SimpleFileOpen(struct device *dev, struct device *orig_dev,
 }
 
 Stream_t *SimpleFileOpenWithLm(struct device *dev, struct device *orig_dev,
-			       const char *name, int mode, char *errmsg, 
+			       const char *name, int mode, char *errmsg,
 			       int mode2, int locked, int lockMode,
 			       mt_size_t *maxSize, int *geomFailure)
 {
@@ -309,10 +309,10 @@ APIRET rc;
 		    Free(This);
 		    if(errmsg)
 #ifdef HAVE_SNPRINTF
-			snprintf(errmsg,199,"Can't stat -: %s", 
-				strerror(errno));   
+			snprintf(errmsg,199,"Can't stat -: %s",
+				strerror(errno));
 #else
-			sprintf(errmsg,"Can't stat -: %s", 
+			sprintf(errmsg,"Can't stat -: %s",
 				strerror(errno));
 #endif
 		    return NULL;
@@ -321,7 +321,7 @@ APIRET rc;
 		return (Stream_t *) This;
 	}
 
-	
+
 	if(dev) {
 		if(!(mode2 & NO_PRIV))
 			This->privileged = IS_PRIVILEGED(dev);
@@ -360,13 +360,13 @@ APIRET rc;
 	} else
 #endif
 	    {
-		    This->fd = open(name, mode | O_LARGEFILE | O_BINARY, 
+		    This->fd = open(name, mode | O_LARGEFILE | O_BINARY,
 				    IS_NOLOCK(dev)?0444:0666);
 	    }
 
 	if(IS_PRIVILEGED(dev) && !(mode2 & NO_PRIV))
 		drop_privs();
-		
+
 	if (This->fd < 0) {
 		if(errmsg) {
 #ifdef HAVE_SNPRINTF
@@ -393,14 +393,14 @@ APIRET rc;
 	   ) {
 		if(errmsg) {
 #ifdef HAVE_SNPRINTF
-			snprintf(errmsg,199,"Can't stat %s: %s", 
+			snprintf(errmsg,199,"Can't stat %s: %s",
 				name, strerror(errno));
 #else
 			if(strlen(name) > 50) {
-			    sprintf(errmsg,"Can't stat file: %s", 
+			    sprintf(errmsg,"Can't stat file: %s",
 				    strerror(errno));
 			} else {
-			    sprintf(errmsg,"Can't stat %s: %s", 
+			    sprintf(errmsg,"Can't stat %s: %s",
 				name, strerror(errno));
 			}
 #endif
@@ -410,7 +410,7 @@ APIRET rc;
 
 	if(LockDevice(This->fd, dev, locked, lockMode, errmsg) < 0)
 		goto exit_0;
-	
+
 	/* set default parameters, if needed */
 	if (dev){
 		errno=0;

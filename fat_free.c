@@ -69,4 +69,3 @@ int fatFreeWithDirentry(direntry_t *entry)
 {
 	return fatFreeWithDir(entry->Dir, &entry->dir);
 }
-    

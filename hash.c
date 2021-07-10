@@ -67,7 +67,7 @@ static int alloc_ht(T_HashTable *H, size_t size)
   H->entries = NewArray(size, T_HashTableEl);
   if (H->entries == NULL)
     return -1; /* out of memory error */
-  
+
   for(ii=0; ii < size; ii++)
     H->entries[ii] = &unallocated;
   return 0;
@@ -80,7 +80,7 @@ int make_ht(T_HashFunc f1, T_HashFunc f2, T_ComparFunc c, size_t size,
   if (*H == NULL){
     return -1; /* out of memory error */
   }
-  
+
   (*H)->f1 = f1;
   (*H)->f2 = f2;
   (*H)->compar = c;
@@ -134,7 +134,7 @@ static int rehash(T_HashTable *H)
   size_t size,i;
   T_HashTableEl *oldentries;
   /* resize the table */
-  
+
   size = H->size;
   oldentries = H->entries;
   if(alloc_ht(H,((H->inuse+1)*4+H->fill)/5))

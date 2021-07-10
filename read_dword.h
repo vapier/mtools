@@ -18,10 +18,10 @@
  *  along with Mtools.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-static Dword read_dword(int handle) 
+static Dword read_dword(int handle)
 {
 	Byte val[4];
-	
+
 	if(read(handle, (char *)val, 4) < 4)
 		return (Dword) -1;
 
@@ -31,7 +31,7 @@ static Dword read_dword(int handle)
 UNUSED(static int32_t read_sdword(int handle))
 {
 	Byte val[4];
-	
+
 	if(read(handle, (char *)val, 4) < 4)
 		return (int32_t) -1;
 
@@ -44,7 +44,7 @@ UNUSED(static struct SQwordRet read_sqword(int handle) )
 {
 	Byte val[8];
 	struct SQwordRet ret;
-	
+
 	if(read(handle, (char *)val, 8) < 8) {
 		ret.err=-1;
 	} else {

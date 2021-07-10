@@ -1,13 +1,13 @@
 /*  Copyright 2008,2009 Alain Knaff.
  *  This file is part of mtools.
- *                              
+ *
  *  Mtools is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or   
- *  (at your option) any later version.                                 
- *                                                                      
- *  Mtools is distributed in the hope that it will be useful,           
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of      
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  Mtools is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
@@ -61,7 +61,7 @@ static int try(const char *testCp) {
 	size_t outbufLen = 2*sizeof(char);
 	iconv_t test = 0;
 	size_t i;
-	
+
 	for(i=0; i < sizeof(asciiTries) / sizeof(asciiTries[0]); i++) {
 		test = iconv_open(asciiTries[i], testCp);
 		if(test != (iconv_t) -1)
@@ -88,7 +88,7 @@ static int try(const char *testCp) {
 static const char *getWcharCp(void) {
 	unsigned int i;
 	if(wcharCp != NULL)
-		return wcharCp;	
+		return wcharCp;
 	for(i=0; i< sizeof(wcharTries) / sizeof(wcharTries[0]); i++) {
 		if(try(wcharTries[i]))
 			return (wcharCp=wcharTries[i]);
@@ -158,7 +158,7 @@ size_t dos_to_wchar(doscp_t *cp, const char *dos, wchar_t *wchar, size_t len)
 	size_t in_len=len;
 	size_t out_len=len*sizeof(wchar_t);
 	wchar_t *dptr=wchar;
-	char *dos2 = (char *) dos; /* Magic to be able to call iconv with its 
+	char *dos2 = (char *) dos; /* Magic to be able to call iconv with its
 				      buggy prototype */
 	r=iconv(cp->from, &dos2, &in_len, (char **)&dptr, &out_len);
 	if(r == (size_t) -1)
@@ -193,7 +193,7 @@ static size_t safe_iconv(iconv_t conv, const wchar_t *wchar, char *dest,
 
 		if(out_len <= 0)
 			break;
-		if(dptr) 
+		if(dptr)
 			*dptr++ = '_';
 		in_len -= sizeof(wchar_t);
 
@@ -317,7 +317,7 @@ static inline size_t wcrtomb(char *s, wchar_t wc, mbstate_t *ps)
 	return 1;
 }
 
-static inline size_t mbrtowc(wchar_t *pwc, const char *s, 
+static inline size_t mbrtowc(wchar_t *pwc, const char *s,
 			     size_t n, mbstate_t *ps)
 {
 	*pwc = *s;

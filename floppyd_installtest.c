@@ -65,7 +65,7 @@ static int write_dword(int handle, Dword parm)
 
 /* ######################################################################## */
 
-static uint32_t authenticate_to_floppyd(char fullauth, int sock, char *display, 
+static uint32_t authenticate_to_floppyd(char fullauth, int sock, char *display,
 					uint32_t protoversion)
 {
 	uint32_t filelen=0;
@@ -105,15 +105,15 @@ static uint32_t authenticate_to_floppyd(char fullauth, int sock, char *display,
 		return errcode;
 	}
 
-	protoversion = FLOPPYD_PROTOCOL_VERSION_OLD;	
+	protoversion = FLOPPYD_PROTOCOL_VERSION_OLD;
 	if(bytesRead >= 12) {
 	    protoversion = read_dword(sock);
 	    cap = read_dword(sock);
 	}
-	
+
 	fprintf(stderr, "Protocol Version=%d\n", protoversion);
 	if(protoversion >= FLOPPYD_PROTOCOL_VERSION) {
-	  fprintf(stderr, "Capabilities:%s%s\n",		  
+	  fprintf(stderr, "Capabilities:%s%s\n",
 		  (cap & FLOPPYD_CAP_EXPLICIT_OPEN) ? " ExplicitOpen" : "",
 		  (cap & FLOPPYD_CAP_LARGE_SEEK) ? " LargeFiles" : "");
 	}
@@ -149,10 +149,10 @@ static int get_host_and_port(const char* name, char** hostname, char **display,
 	p2 = p;
 	if (*p) p++;
 	*p2 = 0;
-	
+
 	*port = atou16(p);
 	if (*port == 0) {
-		*port = FLOPPYD_DEFAULT_PORT;	
+		*port = FLOPPYD_DEFAULT_PORT;
 	}
 
 	*display = strdup(newname);
@@ -179,24 +179,24 @@ static int get_host_and_port(const char* name, char** hostname, char **display,
  *  */
 static in_addr_t getipaddress(char *ipaddr)
 {
-	
+
 	struct hostent  *host;
 	in_addr_t        ip;
-	
+
 	if (((ip = inet_addr(ipaddr)) == INADDR_NONE) &&
 	    (strcmp(ipaddr, "255.255.255.255") != 0)) {
-		
+
 		if ((host = gethostbyname(ipaddr)) != NULL) {
 			memcpy(&ip, host->h_addr, sizeof(ip));
 		}
-		
+
 		endhostent();
 	}
-	
+
 #ifdef DEBUG
 	fprintf(stderr, "IP lookup %s -> 0x%08lx\n", ipaddr, ip);
 #endif
-	  
+
 	return (ip);
 }
 
@@ -205,25 +205,25 @@ static in_addr_t getipaddress(char *ipaddr)
  *  */
 static int connect_to_server(in_addr_t ip, uint16_t port)
 {
-	
+
 	struct sockaddr_in      addr;
 	int                     sock;
-	
+
 	/*
 	 * Allocate a socket.
 	 */
 	if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
 		return (-1);
 	}
-	
+
 	/*
 	 * Set the address to connect to.
 	 */
-	
+
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons(port);
 	addr.sin_addr.s_addr = ip;
-	
+
         /*
 	 * Connect our socket to the above address.
 	 */
@@ -236,15 +236,15 @@ static int connect_to_server(in_addr_t ip, uint16_t port)
 	 */
 	{
 		int             on = 1;
-		setsockopt(STDIN_FILENO, SOL_SOCKET, SO_KEEPALIVE, 
+		setsockopt(STDIN_FILENO, SOL_SOCKET, SO_KEEPALIVE,
 			   (char *)&on, sizeof(on));
 
 	}
-	
+
 	return (sock);
 }
 
-int main (int argc, char** argv) 
+int main (int argc, char** argv)
 {
 	char* hostname;
 	char* display;
@@ -270,7 +270,7 @@ int main (int argc, char** argv)
 	}
 
 	rval = get_host_and_port(name, &hostname, &display, &port);
-	
+
 	if (!rval) return -1;
 
 	sock = connect_to_server(getipaddress(hostname), port);
@@ -281,7 +281,7 @@ int main (int argc, char** argv)
 			hostname, port);
 		return -1;
 	}
-	
+
 	protoversion = FLOPPYD_PROTOCOL_VERSION;
 	while(1) {
 	    reply = authenticate_to_floppyd(fullauth, sock, display,
@@ -297,12 +297,12 @@ int main (int argc, char** argv)
 	}
 
 	if (reply != 0) {
-		fprintf(stderr, 
+		fprintf(stderr,
 			"Connection to floppyd failed:\n"
 			"%s\n", AuthErrors[reply]);
 		return -1;
 	}
-	
+
 	free(hostname);
 	free(display);
 

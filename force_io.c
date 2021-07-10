@@ -18,7 +18,7 @@
  *
  * written by:
  *
- * Alain L. Knaff			
+ * Alain L. Knaff
  * alain@knaff.lu
  *
  */
@@ -33,7 +33,7 @@ static ssize_t force_io(Stream_t *Stream,
 {
 	ssize_t ret;
 	int done=0;
-	
+
 	while(len){
 		ret = io(Stream, buf, start, len);
 		if ( ret <= 0 ){

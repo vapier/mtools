@@ -122,7 +122,7 @@ Stream_t *OpenImage(struct device *out_dev, struct device *dev,
 			goto exit_0;
 		Stream = Swap;
 	}
-	
+
 	if((flags & ALWAYS_GET_GEOMETRY) &&
 	   compute_lba_geom_from_tot_sectors(out_dev) < 0)
 		goto exit_0;
@@ -134,7 +134,7 @@ Stream_t *OpenImage(struct device *out_dev, struct device *dev,
 			goto exit_0;
 		Stream = Partition;
 	}
-	
+
 	return Stream;
  exit_0:
 	FREE(&Stream);

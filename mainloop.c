@@ -85,7 +85,7 @@ static const char *fix_mcwd(char *ans)
 	return ans;
 }
 
-int unix_dir_loop(Stream_t *Stream, MainParam_t *mp); 
+int unix_dir_loop(Stream_t *Stream, MainParam_t *mp);
 int unix_loop(Stream_t *Stream UNUSEDP, MainParam_t *mp, char *arg,
 	      int follow_dir_link);
 
@@ -142,7 +142,7 @@ int unix_loop(Stream_t *Stream UNUSEDP, MainParam_t *mp,
 				fprintf(stderr,
 					"skipping directory symlink %s\n",
 					arg);
-				return 0;				
+				return 0;
 			}
 #endif
 			if(! (mp->lookupflags & ACCEPT_DIR))
@@ -168,7 +168,7 @@ int isSpecial(const char *name)
 		return 1;
 	if(!strcmp(name,".."))
 		return 1;
-	return 0;			
+	return 0;
 }
 
 #ifdef HAVE_WCHAR_H
@@ -180,7 +180,7 @@ int isSpecialW(const wchar_t *name)
 		return 1;
 	if(!wcscmp(name,L".."))
 		return 1;
-	return 0;			
+	return 0;
 }
 #endif
 
@@ -247,7 +247,7 @@ static int handle_leaf(direntry_t *direntry, MainParam_t *mp,
 }
 
 static int _dos_loop(Stream_t *Dir, MainParam_t *mp, const char *filename)
-{	
+{
 	Stream_t *MyFile=0;
 	direntry_t entry;
 	int ret;
@@ -338,8 +338,8 @@ static int recurs_dos_loop(MainParam_t *mp, const char *filename0,
 	doing_mcwd = !!filename1;
 
 	ptr = strchr(filename0, '/');
-	if(!ptr) {			
-		length = strlen(filename0);		
+	if(!ptr) {
+		length = strlen(filename0);
 		ptr = filename1;
 		filename1 = 0;
 	} else {
@@ -354,7 +354,7 @@ static int recurs_dos_loop(MainParam_t *mp, const char *filename0,
 			mp->targetName = 0;
 			return ret;
 		}
-		
+
 		if(!strcmp(filename0, ".") || !filename0[0]) {
 			return handle_leaf(getDirentry(mp->File),
 					   mp, lookupState);
@@ -366,7 +366,7 @@ static int recurs_dos_loop(MainParam_t *mp, const char *filename0,
 		}
 
 		lookupflags = mp->lookupflags;
-		
+
 		if(lookupState) {
 			lookupState->filename = filename0;
 			if(lookupState->nbContainers + lookupState->nbDirs > 0){
@@ -431,7 +431,7 @@ static int common_dos_loop(MainParam_t *mp, const char *pathname,
 
 	int ret;
 	mp->loop = _dos_loop;
-	
+
 	drive='\0';
 	cwd = "";
 	if(*pathname && pathname[1] == ':') {
@@ -507,7 +507,7 @@ static int dos_target_lookup(MainParam_t *mp, const char *arg)
 		default:
 			/* too much */
 			fprintf(stderr, "Ambiguous %s\n", arg);
-			return ERROR_ONE;			
+			return ERROR_ONE;
 	}
 }
 
@@ -565,7 +565,7 @@ int main_loop(MainParam_t *mp, char **argv, int argc)
 {
 	int i;
 	int ret, Bret;
-	
+
 	Bret = 0;
 
 	if(argc != 1 && mp->targetName) {
@@ -590,7 +590,7 @@ int main_loop(MainParam_t *mp, char **argv, int argc)
 			ret = unix_loop(0, mp, argv[i], 1);
 		else
 			ret = dos_loop(mp, argv[i]);
-		
+
 		if (! (ret & (GOT_ONE | ERROR_ONE)) ) {
 			/* one argument was unmatched */
 			fprintf(stderr, "%s: File \"%s\" not found\n",

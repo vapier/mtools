@@ -47,7 +47,7 @@ static unsigned int flag_mask; /* mask of currently set flags */
 static unsigned int cur_devs; /* current number of defined devices */
 static int cur_dev; /* device being filled in. If negative, none */
 static int trusted=0; /* is the currently parsed device entry trusted? */
-static unsigned int nr_dev; /* number of devices that the current table can 
+static unsigned int nr_dev; /* number of devices that the current table can
 			       hold */
 struct device *devices; /* the device table */
 static int token_nr; /* number of tokens in line */
@@ -305,7 +305,7 @@ static int mtools_getline(void)
 	syntax("line too long", 1);
     return 0;
 }
-		
+
 static void skip_junk(int expect)
 {
     lastTokenLinenumber = linenumber;
@@ -442,7 +442,7 @@ static void grow(void)
 	}
     }
 }
-	
+
 
 static void init_drive(void)
 {
@@ -673,13 +673,13 @@ static void parse_old_device_line(char drive)
     long offset;
 
     int heads, sectors, tracks;
-    
+
     /* finish any old drive */
     finish_drive_clause();
 
     /* purge out data of old configuration files */
     purge(drive, file_nr);
-	
+
     /* reserve slot */
     append();
     items = sscanf(token,"%c %s %i %i %i %i %li",
@@ -713,7 +713,7 @@ static void parse_old_device_line(char drive)
 	devices[cur_dev].sectors = 0;
 	devices[cur_dev].heads = 0;
     }
-	
+
     devices[cur_dev].drive = ch_canon_drv(devices[cur_dev].drive);
     maintain_default_drive(devices[cur_dev].drive);
     if (!(devices[cur_dev].name = strdup(name))) {
@@ -745,7 +745,7 @@ static int parse_one(int privilege)
 	    syntax("drive letter expected", 0);
 
 	if(action==1 || action==4)
-	    /* replace existing drive */			
+	    /* replace existing drive */
 	    purge(token[0], file_nr);
 	if(action==4)
 	    return 1;
@@ -822,7 +822,7 @@ void read_config(void)
     char *envConfFile;
     static char conf_file[MAXPATHLEN+sizeof(CFG_FILE1)];
 
-	
+
     /* copy compiled-in devices */
     file_nr = 0;
     cur_devs = nr_const_devices;

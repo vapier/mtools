@@ -67,7 +67,7 @@ static enum map_type_t remap(Remap_t *This, mt_off_t *start, size_t *len) {
 static ssize_t remap_read(Stream_t *Stream, char *buf,
 			  mt_off_t start, size_t len)
 {
-	DeclareThis(Remap_t);	
+	DeclareThis(Remap_t);
 	if(remap(This, &start, &len)==DATA)
 		return READS(This->Next, buf, start, len);
 	else {
@@ -79,7 +79,7 @@ static ssize_t remap_read(Stream_t *Stream, char *buf,
 static ssize_t remap_write(Stream_t *Stream, char *buf,
 			   mt_off_t start, size_t len)
 {
-	DeclareThis(Remap_t);	
+	DeclareThis(Remap_t);
 	if(remap(This, &start, &len)==DATA)
 		return WRITES(This->Next, buf, start, len);
 	else {
@@ -159,7 +159,7 @@ static int process_map(Remap_t *This, const char *ptr,
 			sprintf(errmsg, "Bad number %s\n", ptr);
 			return -1;
 		}
-		
+
 		if(type == POS) {
 			orig = (mt_off_t)len;
 			continue;
@@ -177,7 +177,7 @@ static int process_map(Remap_t *This, const char *ptr,
 		if(type != ZERO) {
 			orig+=len;
 		}
-		
+
 	}
 	This->net_offset = orig-remapped;
 	return count;
@@ -188,7 +188,7 @@ Stream_t *Remap(Stream_t *Next, struct device *dev, char *errmsg) {
 	Remap_t *This;
 	int nrItems=0;
 	const char *map = dev->data_map;
-	
+
 	This = New(Remap_t);
 	if (!This){
 		printOom();
@@ -198,14 +198,14 @@ Stream_t *Remap(Stream_t *Next, struct device *dev, char *errmsg) {
 	This->Class = &RemapClass;
 	This->refs = 1;
 	This->Next = Next;
-	
+
 	/* First count number of items */
 	nrItems=process_map(This, map, 1, errmsg);
 	if(nrItems < 0) {
 		free(This);
 		return NULL;
 	}
-	
+
 	This->map = calloc((size_t)nrItems+1, sizeof(struct map));
 	if(!This->map) {
 		printOom();
@@ -216,7 +216,7 @@ Stream_t *Remap(Stream_t *Next, struct device *dev, char *errmsg) {
 
 	if(adjust_tot_sectors(dev, This->net_offset, errmsg) < 0)
 		goto exit_1;
-	
+
 	This->mapSize=nrItems-1;
 	return (Stream_t *) This;
  exit_1:

@@ -58,7 +58,7 @@ static ssize_t read_filter(Stream_t *Stream, char *buf,
 		exit(1);
 	}
 	This->rw = F_READ;
-	
+
 	ret = READS(This->Next, buf, (mt_off_t) This->dospos, len);
 	if ( ret < 0 )
 		return ret;
@@ -90,7 +90,7 @@ static ssize_t write_filter(Stream_t *Stream, char *buf, mt_off_t iwhere,
 	ssize_t ret;
 	char buffer[1025];
 	char newchar;
-	
+
 	off_t where = truncBytes32(iwhere);
 
 	if(This->unixpos == -1)
@@ -100,7 +100,7 @@ static ssize_t write_filter(Stream_t *Stream, char *buf, mt_off_t iwhere,
 		fprintf(stderr,"Bad offset\n");
 		exit(1);
 	}
-	
+
 	if (This->rw == F_READ){
 		fprintf(stderr,"Change of transfer direction!\n");
 		exit(1);

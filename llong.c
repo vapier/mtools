@@ -127,7 +127,7 @@ int mt_lseek(int fd, mt_off_t where, int whence)
 	if(llseek(fd, where, whence) >= 0)
 		return 0;
 	else
-		return -1;		
+		return -1;
 #else
 	if (lseek(fd, (off_t) where, whence) >= 0)
 		return 0;

@@ -32,8 +32,8 @@ struct directory *dir_read(direntry_t *entry, int *error)
 {
 	ssize_t n;
 	*error = 0;
-	if((n=force_read(entry->Dir, (char *) (&entry->dir), 
-			 (mt_off_t) entry->entry * MDIR_SIZE, 
+	if((n=force_read(entry->Dir, (char *) (&entry->dir),
+			 (mt_off_t) entry->entry * MDIR_SIZE,
 			 MDIR_SIZE)) != MDIR_SIZE) {
 		if (n < 0) {
 			*error = -1;
@@ -56,7 +56,7 @@ int dir_grow(Stream_t *Dir, int size)
 	ssize_t ret;
 	unsigned int buflen;
 	char *buffer;
-	
+
 	if (!getfreeMinClusters(Dir, 1))
 		return -1;
 
@@ -66,7 +66,7 @@ int dir_grow(Stream_t *Dir, int size)
 		perror("dir_grow: malloc");
 		return -1;
 	}
-		
+
 	memset((char *) buffer, '\0', buflen);
 	ret = force_write(Dir, buffer, (mt_off_t) size * MDIR_SIZE, buflen);
 	free(buffer);
@@ -78,8 +78,8 @@ int dir_grow(Stream_t *Dir, int size)
 
 void low_level_dir_write(direntry_t *entry)
 {
-	force_write(entry->Dir, 
-		    (char *) (&entry->dir), 
+	force_write(entry->Dir,
+		    (char *) (&entry->dir),
 		    (mt_off_t) entry->entry * MDIR_SIZE, MDIR_SIZE);
 }
 

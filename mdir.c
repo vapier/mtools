@@ -48,14 +48,14 @@ static Stream_t *currentDir;
 
 static int filesInDir; /* files in current dir */
 static int filesOnDrive; /* files on drive */
-	
+
 static int dirsOnDrive; /* number of listed directories on this drive */
 
 static int debug = 0; /* debug mode */
 
 static mt_size_t bytesInDir;
 static mt_size_t bytesOnDrive;
-static Stream_t *RootDir;	
+static Stream_t *RootDir;
 
 
 static char mdir_shortname[4*12+1];
@@ -105,7 +105,7 @@ static __inline__ void print_time(struct directory *dir)
 {
 	char am_pm;
 	int hour = DOS_HOUR(dir);
-       
+
 	if(!mtools_twenty_four_hour_clock) {
 		am_pm = (hour >= 12) ? 'p' : 'a';
 		if (hour > 12)
@@ -135,7 +135,7 @@ static const char *dotted_num(mt_size_t num, size_t width, char **buf)
 
 	if (*buf == NULL)
 		return "";
-	
+
 	/* Create the number in maximum width; make sure that the string
 	 * length is not exceeded (in %6ld, the result can be longer than 6!)
 	 */
@@ -154,7 +154,7 @@ static const char *dotted_num(mt_size_t num, size_t width, char **buf)
 			srcp[0] = ' ';
 		else
 			break;
-	
+
 	len = strlen(*buf);
 	srcp = (*buf)+len;
 	dstp = (*buf)+len+1;
@@ -172,7 +172,7 @@ static const char *dotted_num(mt_size_t num, size_t width, char **buf)
 		if (dstp + 3 < (*buf) + len)
 			/* use spaces instead of dots: they please both
 			 * Americans and Europeans */
-			dstp[3] = ' ';		
+			dstp[3] = ' ';
 		srcp += 3;
 		dstp += 4;
 	}
@@ -192,7 +192,7 @@ static __inline__ int print_volume_label(Stream_t *Dir, char drive)
 	RootDir = OpenRoot(Stream);
 	if(concise)
 		return 0;
-	
+
 	/* find the volume label */
 
 	initializeDirentry(&entry, RootDir);
@@ -212,7 +212,7 @@ static __inline__ int print_volume_label(Stream_t *Dir, char drive)
 		       drive, shortname);
 	if(This->serialized)
 		printf("\n Volume Serial Number is %04lX-%04lX",
-		       (This->serial_number >> 16) & 0xffff, 
+		       (This->serial_number >> 16) & 0xffff,
 		       This->serial_number & 0xffff);
 	return 0;
 }
@@ -222,7 +222,7 @@ static void printSummary(int files, mt_size_t bytes)
 {
 	if(!filesInDir)
 		printf("No files\n");
-	else {		
+	else {
 		char *s1 = NULL;
 		printf("      %3d file", files);
 		if(files == 1)
@@ -280,10 +280,10 @@ static int enterDrive(Stream_t *Dir, char drive)
 	int r;
 	if(currentDrive == drive)
 		return 0; /* still the same */
-	
+
 	leaveDrive(0);
 	currentDrive = drive;
-	
+
 	r = print_volume_label(Dir, drive);
 	if (r)
 		return r;
@@ -307,7 +307,7 @@ static void leaveDirectory(int haveError)
 			free(dynDirPath);
 		if(wide)
 			putchar('\n');
-		
+
 		if(!concise)
 			printSummary(filesInDir, bytesInDir);
 	}
@@ -373,21 +373,21 @@ static int list_file(direntry_t *entry, MainParam_t *mp UNUSEDP)
 		return ERROR_ONE;
 	if (wide) {
 		if(filesInDir % 5)
-			putchar(' ');				
+			putchar(' ');
 		else
 			putchar('\n');
 	}
-	
+
 	if(IS_DIR(entry)){
 		size = 0;
 	} else
 		size = FILE_SIZE(&entry->dir);
-	
+
 	Case = entry->dir.Case;
-	if(!(Case & (BASECASE | EXTCASE)) && 
+	if(!(Case & (BASECASE | EXTCASE)) &&
 	   mtools_ignore_short_case)
 		Case |= BASECASE | EXTCASE;
-	
+
 	cp = GET_DOSCONVERT(entry->Dir);
 	dos_to_wchar(cp, entry->dir.ext, ext, 3);
 	if(Case & EXTCASE){
@@ -412,13 +412,13 @@ static int list_file(direntry_t *entry, MainParam_t *mp UNUSEDP)
 			       (int) (15 - 2 - strlen(mdir_shortname)), "");
 		else
 			printf("%-15s", mdir_shortname);
-	} else if(!concise) {				
+	} else if(!concise) {
 		char tmpBasename[4*8+1];
 		char tmpExt[4*3+1];
 		WCHAR_TO_NATIVE(name,tmpBasename,8);
 		WCHAR_TO_NATIVE(ext,tmpExt,3);
 
-		if (name[0] == ' ') 
+		if (name[0] == ' ')
 			printf("             ");
 		else if(mtools_dotted_dir)
 			printf("%-12s ", mdir_shortname);
@@ -436,7 +436,7 @@ static int list_file(direntry_t *entry, MainParam_t *mp UNUSEDP)
 
 		if(debug)
 			printf(" %s %d ", tmpBasename, START(&entry->dir));
-		
+
 		if(*mdir_longname)
 			printf(" %s", mdir_longname);
 		printf("\n");
@@ -601,7 +601,7 @@ void mdir(int argc, char **argv, int type UNUSEDP)
 	if (testmode) {
 		mp.lookupflags = ACCEPT_DIR | NO_DOTS;
 		mp.dirCallback = test_directory;
-	} else 
+	} else
 #endif
 		if(recursive) {
 		mp.lookupflags = ACCEPT_DIR | DO_OPEN_DIRS | NO_DOTS;

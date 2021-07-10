@@ -43,7 +43,7 @@ static void autorename(char *name,
 	unsigned int seqnum=0, maxseq=0;
 	char tmp;
 	char *p;
-	
+
 #ifdef DEBUG
 	printf("In autorename for name=%s.\n", name);
 #endif
@@ -155,7 +155,7 @@ void clear_vfat(struct vfat_state *v)
  * and adding in each character, from left to right, padding both
  * the name and extension to maximum length with spaces and skipping
  * the "." (hence always summing exactly 11 characters).
- * 
+ *
  * This exact algorithm is required in order to remain compatible
  * with Microsoft Windows-95 and Microsoft Windows NT 3.5.
  * Thanks to Jeffrey Richter of Microsoft Systems Journal for
@@ -197,7 +197,7 @@ static __inline__ void check_vfat(struct vfat_state *v, struct directory *dir)
 
 	if (v->sum != sum_shortname(&dn))
 		return;
-	
+
 	if( (v->status & ((1<<v->subentries) - 1)) != (1<<v->subentries) - 1)
 		return; /* missing entries */
 
@@ -284,9 +284,9 @@ int write_vfat(Stream_t *Dir, dos_name_t *shortname, char *longname,
 		num_vses = (uint8_t)((wlen + VSE_NAMELEN - 1)/VSE_NAMELEN);
 		for (vse_id = num_vses; vse_id; --vse_id) {
 			int end = 0;
-			
+
 			c = wlongname + (vse_id - 1) * VSE_NAMELEN;
-			
+
 			c += unicode_write(c, vse->text1, VSE1SIZE, &end);
 			c += unicode_write(c, vse->text2, VSE2SIZE, &end);
 			c += unicode_write(c, vse->text3, VSE3SIZE, &end);
@@ -297,7 +297,7 @@ int write_vfat(Stream_t *Dir, dos_name_t *shortname, char *longname,
 			       longname, vse_id, longname + (vse_id-1) * VSE_NAMELEN,
 			       start + num_vses - vse_id, start + num_vses);
 #endif
-			
+
 			entry.entry = start + num_vses - vse_id;
 			low_level_dir_write(&entry);
 		}
@@ -348,15 +348,15 @@ void dir_write(direntry_t *entry)
  * The following function translates a series of vfat_subentries into
  * data suitable for a dircache entry
  */
-static __inline__ void parse_vses(direntry_t *entry,			
+static __inline__ void parse_vses(direntry_t *entry,
 				  struct vfat_state *v)
 {
 	struct vfat_subentry *vse;
 	unsigned char id, last_flag;
 	wchar_t *c;
-	
+
 	vse = (struct vfat_subentry *) &entry->dir;
-	
+
 	id = vse->id & VSE_MASK;
 	last_flag = (vse->id & VSE_LAST);
 	if (id > MAX_VFAT_SUBENTRIES) {
@@ -364,7 +364,7 @@ static __inline__ void parse_vses(direntry_t *entry,
 			id, entry->entry);
 		return;
 	}
-	
+
 /* 950819: This code enforced finding the VSEs in order.  Well, Win95
  * likes to write them in *reverse* order for some bizarre reason!  So
  * we pretty much have to tolerate them coming in any possible order.
@@ -384,17 +384,17 @@ static __inline__ void parse_vses(direntry_t *entry,
 		clear_vfat(v);
 		v->sum = vse->sum;
 	}
-	
+
 #ifdef DEBUG
 	if(v->status & (1 << (id-1)))
 		fprintf(stderr,
 			"parse_vses: duplicate VSE %d\n", vse->id);
 #endif
-	
+
 	v->status |= 1 << (id-1);
 	if(last_flag)
 		v->subentries = id;
-	
+
 #ifdef DEBUG
 	if (id > v->subentries)
 		/* simple test to detect entries preceding
@@ -411,7 +411,7 @@ static __inline__ void parse_vses(direntry_t *entry,
 #ifdef DEBUG
 	printf("Read VSE %d at %d, subentries=%d, = (%13ls).\n",
 	       id,entry->entry,v->subentries,&(v->name[VSE_NAMELEN * (id-1)]));
-#endif		
+#endif
 	if (last_flag)
 		*c = '\0';	/* Null terminate long name */
 }
@@ -447,7 +447,7 @@ static dirCacheEntry_t *vfat_lookup_loop_common(doscp_t *cp,
 					endmarkSeen);
 			return addEndEntry(cache, direntry->entry);
 		}
-		
+
 		if (endmarkSeen || direntry->dir.name[0] == ENDMARK){
 				/* the end of the directory */
 			if(lookForFreeSpace) {
@@ -463,11 +463,11 @@ static dirCacheEntry_t *vfat_lookup_loop_common(doscp_t *cp,
 			/* the main entry */
 			break;
 	}
-	
+
 	/* If we get here, it's a short name FAT entry, maybe erased.
 	 * thus we should make sure that the vfat structure will be
 	 * cleared before the next loop run */
-	
+
 	/* deleted file */
 	if (direntry->dir.name[0] == DELMARK) {
 		return addFreeEntry(cache, initpos,
@@ -843,7 +843,7 @@ int lookupForInsert(Stream_t *Dir,
 		return 6;	/* Success */
 
 	/* Need more room.  Can we grow the directory? */
-	if(!isRootDir(Dir))		
+	if(!isRootDir(Dir))
 		return 5;	/* OK, try to grow the directory */
 
 	fprintf(stderr, "No directory slots\n");

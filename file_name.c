@@ -30,7 +30,7 @@ char *unix_normalize (doscp_t *cp, char *ans, dos_name_t *dn, size_t ans_size)
 	wchar_t wbuffer[13];
 	char *a;
 	int j;
-	
+
 	for (a=buffer,j=0; (j<8) && (dn->base[j] > ' '); ++j,++a)
 		*a = dn->base[j];
 	if(dn->ext[0] > ' ') {
@@ -115,7 +115,7 @@ void dos_name(doscp_t *toDos, const char *name, int verbose UNUSEDP,
 	name = _basename(name);
 	if ((s = strrchr(name, '\\')))
 		name = s + 1;
-	
+
 	memset(dn, ' ', 11);
 
 	/* skip leading dots and spaces */

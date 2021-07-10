@@ -109,7 +109,7 @@ static int concise_view_attrib(direntry_t *entry, MainParam_t *mp)
 	if(IS_ARCHIVE(entry))
 		putchar('A');
 	if(IS_DIR(entry))
-		putchar('D');	
+		putchar('D');
 	if(IS_SYSTEM(entry))
 		putchar('S');
 	if(IS_HIDDEN(entry))
@@ -134,9 +134,9 @@ static int recursive_attrib(direntry_t *entry, MainParam_t *mp)
 static void usage(int ret) NORETURN;
 static void usage(int ret)
 {
-	fprintf(stderr, "Mtools version %s, dated %s\n", 
+	fprintf(stderr, "Mtools version %s, dated %s\n",
 		mversion, mdate);
-	fprintf(stderr, 
+	fprintf(stderr,
 		"Usage: %s [-p] [-a|+a] [-h|+h] [-r|+r] [-s|+s] msdosfile [msdosfiles...]\n",
 		progname);
 	exit(ret);

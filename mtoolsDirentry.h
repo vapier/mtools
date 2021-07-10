@@ -21,15 +21,15 @@
 
 typedef struct direntry_t {
 	struct Stream_t *Dir;
-	/* struct direntry_t *parent; parent level */	
+	/* struct direntry_t *parent; parent level */
 	int entry; /* slot in parent directory  */
 	/* Negative values have the following meanings:
 	   -1 not initialized
 	   -2 entry searched for, but not found
 	   -3 root directory */
-	struct directory dir; /* descriptor in parent directory (random if 
+	struct directory dir; /* descriptor in parent directory (random if
 			       * root)*/
-	wchar_t name[MAX_VNAMELEN+1]; /* name in its parent directory, or 
+	wchar_t name[MAX_VNAMELEN+1]; /* name in its parent directory, or
 				       * NULL if root */
 	int beginSlot; /* begin and end slot, for delete */
 	int endSlot;
@@ -75,7 +75,7 @@ int lookupForInsert(Stream_t *Dir,
 		    direntry_t *direntry,
 		    struct dos_name_t *dosname,
 		    char *longname,
-		    struct scan_state *ssp, 
+		    struct scan_state *ssp,
 		    int ignore_entry,
 		    int source_entry,
 		    int pessimisticShortRename,

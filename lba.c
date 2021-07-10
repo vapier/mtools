@@ -46,7 +46,7 @@ int compute_lba_geom_from_tot_sectors(struct device *dev)
 			dev->tracks = 40;
 			dev->heads = 1;
 		} else if(dev->tot_sectors <= 1080) {
-			/* double density 48tpi double sided or 
+			/* double density 48tpi double sided or
 			   96 tpi single sided   */
 
 			if(dev->heads == 1)
@@ -56,7 +56,7 @@ int compute_lba_geom_from_tot_sectors(struct device *dev)
 				dev->heads = 2;
 			}
 		} else {
-			/* double density 96tpi double sided, 
+			/* double density 96tpi double sided,
 			 * high density, extra density */
 			dev->tracks = 80;
 			dev->heads = 2;
@@ -65,11 +65,11 @@ int compute_lba_geom_from_tot_sectors(struct device *dev)
 			(uint16_t) dev->tot_sectors / dev->heads / dev->tracks;
 	}
 
-	
+
 	/* Heads or sectors not known => fill them in both... */
 	if(!dev->sectors || !dev->heads) {
 		dev->sectors = 63;
-		
+
 		if (dev->tot_sectors < 16*dev->sectors*1024)
 			dev->heads = 16;
 		else if (dev->tot_sectors < 32*dev->sectors*1024)

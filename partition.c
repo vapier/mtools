@@ -32,7 +32,7 @@ typedef struct Partition_t {
 	uint32_t size; /* size, in sectors */
 
 	uint8_t pos;
-	
+
 	uint8_t sectors;
 	uint8_t heads;
 	uint16_t cyclinders;
@@ -150,7 +150,7 @@ static ssize_t partition_read(Stream_t *Stream, char *buf,
 static ssize_t partition_write(Stream_t *Stream, char *buf,
 			       mt_off_t start, size_t len)
 {
-	DeclareThis(Partition_t);	
+	DeclareThis(Partition_t);
 	limit_size(This, start, &len);
 	return WRITES(This->Next, buf, start+This->offset, len);
 }
@@ -171,7 +171,7 @@ static int partition_data(Stream_t *Stream, time_t *date, mt_size_t *size,
 }
 
 
-static int partition_geom(Stream_t *Stream, struct device *dev, 
+static int partition_geom(Stream_t *Stream, struct device *dev,
 			  UNUSEDP struct device *orig_dev)
 {
 	DeclareThis(Partition_t);
@@ -204,8 +204,8 @@ Stream_t *OpenPartition(Stream_t *Next, struct device *dev,
 	struct partition *partition;
 
 	if(!dev || (dev->partition > 4) || (dev->partition <= 0)) {
-	    fprintf(stderr, 
-		    "Invalid partition %d (must be between 1 and 4), ignoring it\n", 
+	    fprintf(stderr,
+		    "Invalid partition %d (must be between 1 and 4), ignoring it\n",
 		    dev->partition);
 	    return NULL;
 	}
@@ -220,7 +220,7 @@ Stream_t *OpenPartition(Stream_t *Next, struct device *dev,
 	This->refs = 1;
 	This->Next = Next;
 
-		
+
 	/* read the first sector, or part of it */
 	if (force_read(This->Next, (char*) buf, 0, 512) != 512)
 		goto exit_0;
@@ -239,7 +239,7 @@ Stream_t *OpenPartition(Stream_t *Next, struct device *dev,
 				dev->partition);
 		goto exit_0;
 	}
-	
+
 	partOff = BEGIN(partition);
 	if (maxSize) {
 		if (partOff > *maxSize >> 9) {

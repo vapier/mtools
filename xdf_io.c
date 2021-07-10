@@ -72,7 +72,7 @@ static struct {
 
 typedef struct {
 	unsigned char begin; /* where it begins */
-	unsigned char end;       
+	unsigned char end;
 	unsigned char sector;
 	unsigned char sizecode;
 
@@ -92,10 +92,10 @@ typedef struct Xdf_t {
 
 	int fd;
 	char *buffer;
-	
+
 	bool track_valid;
 	uint8_t current_track;
-	
+
 	sector_map_t *map;
 
 	uint32_t track_size;
@@ -142,7 +142,7 @@ static int analyze_reply(RawRequest_t *raw_cmd, int do_print)
 		}
 	}
 }
-				
+
 
 
 static int send_cmd(int fd, RawRequest_t *raw_cmd, int nr,
@@ -150,7 +150,7 @@ static int send_cmd(int fd, RawRequest_t *raw_cmd, int nr,
 {
 	int j;
 	int ret=-1;
-	
+
 	if(!nr)
 		return 0;
 	for (j=0; j< retries; j++){
@@ -185,7 +185,7 @@ static int add_to_request(Xdf_t *This, unsigned char ptr,
 {
 #if 0
 	if(direction == MT_WRITE) {
-		printf("writing %d: %u %d %d %d [%02x]\n", 
+		printf("writing %d: %u %d %d %d [%02x]\n",
 		       ptr, This->current_track,
 		       REC.head, REC.sector, REC.sizecode,
 		       *(This->buffer + ptr * This->sector_size));
@@ -193,14 +193,14 @@ static int add_to_request(Xdf_t *This, unsigned char ptr,
 			printf(" load %d.%u\n", This->current_track, ptr);
 #endif
 	if(REC.phantom) {
-		if(direction== MT_READ)			
+		if(direction== MT_READ)
 			memset(This->buffer + ptr * This->sector_size, 0,
 			       128u << REC.sizecode);
 		return 0;
 	}
-	
+
 	if(*nr &&
-	   RR_SIZECODE(request+(*nr)-1) == REC.sizecode &&	   
+	   RR_SIZECODE(request+(*nr)-1) == REC.sizecode &&
 	   compactify->head == REC.head &&
 	   compactify->ptr + 1 == ptr &&
 	   compactify->sector +1 == REC.sector) {
@@ -212,7 +212,7 @@ static int add_to_request(Xdf_t *This, unsigned char ptr,
 		RR_SETDRIVE(request+(*nr), This->drive);
 		RR_SETRATE(request+(*nr), This->rate);
 		RR_SETTRACK(request+(*nr), This->current_track);
-		RR_SETPTRACK(request+(*nr), 
+		RR_SETPTRACK(request+(*nr),
 			     This->current_track << This->stretch);
 		RR_SETHEAD(request+(*nr), REC.head);
 		RR_SETSECTOR(request+(*nr), REC.sector);
@@ -257,7 +257,7 @@ static __inline__ int try_flush_dirty(Xdf_t *This)
 
 	if(!This->track_valid)
 		return 0;
-	
+
 	nr = 0;
 	for(ptr=0; ptr < This->last_sector; ptr=REC.end)
 		if(REC.dirty)
@@ -285,11 +285,11 @@ static __inline__ int try_flush_dirty(Xdf_t *This)
 
 
 static int flush_dirty(Xdf_t *This)
-{	
+{
 	int ret;
 
 	while((ret = try_flush_dirty(This))) {
-		if(ret < 0)		       
+		if(ret < 0)
 			return ret;
 	}
 	return 0;
@@ -305,7 +305,7 @@ static ssize_t load_data(Xdf_t *This, off_t ibegin, off_t iend,
 	Compactify_t compactify;
 	unsigned char begin, end;
 	adjust_bounds(This, ibegin, iend, &begin, &end);
-	
+
 	ptr = begin;
 	nr = 0;
 	for(ptr=REC.begin; ptr < end ; ptr = REC.end)
@@ -333,9 +333,9 @@ static void mark_dirty(Xdf_t *This, off_t ibegin, off_t iend)
 {
 	int ptr;
 	unsigned char begin, end;
-	
+
 	adjust_bounds(This, ibegin, iend, &begin, &end);
-	
+
 	ptr = begin;
 	for(ptr=REC.begin; ptr < end ; ptr = REC.end) {
 		REC.valid = 1;
@@ -349,7 +349,7 @@ static ssize_t load_bounds(Xdf_t *This, off_t begin, off_t end)
 {
 	unsigned char lbegin, lend;
 
-	adjust_bounds(This, begin, end, &lbegin, &lend);	
+	adjust_bounds(This, begin, end, &lbegin, &lend);
 
 	if(begin != BEGIN(lbegin) * This->sector_size &&
 	   end != BEGIN(lend) * This->sector_size &&
@@ -379,12 +379,12 @@ static void fill_boot(Xdf_t *This)
 	REC.head = 0;
 	REC.sector = 129;
 	REC.phantom = 0;
-	
+
 	REC.begin = ptr;
 	REC.end = ptr+1;
-			
+
 	REC.sizecode = 2;
-			
+
 	REC.valid = 0;
 	REC.dirty = 0;
 	This->last_sector=1;
@@ -427,10 +427,10 @@ static int decompose(Xdf_t *This, mt_off_t iwhere, size_t len,
 	sector_map_t *map;
 	uint8_t lbegin, lend;
 	uint32_t track_size = This->track_size * 1024;
-	
+
 	mt_off_t track = iwhere / track_size;
 	uint32_t where = iwhere % track_size;
-	
+
 	*begin = where;
 	if(where + len > track_size)
 		*end = track_size;
@@ -456,11 +456,11 @@ static int decompose(Xdf_t *This, mt_off_t iwhere, size_t len,
 			for( ; ptr < lend ; ptr++) {
 				REC.begin = lbegin;
 				REC.end = lend;
-				
+
 				REC.head = map->head;
 				REC.sector = map->size + 128;
 				REC.sizecode = map->size;
-				
+
 				REC.valid = 0;
 				REC.dirty = 0;
 				REC.phantom = 0;
@@ -476,9 +476,9 @@ static int decompose(Xdf_t *This, mt_off_t iwhere, size_t len,
 		for(ptr=boot; ptr < 2 * This->track_size; ptr++) {
 			REC.begin = ptr;
 			REC.end = ptr+1;
-			
+
 			REC.sizecode = 2;
-			
+
 			REC.valid = 0;
 			REC.dirty = 0;
 		}
@@ -491,7 +491,7 @@ static int decompose(Xdf_t *This, mt_off_t iwhere, size_t len,
 
 		/* root dir */
 		ptr=fill_t0(This, ptr, This->RootDirSize, &sector, &head);
-		
+
 		/* "bad sectors" at the beginning of the fs */
 		ptr=fill_phantoms(This, ptr, 5);
 
@@ -511,7 +511,7 @@ static int decompose(Xdf_t *This, mt_off_t iwhere, size_t len,
 
 static ssize_t xdf_read(Stream_t *Stream, char *buf,
 			mt_off_t where, size_t len)
-{	
+{
 	uint32_t begin, end;
 	ssize_t ret;
 	DeclareThis(Xdf_t);
@@ -528,7 +528,7 @@ static ssize_t xdf_read(Stream_t *Stream, char *buf,
 }
 
 static ssize_t xdf_write(Stream_t *Stream, char *buf, mt_off_t where, size_t len)
-{	
+{
 	uint32_t begin, end;
 	ssize_t len2;
 	DeclareThis(Xdf_t);
@@ -554,7 +554,7 @@ static int xdf_flush(Stream_t *Stream)
 {
 	DeclareThis(Xdf_t);
 
-	return flush_dirty(This);       
+	return flush_dirty(This);
 }
 
 static int xdf_free(Stream_t *Stream)
@@ -577,7 +577,7 @@ static int check_geom(Xdf_t *This, struct device *dev)
 	       compare(dev->sectors, 46) &&
 	       compare(dev->sectors, 48))
 		return 1;
-	    
+
 	    /* check against contradictory info from configuration file */
 	    if(compare(dev->heads, 2))
 		return 1;
@@ -603,7 +603,7 @@ static void set_geom(Xdf_t *This, struct device *dev)
 	dev->tracks = 80;
 }
 
-static int config_geom(Stream_t *Stream UNUSEDP, struct device *dev, 
+static int config_geom(Stream_t *Stream UNUSEDP, struct device *dev,
 		       struct device *orig_dev UNUSEDP)
 {
 	DeclareThis(Xdf_t);
@@ -614,11 +614,11 @@ static int config_geom(Stream_t *Stream UNUSEDP, struct device *dev,
 }
 
 static Class_t XdfClass = {
-	xdf_read, 
-	xdf_write, 
-	xdf_flush, 
-	xdf_free, 
-	config_geom, 
+	xdf_read,
+	xdf_write,
+	xdf_flush,
+	xdf_free,
+	config_geom,
 	0, /* get_data */
 	0, /* pre-allocate */
 	0, /* get_dosConvert */
@@ -633,7 +633,7 @@ Stream_t *XdfOpen(struct device *dev, const char *name,
 	union bootsector *boot;
 	unsigned int type;
 	uint16_t fatSize;
-	
+
 	if(dev && ((!SHOULD_USE_XDF(dev) && !getenv("MTOOLS_USE_XDF")) ||
 		   check_geom(NULL, dev)))
 		return NULL;
@@ -678,10 +678,10 @@ Stream_t *XdfOpen(struct device *dev, const char *name,
 	/* lock the device on writes */
 	if (lock_dev(This->fd, mode == O_RDWR, dev)) {
 #ifdef HAVE_SNPRINTF
-		snprintf(errmsg,199,"xdf floppy: device \"%s\" busy:", 
+		snprintf(errmsg,199,"xdf floppy: device \"%s\" busy:",
 			dev->name);
 #else
-		sprintf(errmsg,"xdf floppy: device \"%s\" busy:", 
+		sprintf(errmsg,"xdf floppy: device \"%s\" busy:",
 			dev->name);
 #endif
 		goto exit_3;

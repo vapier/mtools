@@ -53,7 +53,7 @@
 #endif
 
 
-/* On AIX, we have to prefer strings.h, as string.h lacks a prototype 
+/* On AIX, we have to prefer strings.h, as string.h lacks a prototype
  * for strcasecmp. On most other architectures, it's string.h which seems
  * to be more complete */
 #if (defined OS_aix && defined HAVE_STRINGS_H)
@@ -167,7 +167,7 @@ typedef unsigned char _Bool;
 # define false 0
 # define true 1
 # define __bool_true_false_are_defined 1
-#endif 
+#endif
 
 #ifdef HAVE_INTTYPES_H
 # include <inttypes.h>
@@ -483,7 +483,7 @@ char *strerror(int errno);
 #endif
 
 #ifndef HAVE_ATEXIT
-int atexit(void (*function)(void)); 
+int atexit(void (*function)(void));
 
 #ifndef HAVE_ON_EXIT
 void myexit(int code) NORETURN;
@@ -538,7 +538,7 @@ void _stripexe(char *filename);
 #ifndef __STDC__
 # ifndef signed
 #  define signed /**/
-# endif 
+# endif
 #endif /* !__STDC__ */
 
 

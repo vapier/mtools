@@ -64,12 +64,12 @@ static int makeit(dos_name_t *dosname,
 	Stream_t *Target;
 	CreateArg_t *arg = (CreateArg_t *) arg0;
 	uint32_t fat;
-	direntry_t subEntry;	
+	direntry_t subEntry;
 
 	/* will it fit? At least one cluster must be free */
 	if (!getfreeMinClusters(targetEntry->Dir, 1))
 		return -1;
-	
+
 	mk_entry(dosname, ATTR_DIR, 1, 0, arg->mtime, &targetEntry->dir);
 	Target = OpenFileByDirentry(targetEntry);
 	if(!Target){
@@ -148,7 +148,7 @@ static int createDirCallback(direntry_t *entry UNUSEDP, MainParam_t *mp)
 		FREE(&ret);
 		return GOT_ONE;
 	}
-	
+
 }
 
 void mmd(int argc, char **argv, int type UNUSEDP) NORETURN;

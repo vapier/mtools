@@ -158,7 +158,7 @@ static unsigned int _countBlocks(Fs_t *This, unsigned int block)
 	unsigned int rel, oldabs, oldrel;
 
 	blocks = 0;
-	
+
 	oldabs = oldrel = rel = 0;
 
 	while (block <= This->last_fat && block != 1 && block) {
@@ -300,7 +300,7 @@ static int normal_map(File_t *This, uint32_t where, uint32_t *len, int mode,
 	}
 
 	RelCluNr = where / clus_size;
-	
+
 	if (RelCluNr >= This->PreviousRelCluNr){
 		CurCluNr = This->PreviousRelCluNr;
 		AbsCluNr = This->PreviousAbsCluNr;
@@ -324,7 +324,7 @@ static int normal_map(File_t *This, uint32_t where, uint32_t *len, int mode,
 				AbsCluNr, NewCluNr);
 			exit(1);
 		}
-		if(CurCluNr == RelCluNr + NrClu)			
+		if(CurCluNr == RelCluNr + NrClu)
 			break;
 		if (NewCluNr > Fs->last_fat && mode == MT_WRITE){
 			/* if at end, and writing, extend it */
@@ -352,7 +352,7 @@ static int normal_map(File_t *This, uint32_t where, uint32_t *len, int mode,
 	}
 
 	maximize(*len, (1 + CurCluNr - RelCluNr) * clus_size - offset);
-	
+
 	end = where + *len;
 	if(batchmode &&
 	   mode == MT_WRITE &&
@@ -387,11 +387,11 @@ static int root_map(File_t *This, uint32_t where, uint32_t *len,
 	maximize(*len, Fs->dir_len * Fs->sector_size - where);
         if (*len == 0)
             return 0;
-	
+
 	*res = sectorsToBytes((Stream_t*)Fs, Fs->dir_start) + where;
 	return 1;
 }
-	
+
 
 static ssize_t read_file(Stream_t *Stream, char *buf, mt_off_t iwhere,
 			 size_t ilen)
@@ -401,9 +401,9 @@ static ssize_t read_file(Stream_t *Stream, char *buf, mt_off_t iwhere,
 	int err;
 	uint32_t where = truncMtOffTo32u(iwhere);
 	uint32_t len = truncSizeTo32u(ilen);
-	
+
 	Stream_t *Disk = This->Fs->Next;
-	
+
 	err = This->map(This, where, &len, MT_READ, &pos);
 	if(err <= 0)
 		return err;
@@ -481,7 +481,7 @@ static __inline__ time_t conv_stamp(struct directory *dir)
 	{
 		struct timeval tv;
 		struct timezone tz;
-		
+
 		gettimeofday(&tv, &tz);
 		tzone = tz.tz_minuteswest * 60L;
 	}
@@ -621,7 +621,7 @@ static int comp(void *Stream, void *Stream2)
 static void init_hash(void)
 {
 	static int is_initialised=0;
-	
+
 	if(!is_initialised){
 		make_ht(func1, func2, comp, 20, &filehash);
 		is_initialised = 1;

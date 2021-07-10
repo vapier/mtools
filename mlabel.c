@@ -208,12 +208,12 @@ void mlabel(int argc, char **argv, int type UNUSEDP)
 		fprintf(stderr, "Both clear and new label specified\n");
 		FREE(&RootDir);
 		exit(1);
-	}		
+	}
 	RootDir = open_root_dir(drive, isRop ? 0 : O_RDWR, isRop);
 	if(isRo) {
 		show = 1;
 		interactive = 0;
-	}	
+	}
 	if(!RootDir) {
 		fprintf(stderr, "%s: Cannot initialize drive\n", argv[0]);
 		exit(1);
@@ -241,7 +241,7 @@ void mlabel(int argc, char **argv, int type UNUSEDP)
 
 	/* ask for new label */
 	if(interactive){
-		saved_sig_state ss; 
+		saved_sig_state ss;
 		newLabel = longname;
 		allow_interrupts(&ss);
 		fprintf(stderr,"Enter the new volume label : ");
@@ -314,7 +314,7 @@ void mlabel(int argc, char **argv, int type UNUSEDP)
 
 	if((set_serial != SER_NONE) & have_boot) {
 		if(have_boot && boot.boot.descr >= 0xf0 && has_BPB4) {
-			set_dword(labelBlock->serial, serial);	
+			set_dword(labelBlock->serial, serial);
 			need_write_boot = 1;
 		}
 	}
@@ -324,7 +324,7 @@ void mlabel(int argc, char **argv, int type UNUSEDP)
 		/* If this is fat 32, write backup boot sector too */
 		if(!WORD_S(fatlen)) {
 			int backupBoot = WORD_S(ext.fat32.backupBoot);
-			force_write(Fs, (char *)&boot, 
+			force_write(Fs, (char *)&boot,
 				    backupBoot * WORD_S(secsiz),
 				    sizeof(boot));
 		}

@@ -27,7 +27,7 @@ typedef struct Buffer_t {
 	int refs;
 	Stream_t *Next;
 	Stream_t *Buffer;
-	
+
 	size_t size;     	/* size of read/write buffer */
 	int dirty;	       	/* is the buffer dirty? */
 
@@ -152,10 +152,10 @@ static ssize_t buf_read(Stream_t *Stream, char *buf, mt_off_t start, size_t len)
 	size_t offset;
 	char *disk_ptr;
 	ssize_t ret;
-	DeclareThis(Buffer_t);	
+	DeclareThis(Buffer_t);
 
 	if(!len)
-		return 0;	
+		return 0;
 
 	/*fprintf(stderr, "buf read %x   %x %x\n", Stream, start, len);*/
 	switch(isInBuffer(This, start, &len)) {
@@ -196,7 +196,7 @@ static ssize_t buf_write(Stream_t *Stream, char *buf,
 			 mt_off_t start, size_t len)
 {
 	char *disk_ptr;
-	DeclareThis(Buffer_t);	
+	DeclareThis(Buffer_t);
 	size_t offset=0;
 
 	if(!len)
@@ -223,7 +223,7 @@ static ssize_t buf_write(Stream_t *Stream, char *buf,
 				size_t readSize;
 				ssize_t ret;
 				size_t bytes_read;
-				
+
 				readSize = This->cylinderSize -
 					(size_t)(This->current % (mt_off_t) This->cylinderSize);
 
@@ -291,7 +291,7 @@ static ssize_t buf_write(Stream_t *Stream, char *buf,
 		This->dirty_pos = ROUND_DOWN(offset, This->sectorSize);
 	if(!This->dirty || offset + len > This->dirty_end)
 		This->dirty_end = ROUND_UP(offset + len, This->sectorSize);
-	
+
 	if(This->dirty_end > This->cur_size) {
 		fprintf(stderr,
 			"Internal error, dirty end too big dirty_end=%x cur_size=%x len=%x offset=%d sectorSize=%x\n",

@@ -20,7 +20,7 @@
 #include "mtools.h"
 
 static FILE *tty=NULL;
-static int notty=0;	
+static int notty=0;
 static int ttyfd=-1;
 #ifdef USE_RAWTERM
 int	mtools_raw_tty = 1;
@@ -95,7 +95,7 @@ static void tty_time_out(int dummy UNUSEDP)
 	int exit_code;
 	signal(SIGALRM, SIG_IGN);
 	if(tty && need_tty_reset)
-		restore_tty (&in_orig);	
+		restore_tty (&in_orig);
 #ifdef future
 	if (fail_on_timeout)
 		exit_code=SHFAIL;
@@ -118,7 +118,7 @@ static void tty_time_out(int dummy UNUSEDP)
 }
 
 static void cleanup_tty(void)
-{ 
+{
 	if(tty && need_tty_reset) {
 		restore_tty (&in_orig);
 		setup_signal();
@@ -143,7 +143,7 @@ static void set_raw_tty(int mode)
 
 		setup_signal();
 		signal (SIGALRM, tty_time_out);
-	
+
 		/* Change STDIN settings to raw */
 
 		gtty (STDIN, &in_raw);
@@ -153,7 +153,7 @@ static void set_raw_tty(int mode)
 #else
 			in_raw.c_lflag &= ~0u ^ ICANON;
 			in_raw.c_cc[VMIN]=1;
-			in_raw.c_cc[VTIME]=0;			
+			in_raw.c_cc[VTIME]=0;
 #endif
 			stty (STDIN, &in_raw);
 		} else {

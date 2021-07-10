@@ -27,9 +27,9 @@
 #include "open_image.h"
 
 static void usage(void) NORETURN;
-static void usage(void) 
+static void usage(void)
 {
-	fprintf(stderr, "Mtools version %s, dated %s\n", 
+	fprintf(stderr, "Mtools version %s, dated %s\n",
 		mversion, mdate);
 	fprintf(stderr, "Usage: mcat [-V] [-w] device\n");
 	fprintf(stderr, "       -w write on device else read\n");
@@ -84,15 +84,15 @@ void mcat(int argc, char **argv, int type UNUSEDP)
 		usage();
 
 
-	if (!argv[optindex][0] || argv[optindex][1] != ':' 
+	if (!argv[optindex][0] || argv[optindex][1] != ':'
 	    || argv[optindex][2]) {
 		usage();
 	}
 
         drive = ch_toupper(argv[optindex][0]);
 
-        /* check out a drive whose letter and parameters match */       
-        sprintf(errmsg, "Drive '%c:' not supported", drive);    
+        /* check out a drive whose letter and parameters match */
+        sprintf(errmsg, "Drive '%c:' not supported", drive);
         Stream = NULL;
         for (dev=devices; dev->name; dev++) {
                 FREE(&Stream);
@@ -112,7 +112,7 @@ void mcat(int argc, char **argv, int type UNUSEDP)
                 break;
         }
 
-        /* print error msg if needed */ 
+        /* print error msg if needed */
         if ( dev->drive == 0 ){
                 FREE(&Stream);
                 fprintf(stderr,"%s\n",errmsg);
@@ -127,7 +127,7 @@ void mcat(int argc, char **argv, int type UNUSEDP)
 		size *= 512;
 		while ((len = fread(buf, 1,
 				    bufLen(BUF_SIZE, size, address),
-				    stdin)) > 0) {			
+				    stdin)) > 0) {
 			ssize_t r = WRITES(Stream, buf, address, len);
 			fprintf(stderr, "Wrote to %d\n", (int) address);
 			if(r < 0)
