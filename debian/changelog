@@ -1,4 +1,4 @@
-mtools (4.0.31) stable; urgency=low
+mtools (4.0.32) stable; urgency=low
 
   * Simplify algorithm that choses filesystem parameters for format, and align
     it more closely with what Win7 does
