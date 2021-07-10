@@ -79,13 +79,10 @@ static uint16_t init_geometry_boot(union bootsector *boot, struct device *dev,
 		set_word(boot->boot.psect, (uint16_t) *tot_sectors);
 		set_dword(boot->boot.bigsect, 0);
 		set_word(boot->boot.nhs, (uint16_t) dev->hidden);
-	} else if(*tot_sectors <= UINT32_MAX){
+	} else {
 		set_word(boot->boot.psect, 0);
 		set_dword(boot->boot.bigsect, (uint32_t) *tot_sectors);
 		set_dword(boot->boot.nhs, dev->hidden);
-	} else {
-		fprintf(stderr, "Too many sectors %u\n", *tot_sectors);
-		exit(1);
 	}
 
 	if (dev->use_2m & 0x7f){
@@ -564,9 +561,18 @@ static int try_cluster_size(Fs_t *Fs,
 	return 0;
 }
 
-void calc_fs_parameters(struct device *dev, bool fat32,
-			uint32_t tot_sectors,
-			struct Fs_t *Fs, uint8_t *descr)
+/* Finds a set of filesystem parameters, given the device size, and
+ * any presets specified by user
+ * On return, Fs will be initialized, or one of the following error codes
+ * will be returned:
+ * -1  Not enough sectors for any kind of FAT filesystem
+ * -2  Not enough clusters for given number of FAT bits
+ * -3  Too many clusters for given number of FAT bits
+ * -4  Too many clusters for chosen FAT length
+ */
+int calc_fs_parameters(struct device *dev, bool fat32,
+		       uint32_t tot_sectors,
+		       struct Fs_t *Fs, uint8_t *descr)
 {
 	bool may_change_boot_size = (Fs->fat_start == 0);
 	bool may_change_fat_bits = (dev->fat_bits == 0) && !fat32;
@@ -583,17 +589,19 @@ void calc_fs_parameters(struct device *dev, bool fat32,
 		params = getOldDosByParams(dev->tracks,dev->heads,dev->sectors,
 					   Fs->dir_len, Fs->cluster_size);
 	if(params != NULL) {
+		int num_clus_valid;
 		*descr = params->media;
 		Fs->fat_start = 1;
 		Fs->cluster_size = params->cluster_size;
 		Fs->dir_len = params->dir_len;
 		Fs->fat_len = params->fat_len;
 		Fs->fat_bits = 12;
-		if(calc_num_clus(Fs, tot_sectors) < 0)
-			assert(false &&
-			       "Too few clusters for standard parameters");
+		num_clus_valid = calc_num_clus(Fs, tot_sectors);
+#ifdef HAVE_ASSERT_H
+		assert(num_clus_valid >= 0);
+#endif
 		check_fs_params_and_set_fat(Fs, tot_sectors);
-		return;
+		return 0;
 	}
 
 	/* a format described by BPB */
@@ -684,10 +692,9 @@ void calc_fs_parameters(struct device *dev, bool fat32,
 		}
 		if(fit == 0)
 			break;
-		if(fit == -2) {
-			fprintf(stderr, "Too few sectors\n");
-			exit(1);
-		}
+		if(fit == -2)
+			return -1;
+
 #ifdef HAVE_ASSERT_H
 		assert(fit != 2 || !may_change_fat_len);
 #endif
@@ -708,12 +715,9 @@ void calc_fs_parameters(struct device *dev, bool fat32,
 			 * FAT entry now being larger), pushing the
 			 * number of clusters *below* new limit.  =>
 			 * we lower fat bits again */
-			if(!may_change_fat_bits || Fs->fat_bits == 12) {
-				fprintf(stderr,
-					"Too few clusters for %d bit fat\n",
-					Fs->fat_bits);
-				exit(1);
-			}
+			if(!may_change_fat_bits || Fs->fat_bits == 12)
+				return -2;
+
 			switch(Fs->fat_bits) {
 			case 16:
 				Fs->fat_bits=12;
@@ -765,15 +769,8 @@ void calc_fs_parameters(struct device *dev, bool fat32,
 			continue;
 		}
 
-		/* Still too many clusters */
-		if(fit == 2) {
-			fprintf(stderr, "Too many clusters for fat length %d\n",
-				Fs->fat_len);
-		} else {
-			fprintf(stderr, "Too many clusters for %d bit FAT\n",
-				Fs->fat_bits);
-		}
-		exit(1);
+		/* Still too many clusters? */
+		return (fit == 2) ? -4 : -3;
 	}
 
 	if(getenv("MTOOLS_DEBUG_FAT") || getenv("MTOOLS_DEBUG_FAT_SUMMARY")) {
@@ -787,6 +784,7 @@ void calc_fs_parameters(struct device *dev, bool fat32,
 	check_fs_params_and_set_fat(Fs, tot_sectors);
 	if(Fs->fat_bits == 32)
 		fat32_specific_init(Fs);
+	return 0;
 }
 
 void initFsForFormat(Fs_t *Fs)
@@ -1353,7 +1351,24 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 	set_word(boot.boot.nsect, used_dev.sectors);
 	set_word(boot.boot.nheads, used_dev.heads);
 
-	calc_fs_parameters(&used_dev, fat32, tot_sectors, Fs, &boot.boot.descr);
+	switch(calc_fs_parameters(&used_dev, fat32, tot_sectors, Fs,
+				  &boot.boot.descr)) {
+	case -1:
+		fprintf(stderr, "Too few sectors\n");
+		exit(1);
+	case -2:
+		fprintf(stderr, "Too few clusters for %d bit fat\n",
+			Fs->fat_bits);
+		exit(1);
+	case -3:
+		fprintf(stderr, "Too many clusters for %d bit FAT\n",
+			Fs->fat_bits);
+		exit(1);
+	case -4:
+		fprintf(stderr, "Too many clusters for fat length %d\n",
+			Fs->fat_len);
+		exit(1);
+	}
 
 	if(!keepBoot && !(used_dev.use_2m & 0x7f)) {
 		if(!used_dev.partition) {

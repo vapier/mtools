@@ -124,14 +124,128 @@ static void displayBPB(Stream_t *Stream, union bootsector *boot) {
 	}
 }
 
-static void try(uint32_t tot_sectors, Fs_t *masterFs, Fs_t *tryFs,
-		struct device *master_dev, struct device *try_dev,
-		uint8_t *bootDescr) {
+static int try(uint32_t tot_sectors, Fs_t *masterFs, Fs_t *tryFs,
+	       struct device *master_dev, struct device *try_dev,
+	       uint8_t *bootDescr) {
 	*tryFs = *masterFs;
 	*try_dev = *master_dev;
-	calc_fs_parameters(try_dev, 0, tot_sectors,
-			   tryFs, bootDescr);
+	return calc_fs_parameters(try_dev, 0, tot_sectors,
+				  tryFs, bootDescr);
 }
+
+static void print_mformat_commandline(const char *imgFile,
+				      char drive,
+				      struct device *dev,
+				      union bootsector *boot,
+				      int media,
+				      int haveBPB) {
+	uint8_t size_code;
+	uint32_t sect_per_track;
+	uint32_t hidden;
+	uint32_t tot_sectors;
+	int tracks_match=0;
+	Fs_t masterFs, tryFs, actual;
+	struct device used_dev;
+	uint8_t tryMedia;
+	int bad;
+	
+	sect_per_track = dev->sectors * dev->heads;
+	if(sect_per_track == 0)
+		return;
+
+	tot_sectors = parseFsParams(&actual, boot,
+				    media | (haveBPB ? 0x100:0),
+				    sect_per_track);
+	if(tot_sectors == 0)
+		return;
+
+	printf("mformat command line:\n  mformat ");
+
+	if(haveBPB) {
+		if(media == 0xf0)
+			hidden = getHidden(boot);
+		else
+			hidden = 0;
+		size_code = (uint8_t) actual.sectorShift-7;
+	} else {
+		size_code=2;
+		hidden = 0;
+	}
+
+	if(tot_sectors ==
+	   dev->tracks * sect_per_track - hidden % sect_per_track) {
+		tracks_match=1;
+		printf("-t %d ", dev->tracks);
+	} else {
+		printf("-T %d ", tot_sectors);
+	}
+	printf ("-h %d -s %d ", dev->heads, dev->sectors);
+	if(haveBPB && (hidden || !tracks_match))
+		printf("-H %d ", hidden);
+	used_dev=*dev;
+	if(size_code != 2) {
+		printf("-S %d ",size_code);
+		used_dev.ssize = size_code;
+	}
+
+	initFsForFormat(&masterFs);
+	setFsSectorSize(&masterFs, &used_dev, 0);
+
+	if(actual.num_fat != 2) {
+		masterFs.num_fat = actual.num_fat;
+		printf("-d %d ", actual.num_fat);
+	}
+
+	bad=try(tot_sectors, &masterFs, &tryFs, dev , &used_dev, &tryMedia);
+
+	if(bad || actual.dir_len != tryFs.dir_len) {
+		masterFs.dir_len = actual.dir_len;
+		printf("-r %d ", actual.dir_len);
+		bad = try(tot_sectors,
+			  &masterFs, &tryFs, dev , &used_dev,
+			  &tryMedia);
+	}
+
+	if(bad || actual.cluster_size != tryFs.cluster_size) {
+		masterFs.cluster_size = actual.cluster_size;
+		printf("-c %d ", actual.cluster_size);
+		bad = try(tot_sectors,
+			  &masterFs, &tryFs, dev , &used_dev,
+			  &tryMedia);
+	}
+
+	if(bad || actual.fat_start != tryFs.fat_start) {
+		masterFs.fat_start = actual.fat_start;
+		printf("-R %d ", actual.fat_start);
+		bad = try(tot_sectors,
+			  &masterFs, &tryFs, dev , &used_dev,
+			  &tryMedia);
+	}
+
+	if(bad || actual.fat_len != tryFs.fat_len) {
+		masterFs.fat_len = actual.fat_len;
+		printf("-L %d ", actual.fat_len);
+		bad = try(tot_sectors,
+			  &masterFs, &tryFs, dev , &used_dev,
+			  &tryMedia);
+	}
+#ifdef HAVE_ASSERT_H
+	assert(!bad);
+#endif
+	if((media & 0xff) != (tryMedia & 0xff))
+		printf("-m %d ", (media & 0xff));
+			
+	if(actual.fat_bits == 32) {
+		if(actual.backupBoot != tryFs.backupBoot)
+			printf("-K %d ", actual.backupBoot);
+	}
+
+	if(imgFile != NULL)
+		printf("-i \"%s\" ", imgFile);
+	printf("%c:\n", ch_tolower(drive));
+	printf("\n");
+}
+
 
 void minfo(int argc, char **argv, int type UNUSEDP) NORETURN;
 void minfo(int argc, char **argv, int type UNUSEDP)
@@ -139,18 +253,13 @@ void minfo(int argc, char **argv, int type UNUSEDP)
 	union bootsector boot;
 
 	char name[EXPAND_BUF];
-	int media;
-	int haveBPB;
-	uint8_t size_code;
 	struct device dev;
 	char drive;
 	int verbose=0;
 	int c;
 	Stream_t *Stream;
 	int have_drive = 0;
-
-	uint32_t sect_per_track;
-
+	int ex=0;
 	char *imgFile=NULL;
 	
 	if(helpFlag(argc, argv))
@@ -172,6 +281,9 @@ void minfo(int argc, char **argv, int type UNUSEDP)
 	}
 
 	for(;optind <= argc; optind++) {
+		int media;
+		int haveBPB;
+
 		if(optind == argc) {
 			if(have_drive)
 				break;
@@ -184,8 +296,11 @@ void minfo(int argc, char **argv, int type UNUSEDP)
 		have_drive = 1;
 
 		if(! (Stream = find_device(drive, O_RDONLY, &dev, &boot, 
-					   name, &media, 0, NULL)))
-			exit(1);
+					   name, &media, 0, NULL))) {
+			fprintf(stderr, "Could not open drive %c:\n", drive);
+			ex=1;
+			continue;
+		}
 
 		haveBPB = media >= 0x100;
 		media = media & 0xff;
@@ -198,107 +313,9 @@ void minfo(int argc, char **argv, int type UNUSEDP)
 		printf("cylinders: %d\n\n", dev.tracks);
 		printf("media byte: %02x\n\n", media & 0xff);
 
-		sect_per_track = dev.sectors * dev.heads;
-		if(sect_per_track != 0) {
-			uint32_t hidden;
-			uint32_t tot_sectors;
-			int tracks_match=0;
-			Fs_t masterFs, tryFs, actual;
-			struct device used_dev;
-			uint8_t tryMedia;
-			printf("mformat command line:\n  mformat ");
-
-			tot_sectors = parseFsParams(&actual, &boot,
-						    media | (haveBPB ? 0x100:0),
-						    sect_per_track);
-
-			if(haveBPB) {
-				if(media == 0xf0)
-					hidden = getHidden(&boot);
-				else
-					hidden = 0;
-				size_code = (uint8_t) actual.sectorShift-7;
-			} else {
-				size_code=2;
-				hidden = 0;
-			}
-
-			if(tot_sectors ==
-			   dev.tracks * sect_per_track - hidden % sect_per_track) {
-				tracks_match=1;
-				printf("-t %d ", dev.tracks);
-			} else {
-				printf("-T %d ", tot_sectors);
-			}
-			printf ("-h %d -s %d ", dev.heads, dev.sectors);
-			if(haveBPB && (hidden || !tracks_match))
-				printf("-H %d ", hidden);
-			used_dev=dev;
-			if(size_code != 2) {
-				printf("-S %d ",size_code);
-				used_dev.ssize = size_code;
-			}
-
-			initFsForFormat(&masterFs);
-			setFsSectorSize(&masterFs, &used_dev, 0);
-			
-			try(tot_sectors, &masterFs, &tryFs, &dev , &used_dev,
-			    &tryMedia);
-			
-			if(actual.cluster_size != tryFs.cluster_size) {
-				masterFs.cluster_size = actual.cluster_size;
-				printf("-c %d ", actual.cluster_size);
-				try(tot_sectors,
-				    &masterFs, &tryFs, &dev , &used_dev,
-				    &tryMedia);
-			}
-
-			if(actual.dir_len != tryFs.dir_len) {
-				masterFs.dir_len = actual.dir_len;
-				printf("-r %d ", actual.dir_len);
-				try(tot_sectors,
-				    &masterFs, &tryFs, &dev , &used_dev,
-				    &tryMedia);
-			}
-
-			if(actual.fat_start != tryFs.fat_start) {
-				masterFs.fat_start = actual.fat_start;
-				printf("-R %d ", actual.fat_start);
-				try(tot_sectors,
-				    &masterFs, &tryFs, &dev , &used_dev,
-				    &tryMedia);
-			}
-
-			if(actual.num_fat != tryFs.num_fat) {
-				masterFs.num_fat = actual.num_fat;
-				printf("-d %d ", actual.num_fat);
-				try(tot_sectors,
-				    &masterFs, &tryFs, &dev , &used_dev,
-				    &tryMedia);
-			}
-
-			if(actual.fat_len != tryFs.fat_len) {
-				masterFs.fat_len = actual.fat_len;
-				printf("-L %d ", actual.fat_len);
-				try(tot_sectors,
-				    &masterFs, &tryFs, &dev , &used_dev,
-				    &tryMedia);
-			}
-
-			if((media & 0xff) != (tryMedia & 0xff))
-				printf("-m %d ", (media & 0xff));
-			
-			if(actual.fat_bits == 32) {
-				if(actual.backupBoot != tryFs.backupBoot)
-					printf("-K %d ", actual.backupBoot);
-			}
-
-			if(imgFile != NULL)
-				printf("-i \"%s\" ", imgFile);
-			printf("%c:\n", ch_tolower(drive));
-			printf("\n");
-		}
-
+		print_mformat_commandline(imgFile, drive,
+					  &dev, &boot, media, haveBPB);
+		
 		if(haveBPB || verbose)
 			displayBPB(Stream, &boot);
 
@@ -326,5 +343,5 @@ void minfo(int argc, char **argv, int type UNUSEDP)
 		}
 	}
 	FREE(&Stream);
-	exit(0);
+	exit(ex);
 }

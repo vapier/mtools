@@ -104,8 +104,8 @@ int fsPreallocateClusters(Fs_t *Fs, uint32_t);
 void fsReleasePreallocateClusters(Fs_t *Fs, uint32_t);
 Fs_t *getFs(Stream_t *Stream);
 
-void calc_fs_parameters(struct device *dev, bool fat32, uint32_t tot_sectors,
-			struct Fs_t *Fs, uint8_t *descr);
+int calc_fs_parameters(struct device *dev, bool fat32, uint32_t tot_sectors,
+		       struct Fs_t *Fs, uint8_t *descr);
 
 /* Fs_t *makeFsForFormat(void); */
 void initFsForFormat(Fs_t *Fs);
