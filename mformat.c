@@ -1218,10 +1218,10 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 #ifdef USE_XDF
 		if(format_xdf)
 			used_dev.misc_flags |= USE_XDF_FLAG;
+		info.FatSize=0;
 #endif
 		if(tot_sectors)
 			used_dev.tot_sectors = tot_sectors;
-		info.FatSize=0;
 		Fs->Direct = OpenImage(&used_dev, dev, name,
 				      O_RDWR|create, errmsg,
 				      ALWAYS_GET_GEOMETRY,
