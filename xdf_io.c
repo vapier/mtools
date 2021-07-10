@@ -239,7 +239,7 @@ static void add_to_request_if_invalid(Xdf_t *This, unsigned char ptr,
 }
 
 
-static void adjust_bounds(Xdf_t *This, off_t ibegin, off_t iend,
+static void adjust_bounds(Xdf_t *This, uint32_t ibegin, uint32_t iend,
 			  uint8_t *begin, uint8_t *end)
 {
 	/* translates begin and end from byte to sectors */
@@ -296,7 +296,7 @@ static int flush_dirty(Xdf_t *This)
 }
 
 
-static ssize_t load_data(Xdf_t *This, off_t ibegin, off_t iend,
+static ssize_t load_data(Xdf_t *This, uint32_t ibegin, uint32_t iend,
 			 int retries)
 {
 	unsigned char ptr;
@@ -329,7 +329,7 @@ static ssize_t load_data(Xdf_t *This, off_t ibegin, off_t iend,
 	return end * This->sector_size;
 }
 
-static void mark_dirty(Xdf_t *This, off_t ibegin, off_t iend)
+static void mark_dirty(Xdf_t *This, uint32_t ibegin, uint32_t iend)
 {
 	int ptr;
 	unsigned char begin, end;
@@ -345,7 +345,7 @@ static void mark_dirty(Xdf_t *This, off_t ibegin, off_t iend)
 }
 
 
-static ssize_t load_bounds(Xdf_t *This, off_t begin, off_t end)
+static ssize_t load_bounds(Xdf_t *This, uint32_t begin, uint32_t end)
 {
 	unsigned char lbegin, lend;
 
