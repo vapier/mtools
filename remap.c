@@ -91,7 +91,7 @@ static ssize_t remap_write(Stream_t *Stream, char *buf,
 		for(i=0; i<len; i++) {
 			if(buf[i]) {
 				fprintf(stderr, "Bad data written to unmapped sectors\n");
-				errno = EBADR;
+				errno = EFAULT;
 				return -1;
 			}
 		}
