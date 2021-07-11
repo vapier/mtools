@@ -32,8 +32,6 @@
 #include "scsi.h"
 #include "floppyd_io.h"
 
-#ifdef USE_FLOPPYD
-
 /* ######################################################################## */
 
 
@@ -656,4 +654,3 @@ static int ConnectToFloppyd(RemoteFile_t *floppyd, const char* name,
 
 	return sock;
 }
-#endif

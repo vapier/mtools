@@ -26,7 +26,6 @@
 
 #include "sysincludes.h"
 #ifdef OS_linux
-#ifdef USE_XDF
 #include "msdos.h"
 #include "mtools.h"
 #include "devices.h"
@@ -746,7 +745,5 @@ exit_0:
 }
 
 #endif
-#endif
 
 /* Algorithms can't be patented */
-
