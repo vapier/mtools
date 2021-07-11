@@ -122,10 +122,14 @@ AC_TYPE_SIGNAL
 AC_TYPE_UID_T
 
 AC_CHECK_TYPES(caddr_t)
+AC_CHECK_TYPES(long long)
+AC_CHECK_TYPES(loff_t)
+AC_CHECK_TYPES(offset_t)
+AC_CHECK_TYPES(off64_t)
 AC_CHECK_SIZEOF(size_t)
+AC_CHECK_SIZEOF(off_t)
 AC_CHECK_SIZEOF(time_t)
 AC_CHECK_SIZEOF(long)
-AC_CHECK_SIZEOF(long long)
 
 dnl
 dnl Check to see if llseek() is declared in unistd.h.  On some libc's
@@ -183,109 +187,6 @@ snprintf stat64 setlocale toupper_l strncasecmp_l \
 wcsdup wcscasecmp wcsnlen putwc \
 getuserid getgroupid \
 alarm sigaction usleep)
-
-dnl
-dnl Check for 64-bit off_t
-dnl
-AC_DEFUN(SFS_CHECK_OFF_T_64,
-[AC_CACHE_CHECK(for 64-bit off_t, sfs_cv_off_t_64,
-AC_TRY_COMPILE([
-#include <unistd.h>
-#include <sys/types.h>
-],[
-switch (0) case 0: case (sizeof (off_t) <= 4):;
-], sfs_cv_off_t_64=no, sfs_cv_off_t_64=yes))
-if test $sfs_cv_off_t_64 = yes; then
-        AC_DEFINE([HAVE_OFF_T_64],1,[Define when the system has a 64 bit off_t type])
-fi])
-
-
-dnl ICE_CC_LOFF_T
-dnl -------------
-dnl
-dnl If the CC compiler supports `loff_t' type,  define `HAVE_LOFF_T'.
-dnl
-AC_DEFUN(ICE_CC_LOFF_T,
-[
-AC_MSG_CHECKING(whether ${CC} supports loff_t type)
-AC_CACHE_VAL(ice_cv_have_loff_t,
-[
-AC_TRY_COMPILE([#include <sys/types.h>],[loff_t a;],
-ice_cv_have_loff_t=yes,
-ice_cv_have_loff_t=no)
-])
-AC_MSG_RESULT($ice_cv_have_loff_t)
-if test "$ice_cv_have_loff_t" = yes; then
-AC_DEFINE([HAVE_LOFF_T],1,[Define when the compiler supports LOFF_T type])
-fi
-])dnl
-
-
-dnl ICE_CC_OFFSET_T
-dnl -------------
-dnl
-dnl If the CC compiler supports `offset_t' type,  define `HAVE_OFFSET_T'.
-dnl
-AC_DEFUN(ICE_CC_OFFSET_T,
-[
-AC_MSG_CHECKING(whether ${CC} supports offset_t type)
-AC_CACHE_VAL(ice_cv_have_offset_t,
-[
-AC_TRY_COMPILE([#include <sys/types.h>],[offset_t a;],
-ice_cv_have_offset_t=yes,
-ice_cv_have_offset_t=no)
-])
-AC_MSG_RESULT($ice_cv_have_offset_t)
-if test "$ice_cv_have_offset_t" = yes; then
-AC_DEFINE([HAVE_OFFSET_T],1,[Define when the compiler supports OFFSET_T type])
-fi
-])dnl
-
-dnl ICE_CC_LONG_LONG
-dnl -------------
-dnl
-dnl If the CC compiler supports `long long' type,  define `HAVE_LONG_LONG'.
-dnl
-AC_DEFUN(ICE_CC_LONG_LONG,
-[
-AC_MSG_CHECKING(whether ${CC} supports long long type)
-AC_CACHE_VAL(ice_cv_have_long_long,
-[
-AC_TRY_COMPILE(,[long long a;],
-ice_cv_have_long_long=yes,
-ice_cv_have_long_long=no)
-])
-AC_MSG_RESULT($ice_cv_have_long_long)
-if test "$ice_cv_have_long_long" = yes; then
-AC_DEFINE([HAVE_LONG_LONG],1,[Define when the compiler supports LONG_LONG type])
-fi
-])dnl
-
-dnl ICE_CC_OFF64_T
-dnl -------------
-dnl
-dnl If the CC compiler supports `long long' type,  define `HAVE_OFF64_T'.
-dnl
-AC_DEFUN(ICE_CC_OFF64_T,
-[
-AC_MSG_CHECKING(whether ${CC} supports off64_t type)
-AC_CACHE_VAL(ice_cv_have_off64_t,
-[
-AC_TRY_COMPILE(,[off64_t a;],
-ice_cv_have_off64_t=yes,
-ice_cv_have_off64_t=no)
-])
-AC_MSG_RESULT($ice_cv_have_off64_t)
-if test "$ice_cv_have_off64_t" = yes; then
-AC_DEFINE([HAVE_OFF64_T],1,[Define when the compiler supports OFF64_T type])
-fi
-])dnl
-
-
-SFS_CHECK_OFF_T_64
-ICE_CC_LOFF_T
-ICE_CC_OFFSET_T
-ICE_CC_LONG_LONG
 
 
 AC_CHECK_FUNCS(utimes utime, [break])
