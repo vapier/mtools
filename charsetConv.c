@@ -230,7 +230,7 @@ struct doscp_t {
 	unsigned char to_dos[0x80];
 };
 
-doscp_t *cp_open(int codepage)
+doscp_t *cp_open(unsigned int codepage)
 {
 	doscp_t *ret;
 	int i;
@@ -269,7 +269,7 @@ void cp_close(doscp_t *cp)
 	free(cp);
 }
 
-int dos_to_wchar(doscp_t *cp, const char *dos, wchar_t *wchar, size_t len)
+size_t dos_to_wchar(doscp_t *cp, const char *dos, wchar_t *wchar, size_t len)
 {
 	int i;
 
