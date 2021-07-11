@@ -104,6 +104,9 @@ iconv.h wctype.h wchar.h locale.h xlocale.h linux/fs.h)
 AC_CHECK_HEADERS(termio.h sys/termio.h, [break])
 AC_CHECK_HEADERS(termios.h sys/termios.h, [break])
 
+dnl Check for platform-specific header files
+AC_CHECK_HEADERS(sys/fdio.h)
+
 dnl Check for types
 AC_SYS_LARGEFILE
 AC_TYPE_INT8_T

@@ -386,6 +386,7 @@ struct device devices[] = {
 
 
 
+#ifdef HAVE_SYS_FDIO_H
 /*
  * Ofer Licht <ofer@stat.Berkeley.EDU>, May 14, 1997.
  */
@@ -430,7 +431,7 @@ static inline int set_parameters(int fd, struct generic_floppy_struct *floppy,
 	}
 	return 0;
 }
-#define INIT_GENERIC
+#endif
 #endif /* solaris */
 
 #ifdef OS_sunos3
