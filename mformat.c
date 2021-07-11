@@ -413,7 +413,7 @@ static void fat32_specific_init(Fs_t *Fs) {
  *
  * Return values
  *  -2 Too few sectors to contain even the header (reserved sectors, minimal
- *     FAT and root directory)
+ *     FAT and root directory), or other internal error
  *  -1 This cluster size leads to too few clusters for the FAT size.
  *     Caller should either reduce cluster size or FAT size, and try again
  *   0 Everything fits
@@ -452,6 +452,7 @@ static int try_cluster_size(Fs_t *Fs,
 #ifdef HAVE_ASSERT_H
 		assert(false && "Bad number of FAT bits");
 #endif
+		return -2;
 	}
 
 	if(getenv("MTOOLS_DEBUG_FAT")) {
