@@ -41,12 +41,15 @@ AC_ARG_ENABLE(xdf,
 [  --enable-xdf           support for OS/2 extended density format disks],
 [if test x$enableval = xyes; then
   AC_DEFINE([USE_XDF],1,[Define this if you want to use Xdf])
-  USE_XDF=y
+  XDF_IO_SRC=xdf_io.c
+  XDF_IO_OBJ=xdf_io.o
 fi],[AC_DEFINE([USE_XDF],1,[Define this if you want to use Xdf])
-USE_XDF=y]
+XDF_IO_SRC=xdf_io.c
+XDF_IO_OBJ=xdf_io.o
+]
 )
-AC_SUBST(USE_XDF)
-
+AC_SUBST(XDF_IO_SRC)
+AC_SUBST(XDF_IO_OBJ)
 
 dnl Check for configuration options
 dnl Enable usage of vold on Solaris
@@ -303,17 +306,21 @@ if test X$use_floppyd = Xyes; then
     fi
     FLOPPYD="floppyd floppyd_installtest"
     BINFLOPPYD="\$(DESTDIR)\$(bindir)/floppyd \$(DESTDIR)\$(bindir)/floppyd_installtest"
+    FLOPPYD_IO_SRC=floppyd_io.c
+    FLOPPYD_IO_OBJ=floppyd_io.o
     AC_DEFINE([USE_FLOPPYD],1,[Define when you want to include floppyd support])
-    USE_FLOPPYD=y
     AC_FUNC_SETPGRP
 else
     FLOPPYD=
     BINFLOPPYD=
+    FLOPPYD_IO_SRC=
+    FLOPPYD_IO_OBJ=
 fi
 
-AC_SUBST(USE_FLOPPYD)
 AC_SUBST(FLOPPYD)
 AC_SUBST(BINFLOPPYD)
+AC_SUBST(FLOPPYD_IO_SRC)
+AC_SUBST(FLOPPYD_IO_OBJ)
 
 AC_SUBST(extraincludedir)
 AC_SUBST(extralibdir)
