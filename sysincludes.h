@@ -54,9 +54,9 @@
 
 
 /* On AIX, we have to prefer strings.h, as string.h lacks a prototype
- * for strcasecmp. On most other architectures, it's string.h which seems
- * to be more complete */
-#if (defined OS_aix && defined HAVE_STRINGS_H)
+ * for strcasecmp. On Solaris, string.h lacks a prototype for strncasecmp_l.
+ * On most other architectures, it's string.h which seems to be more complete */
+#if ((defined OS_aix || defined OS_solaris) && defined HAVE_STRINGS_H)
 # undef HAVE_STRING_H
 #endif
 
