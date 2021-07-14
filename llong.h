@@ -21,7 +21,7 @@
 #if 1
 
 
-#if SIZEOF_OFF_T_64 >= 8
+#if SIZEOF_OFF_T >= 8
 /* if off_t is already 64 bits, be happy, and don't worry about the
  * loff_t and llseek stuff */
 # define MT_OFF_T off_t
