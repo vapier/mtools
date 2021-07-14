@@ -153,6 +153,10 @@ typedef void *caddr_t;
 # include <stdint.h>
 #endif
 
+#ifdef HAVE_STDARG_H
+# include <stdarg.h>
+#endif
+
 #if HAVE_STDBOOL_H
 # include <stdbool.h>
 #else
