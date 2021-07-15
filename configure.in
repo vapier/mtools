@@ -133,46 +133,74 @@ AC_TYPE_UID_T
 
 AC_CHECK_TYPES(caddr_t)
 AC_CHECK_TYPES(long long)
-AC_CHECK_TYPES(loff_t)
-AC_CHECK_TYPES(offset_t)
-AC_CHECK_TYPES(off64_t)
 AC_CHECK_SIZEOF(size_t)
 AC_CHECK_SIZEOF(off_t)
 AC_CHECK_SIZEOF(time_t)
 AC_CHECK_SIZEOF(long)
 
-dnl
-dnl Check to see if llseek() is declared in unistd.h.  On some libc's
-dnl it is, and on others it isn't..... Thank you glibc developers....
-dnl
-dnl Warning!  Use of --enable-gcc-wall may throw off this test.
-dnl
-dnl
-AC_MSG_CHECKING(whether llseek declared in unistd.h)
-AC_CACHE_VAL(mtools_cv_have_llseek_prototype,
-        AC_TRY_COMPILE(
-[#include <unistd.h>], [extern int llseek(int);],
-        [mtools_cv_have_llseek_prototype=no],
-        [mtools_cv_have_llseek_prototype=yes]))
-AC_MSG_RESULT($mtools_cv_have_llseek_prototype)
-if test "$mtools_cv_have_llseek_prototype" = yes; then
-   AC_DEFINE([HAVE_LLSEEK_PROTOTYPE],1,[Define when you have an LLSEEK prototype])
+seek_function=
+
+if test $ac_cv_sizeof_off_t -ge 8 ; then
+   seek_function=lseek
 fi
 
-AC_MSG_CHECKING(whether lseek64 declared in unistd.h)
-AC_CACHE_VAL(mtools_cv_have_lseek64_prototype,
-        AC_TRY_COMPILE(
-[
-#include "sysincludes.h"
-#include <unistd.h>
-], [extern int lseek64(int);],
+dnl Fallback if we have no suitable 64 bit seek function yet
+if test X$seek_function = X ; then
+  AC_DEFINE([_LARGEFILE64_SOURCE],1,[Needed for off64_t / lseek64 ])
+  AC_CHECK_TYPES(off64_t,
+    [ AC_CHECK_FUNCS(lseek64, [ seek_function=lseek64 ])
+    ])
+  AC_CHECK_FUNCS(stat64)
+  if test X$seek_function = Xlseek64 ; then
+    AC_MSG_CHECKING(whether lseek64 declared in unistd.h)
+    AC_CACHE_VAL(mtools_cv_have_lseek64_prototype,
+      AC_COMPILE_IFELSE(
+         [AC_LANG_PROGRAM([[
+              #define _LARGEFILE64_SOURCE
+              #include <sys/types.h>
+              #include <unistd.h>
+            ]], [[extern int lseek64(int);]])],
         [mtools_cv_have_lseek64_prototype=no],
         [mtools_cv_have_lseek64_prototype=yes]))
-AC_MSG_RESULT($mtools_cv_have_lseek64_prototype)
-if test "$mtools_cv_have_lseek64_prototype" = yes; then
-   AC_DEFINE([HAVE_LSEEK64_PROTOTYPE],1,[Define when you have an LSEEK64 prototype])
+    AC_MSG_RESULT($mtools_cv_have_lseek64_prototype)
+    if test "$mtools_cv_have_lseek64_prototype" = yes; then
+      AC_DEFINE([HAVE_LSEEK64_PROTOTYPE],1,[Define when you have an LSEEK64 prototype])
+    fi
+  fi
 fi
 
+dnl Fallback if we have no suitable 64 bit seek function yet
+if test X$seek_function = X ; then
+  AC_DEFINE([_LARGEFILE_SOURCE],1,[Might be needed for loff_t / llseek64 ])
+  AC_CHECK_TYPES([loff_t, offset_t, long long],
+    [ AC_CHECK_FUNCS(llseek, [ seek_function=llseek ])
+    ])
+
+  if test X$seek_function = Xllseek ; then
+    dnl
+    dnl Check to see if llseek() is declared in unistd.h.  On some libc's
+    dnl it is, and on others it isn't..... Thank you glibc developers....
+    dnl
+    dnl Warning!  Use of --enable-gcc-wall may throw off this test.
+    dnl
+    dnl
+    AC_MSG_CHECKING(whether llseek declared in unistd.h)
+    AC_CACHE_VAL(mtools_cv_have_llseek_prototype,
+      AC_COMPILE_IFELSE(
+         [AC_LANG_PROGRAM([[
+              #define _LARGEFILE_SOURCE
+              #define _LARGEFILE64_SOURCE
+              #include <sys/types.h>
+              #include <unistd.h>
+	   ]], [[extern int llseek(int);]])],
+        [mtools_cv_have_llseek_prototype=no],
+        [mtools_cv_have_llseek_prototype=yes]))
+    AC_MSG_RESULT($mtools_cv_have_llseek_prototype)
+    if test "$mtools_cv_have_llseek_prototype" = yes; then
+      AC_DEFINE([HAVE_LLSEEK_PROTOTYPE],1,[Define when you have an LLSEEK prototype])
+    fi
+  fi
+fi
 
 AC_CHECK_FUNCS(htons)
 
@@ -192,8 +220,8 @@ AC_CHECK_FUNCS(strerror random srandom strchr strrchr lockf flock \
 strcasecmp strncasecmp strnlen atexit on_exit getpass memmove \
 strdup strndup strcspn strspn strtoul strtol strtoll strtoi strtoui \
 memcpy strpbrk memset setenv seteuid setresuid setpgrp \
-tcsetattr tcflush basename fchdir media_oldaliases llseek lseek64 \
-snprintf stat64 setlocale toupper_l strncasecmp_l \
+tcsetattr tcflush basename fchdir media_oldaliases  \
+snprintf setlocale toupper_l strncasecmp_l \
 wcsdup wcscasecmp wcsnlen putwc \
 getuserid getgroupid \
 alarm sigaction usleep)

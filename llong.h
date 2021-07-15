@@ -34,6 +34,14 @@
 #endif
 
 #ifndef MT_OFF_T
+# if defined(HAVE_LSEEK64) && defined (HAVE_OFF64_T)
+#  define MT_OFF_T off64_t
+#  define MT_SIZE_T size_t
+# endif
+#endif
+
+
+#ifndef MT_OFF_T
 # if defined(HAVE_LLSEEK) || defined(HAVE_LSEEK64)
 /* we have llseek. Now, what's its type called? loff_t or offset_t ? */
 #  ifdef HAVE_LOFF_T

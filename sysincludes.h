@@ -20,7 +20,6 @@
 #ifndef SYSINCLUDES_H
 #define SYSINCLUDES_H
 
-#define _LARGEFILE64_SOURCE
 #define _GNU_SOURCE
 
 #include "config.h"
@@ -134,9 +133,6 @@ typedef void *caddr_t;
 /* Include files                                                       */
 /*                                                                     */
 /***********************************************************************/
-
-#define _LARGEFILE64_SOURCE
-#define _GNU_SOURCE
 
 #ifdef HAVE_ASSERT_H
 # include <assert.h>
