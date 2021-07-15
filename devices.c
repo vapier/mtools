@@ -422,7 +422,7 @@ static inline int get_parameters(int fd, struct generic_floppy_struct *floppy)
 #define FD_SET_SECTSIZE(floppy,v) { floppy.fdchar.fdc_sec_size = v; }
 
 static inline int set_parameters(int fd, struct generic_floppy_struct *floppy,
-				 struct MT_STAT *buf)
+				 struct MT_STAT *buf UNUSEDP)
 {
 	if (ioctl(fd, FDIOSCHAR, &(floppy->fdchar)) != 0) {
 		ioctl(fd, FDEJECT, NULL);
@@ -1144,7 +1144,7 @@ int init_geom(int fd, struct device *dev, struct device *orig_dev,
 	} else
 		dev->heads = (uint16_t) HEADS(floppy);
 
-	if(compare(dev->tracks, TRACKS(floppy))){
+	if(compare(dev->tracks, (unsigned int) TRACKS(floppy))){
 		TRACKS(floppy) = dev->tracks;
 		change = 1;
 	} else

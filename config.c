@@ -655,7 +655,7 @@ void check_number_parse_errno(char c, const char *oarg, char *endptr) {
 }
 
 static uint16_t tou16(int in, const char *comment) {
-    if(in > UINT16_MAX) {
+    if(in > (int) UINT16_MAX) {
 	fprintf(stderr, "Number of %s %d too big\n", comment, in);
 	exit(1);
     }

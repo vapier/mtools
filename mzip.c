@@ -69,7 +69,7 @@ static int zip_cmd(int priv, int fd, unsigned char cdb[6], uint8_t clen,
 	return r;
 }
 
-static int test_mounted ( char *dev )
+static int test_mounted ( char *dev UNUSEDP)
 {
 #ifdef HAVE_MNTENT_H
 	struct mntent	*mnt;

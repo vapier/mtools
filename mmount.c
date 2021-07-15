@@ -99,7 +99,7 @@ void mmount(int argc, char **argv, int type UNUSEDP)
 
 #include "msdos.h"
 
-void mmount(int argc, char **argv, int type)
+void mmount(int argc UNUSEDP, char **argv UNUSEDP, int type UNUSEDP)
 {
   fprintf(stderr,"This command is only available for LINUX \n");
   exit(1);
