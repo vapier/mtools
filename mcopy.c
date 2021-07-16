@@ -291,7 +291,7 @@ static int writeit(struct dos_name_t *dosname,
 	ssize_t ret;
 	uint32_t fat;
 	time_t date;
-	mt_size_t filesize, newsize;
+	mt_off_t filesize, newsize;
 	Arg_t *arg = (Arg_t *) arg0;
 
 
@@ -302,7 +302,7 @@ static int writeit(struct dos_name_t *dosname,
 		return -1;
 	}
 
-	if(fileSizeTooBig(filesize)) {
+	if(fileTooBig(filesize)) {
 		fprintf(stderr, "File \"%s\" too big\n", longname);
 		return 1;
 	}

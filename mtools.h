@@ -17,7 +17,7 @@
  *  along with Mtools.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "msdos.h"
-
+#include "llong.h"
 typedef struct dos_name_t dos_name_t;
 
 #if defined(OS_sco3)
@@ -94,8 +94,8 @@ struct OldDos_t {
 	uint16_t  heads;
 
 	uint16_t dir_len;
-	unsigned int cluster_size;
-	unsigned int fat_len;
+	uint8_t cluster_size;
+	uint32_t fat_len;
 
 	uint8_t media;
 };
@@ -174,7 +174,7 @@ struct directory *mk_entry_from_base(const char *base, unsigned char attr,
 				     struct directory *ndir);
 
 ssize_t copyfile(Stream_t *Source, Stream_t *Target);
-int getfreeMinClusters(Stream_t *Stream, size_t ref);
+int getfreeMinClusters(Stream_t *Stream, uint32_t ref);
 
 FILE *opentty(int mode);
 
@@ -268,7 +268,7 @@ void set_cmd_line_image(char *img);
 void check_number_parse_errno(char c, const char *optarg, char *endptr);
 void read_config(void);
 off_t str_to_offset_with_end(const char *str, char **endp);
-size_t str_to_size_with_end(const char *str, char **endp);
+mt_off_t str_to_off_with_end(const char *str, char **endp);
 off_t str_to_offset(char *str);
 unsigned int strtoui(const char *nptr, char **endptr, int base);
 unsigned int atoui(const char *nptr);

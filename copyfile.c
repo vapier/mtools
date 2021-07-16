@@ -30,8 +30,7 @@ ssize_t copyfile(Stream_t *Source, Stream_t *Target)
 	mt_off_t pos;
 	ssize_t ret;
 	ssize_t retw;
-/*	size_t len;*/
-	mt_size_t mt_len;
+	mt_off_t mt_len;
 
 	if (!Source){
 		fprintf(stderr,"Couldn't open source file\n");
@@ -46,7 +45,7 @@ ssize_t copyfile(Stream_t *Source, Stream_t *Target)
 	pos = 0;
 	GET_DATA(Source, 0, &mt_len, 0, 0);
 	while(1){
-		ret = READS(Source, buffer, (mt_off_t) pos, 8*16384);
+		ret = READS(Source, buffer, pos, 8*16384);
 		if (ret < 0 ){
 			perror("file read");
 			return -1;
@@ -58,7 +57,7 @@ ssize_t copyfile(Stream_t *Source, Stream_t *Target)
 		if (ret == 0)
 			break;
 		if ((retw = force_write(Target, buffer,
-					(mt_off_t) pos, (size_t) ret)) != ret){
+					pos, (size_t) ret)) != ret){
 			if(retw < 0 )
 				perror("write in copy");
 			else

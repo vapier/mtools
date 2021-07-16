@@ -32,7 +32,7 @@ typedef uint64_t Qword;
 /*extern int ConnectToFloppyd(const char* name, Class_t** ioclass);*/
 Stream_t *FloppydOpen(struct device *dev,
 		      const char *name, int mode, char *errmsg,
-		      mt_size_t *maxSize);
+		      mt_off_t *maxSize);
 
 #define FLOPPYD_DEFAULT_PORT 5703
 

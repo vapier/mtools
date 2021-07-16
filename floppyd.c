@@ -1236,7 +1236,7 @@ void serve_client(int sockhandle, const char *const*device_name,
 #endif
 
 				lseek(devFd,
-				      get_dword(parm, 0),
+				      (off_t) get_dword(parm, 0),
 				      (int) get_dword(parm, 4));
 				send_reply(devFd,
 					   sock,

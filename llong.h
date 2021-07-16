@@ -25,18 +25,13 @@
 /* if off_t is already 64 bits, be happy, and don't worry about the
  * loff_t and llseek stuff */
 # define MT_OFF_T off_t
-# if SIZEOF_SIZE_T == 4
-/* Some systems (NetBSD) apparently have 64 bit off_t, but 32 bit size_t ... */
-#  define MT_SIZE_T off_t
-# else
-#  define MT_SIZE_T size_t
-# endif
+# define SIZEOF_MT_OFF_T SIZEOF_OFF_T
 #endif
 
 #ifndef MT_OFF_T
 # if defined(HAVE_LSEEK64) && defined (HAVE_OFF64_T)
 #  define MT_OFF_T off64_t
-#  define MT_SIZE_T size_t
+#  define SIZEOF_MT_OFF_T 8
 # endif
 #endif
 
@@ -46,13 +41,12 @@
 /* we have llseek. Now, what's its type called? loff_t or offset_t ? */
 #  ifdef HAVE_LOFF_T
 #   define MT_OFF_T loff_t
+#   define SIZEOF_MT_OFF_T 8
 /* use the same type for size. Better to get signedness wrong than width */
-#   define MT_SIZE_T loff_t
 #  else
 #   ifdef HAVE_OFFSET_T
 #    define MT_OFF_T offset_t
-/* use the same type for size. Better to get signedness wrong than width */
-#    define MT_SIZE_T offset_t
+#    define SIZEOF_MT_OFF_T 8
 #   endif
 #  endif
 # endif
@@ -63,21 +57,16 @@
 # ifdef HAVE_LONG_LONG
 /* ... first try long long ... */
 #  define MT_OFF_T long long
-#  define MT_SIZE_T unsigned long long
+#  define SIZEOF_MT_OFF_T 8
 # else
-#  ifdef HAVE_OFF64_T
-#   define MT_OFF_T off64_t
-#   define MT_SIZE_T off64_t
-#  else
-/* ... and if that fails, fall back on good ole' off_t */
-#   define MT_OFF_T off_t
-#   define MT_SIZE_T size_t
-#  endif
+/* ... and if that fails, fall back on good ole' off_t, even if that
+ * only has 32 bits */
+#  define MT_OFF_T off_t
+#  define SIZEOF_MT_OFF_T SIZEOF_OFF_T
 # endif
 #endif
 
 typedef MT_OFF_T mt_off_t;
-typedef MT_SIZE_T mt_size_t;
 
 #else
 /* testing: meant to flag dubious assignments between 32 bit length types
@@ -87,18 +76,11 @@ typedef struct {
 	int high;
 } *mt_off_t;
 
-typedef struct {
-	unsigned int lo;
-	unsigned int high;
-} *mt_size_t;
-
 #endif
 
 #define min(a,b) ((a) < (b) ? (a) : (b))
 #define MAX_OFF_T_B(bits) \
 	((((mt_off_t) 1 << min(bits-1, sizeof(mt_off_t)*8 - 2)) -1) << 1 | 1)
-#define MAX_SIZE_T_B(bits) \
-	((((mt_size_t) 1 << min(bits-1, sizeof(mt_size_t)*8 - 2)) -1) << 1 | 1)
 
 #if defined(HAVE_LLSEEK) || defined(HAVE_LSEEK64)
 # define SEEK_BITS 63
@@ -114,7 +96,6 @@ extern off_t truncBytes32(mt_off_t off); /* truncMtOffToOff */
 extern uint32_t truncMtOffTo32u(mt_off_t off);
 extern uint32_t truncSizeTo32u(size_t siz);
 extern int fileTooBig(mt_off_t off);
-extern int fileSizeTooBig(mt_size_t off);
 ssize_t truncOffToSsize(off_t off);
 size_t truncOffToSize(off_t off);
 

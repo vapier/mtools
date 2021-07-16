@@ -53,8 +53,8 @@ static int dirsOnDrive; /* number of listed directories on this drive */
 
 static int debug = 0; /* debug mode */
 
-static mt_size_t bytesInDir;
-static mt_size_t bytesOnDrive;
+static mt_off_t bytesInDir;
+static mt_off_t bytesOnDrive;
 static Stream_t *RootDir;
 
 
@@ -121,7 +121,7 @@ static __inline__ void print_time(struct directory *dir)
 /*
  * Return a number in dotted notation
  */
-static const char *dotted_num(mt_size_t num, size_t width, char **buf)
+static const char *dotted_num(mt_off_t num, size_t width, char **buf)
 {
 	size_t len;
 	register char *srcp, *dstp;
@@ -218,7 +218,7 @@ static __inline__ int print_volume_label(Stream_t *Dir, char drive)
 }
 
 
-static void printSummary(int files, mt_size_t bytes)
+static void printSummary(int files, mt_off_t bytes)
 {
 	if(!filesInDir)
 		printf("No files\n");
@@ -251,12 +251,11 @@ static void leaveDrive(int haveError)
 		}
 		if(RootDir && !fast) {
 			char *s1 = NULL;
-			mt_off_t ret = getfree(RootDir);
-			if(ret == -1) {
+			mt_off_t bytes = getfree(RootDir);
+			if(bytes == -1) {
 				fprintf(stderr, "Fat error\n");
 				goto exit_1;
 			}
-			mt_size_t bytes = (mt_size_t) ret;
 			printf("                  %s bytes free\n\n",
 			       dotted_num(bytes,17, &s1));
 #ifdef TEST_SIZE
@@ -454,8 +453,8 @@ static int list_file(direntry_t *entry, MainParam_t *mp UNUSEDP)
 	filesOnDrive++;
 	filesInDir++;
 
-	bytesOnDrive += (mt_size_t) size;
-	bytesInDir += (mt_size_t) size;
+	bytesOnDrive += size;
+	bytesInDir += size;
 	return GOT_ONE;
 }
 

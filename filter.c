@@ -59,7 +59,7 @@ static ssize_t read_filter(Stream_t *Stream, char *buf,
 	}
 	This->rw = F_READ;
 
-	ret = READS(This->Next, buf, (mt_off_t) This->dospos, len);
+	ret = READS(This->Next, buf, This->dospos, len);
 	if ( ret < 0 )
 		return ret;
 
@@ -123,7 +123,7 @@ static ssize_t write_filter(Stream_t *Stream, char *buf, mt_off_t iwhere,
 	}
 	This->unixpos += j;
 
-	ret = force_write(This->Next, buffer, (mt_off_t) This->dospos, i);
+	ret = force_write(This->Next, buffer, This->dospos, i);
 	if(ret >0 )
 		This->dospos += ret;
 	if ( ret != (signed int) i ){
@@ -141,7 +141,7 @@ static int free_filter(Stream_t *Stream)
 
 	/* write end of file */
 	if (This->rw == F_WRITE)
-		return force_write(This->Next, &buffer, (mt_off_t) This->dospos, 1) < 0;
+		return force_write(This->Next, &buffer, This->dospos, 1) < 0;
 	else
 		return 0;
 }

@@ -51,7 +51,7 @@ void setBeginEnd(struct partition *partTable,
 		 int activate, uint8_t type, unsigned int fat_bits);
 
 Stream_t *OpenPartition(Stream_t *Next, struct device *dev,
-			char *errmsg, mt_size_t *maxSize);
+			char *errmsg, mt_off_t *maxSize);
 
 unsigned int findOverlap(struct partition *partTable, unsigned int until,
 			 uint32_t start, uint32_t end);

@@ -909,15 +909,15 @@ mt_off_t getfree(Stream_t *Dir)
 		}
 		This->freeSpace = total;
 	}
-	return (mt_off_t) sectorsToBytes((Stream_t*)This,
-					  This->freeSpace * This->cluster_size);
+	return sectorsToBytes((Stream_t*)This,
+			      This->freeSpace * This->cluster_size);
 }
 
 
 /*
  * Ensure that there is a minimum of total sectors free
  */
-int getfreeMinClusters(Stream_t *Dir, size_t size)
+int getfreeMinClusters(Stream_t *Dir, uint32_t size)
 {
 	Stream_t *Stream = GetFs(Dir);
 	DeclareThis(Fs_t);
@@ -976,11 +976,11 @@ int getfreeMinClusters(Stream_t *Dir, size_t size)
 }
 
 
-int getfreeMinBytes(Stream_t *Dir, mt_size_t size)
+int getfreeMinBytes(Stream_t *Dir, mt_off_t size)
 {
 	Stream_t *Stream = GetFs(Dir);
 	DeclareThis(Fs_t);
-	mt_size_t size2;
+	mt_off_t size2;
 
 	size2 = size  / (This->sector_size * This->cluster_size);
 	if(size % (This->sector_size * This->cluster_size))
@@ -989,7 +989,7 @@ int getfreeMinBytes(Stream_t *Dir, mt_size_t size)
 		fprintf(stderr, "Requested size too big\n");
 		exit(1);
 	}
-	return getfreeMinClusters(Dir, (size_t) size2);
+	return getfreeMinClusters(Dir, (uint32_t) size2);
 }
 
 

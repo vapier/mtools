@@ -378,7 +378,7 @@ static int root_map(File_t *This, uint32_t where, uint32_t *len,
 {
 	Fs_t *Fs = This->Fs;
 
-	if(Fs->dir_len * Fs->sector_size + 0u < (size_t) where) {
+	if(Fs->dir_len * Fs->sector_size < where) {
 		*len = 0;
 		errno = ENOSPC;
 		return -2;
@@ -513,7 +513,7 @@ static __inline__ time_t conv_stamp(struct directory *dir)
 }
 
 
-static int get_file_data(Stream_t *Stream, time_t *date, mt_size_t *size,
+static int get_file_data(Stream_t *Stream, time_t *date, mt_off_t *size,
 			 int *type, uint32_t *address)
 {
 	DeclareThis(File_t);
@@ -521,7 +521,7 @@ static int get_file_data(Stream_t *Stream, time_t *date, mt_size_t *size,
 	if(date)
 		*date = conv_stamp(& This->direntry.dir);
 	if(size)
-		*size = (mt_size_t) This->FileSize;
+		*size = This->FileSize;
 	if(type)
 		*type = This->direntry.dir.attr & ATTR_DIR;
 	if(address)

@@ -75,7 +75,7 @@ int set_geom_noop(Stream_t *Stream UNUSEDP,
 	return 0;
 }
 
-int get_data_pass_through(Stream_t *Stream, time_t *date, mt_size_t *size,
+int get_data_pass_through(Stream_t *Stream, time_t *date, mt_off_t *size,
 			  int *type, uint32_t *address)
 {
        return GET_DATA(Stream->Next, date, size, type, address);

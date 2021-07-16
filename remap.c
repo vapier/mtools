@@ -50,12 +50,16 @@ typedef struct Remap_t {
 static enum map_type_t remap(Remap_t *This, mt_off_t *start, size_t *len) {
 	int i;
 	for(i=0; i <= This->mapSize; i++) {
-		mt_size_t maxLen;
+		mt_off_t maxLen;
 		if(i < This->mapSize && *start >= This->map[i+1].remapped)
 			continue;
 		if(i < This->mapSize) {
-			maxLen = (mt_size_t)(This->map[i+1].remapped - *start);
+			maxLen = This->map[i+1].remapped - *start;
+#if SIZEOF_SIZE_T >= SIZEOF_MT_OFF_T
+			if(*len > (size_t) maxLen)
+#else
 			if(*len > maxLen)
+#endif
 				*len = (size_t) maxLen;
 		}
 		*start = *start - This->map[i].remapped + This->map[i].orig;
@@ -127,7 +131,7 @@ static int process_map(Remap_t *This, const char *ptr,
 	int atEnd=0;
 	char *eptr;
 	while(!atEnd) {
-		mt_size_t len;
+		mt_off_t len;
 		enum map_type_t type;
 		if(*ptr=='\0') {
 			type=DATA;
@@ -145,7 +149,7 @@ static int process_map(Remap_t *This, const char *ptr,
 			type=DATA;
 		}
 
-		len=str_to_size_with_end(ptr,&eptr);
+		len=str_to_off_with_end(ptr,&eptr);
 		ptr=eptr;
 		switch(*ptr) {
 		case '\0':
@@ -161,7 +165,7 @@ static int process_map(Remap_t *This, const char *ptr,
 		}
 
 		if(type == POS) {
-			orig = (mt_off_t)len;
+			orig = len;
 			continue;
 		}
 		if(type != SKIP) {

@@ -58,7 +58,7 @@ static Class_t OffsetClass = {
 };
 
 Stream_t *OpenOffset(Stream_t *Next, struct device *dev, off_t offset,
-		     char *errmsg, mt_size_t *maxSize) {
+		     char *errmsg, mt_off_t *maxSize) {
 	Offset_t *This;
 
 	This = New(Offset_t);
@@ -74,13 +74,13 @@ Stream_t *OpenOffset(Stream_t *Next, struct device *dev, off_t offset,
 	This->offset = offset;
 
 	if(maxSize) {
-		if(This->offset > (mt_off_t) *maxSize) {
+		if(This->offset > *maxSize) {
 			if(errmsg)
 				sprintf(errmsg,"init: Big disks not supported");
 			goto exit_0;
 		}
 
-		*maxSize -= (mt_size_t) This->offset;
+		*maxSize -= This->offset;
 	}
 
 	if(adjust_tot_sectors(dev, This->offset, errmsg) < 0)

@@ -42,12 +42,12 @@ static void usage(void)
 #define BUF_SIZE 16000u
 #endif
 
-static size_t bufLen(size_t blocksize, mt_size_t totalSize, mt_off_t address)
+static size_t bufLen(size_t blocksize, mt_off_t totalSize, mt_off_t address)
 {
 	if(totalSize == 0)
 		return blocksize;
-	if((mt_off_t) blocksize > (mt_off_t) totalSize - address)
-		return (size_t) ((mt_off_t)totalSize - address);
+	if((mt_off_t) blocksize > totalSize - address)
+		return (size_t) (totalSize - address);
 	return blocksize;
 }
 
@@ -122,7 +122,7 @@ void mcat(int argc, char **argv, int type UNUSEDP)
 
 	if (mode == O_WRONLY) {
 		size_t len;
-		mt_size_t size=0;
+		mt_off_t size=0;
 		size = out_dev.sectors * out_dev.heads * out_dev.tracks;
 		size *= 512;
 		while ((len = fread(buf, 1,

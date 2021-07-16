@@ -64,7 +64,7 @@ static ssize_t file_io(Stream_t *Stream, char *buf, mt_off_t where, size_t len,
 	if (This->seekable && where != This->lastwhere ){
 		if(mt_lseek( This->fd, where, SEEK_SET) < 0 ){
 			perror("seek");
-			This->lastwhere = (mt_off_t) -1;
+			This->lastwhere = -1;
 			return -1;
 		}
 	}
@@ -92,7 +92,7 @@ static ssize_t file_io(Stream_t *Stream, char *buf, mt_off_t where, size_t len,
 
 	if ( ret == -1 ){
 		perror("plain_io");
-		This->lastwhere = (mt_off_t) -1;
+		This->lastwhere = -1;
 		return -1;
 	}
 	This->lastwhere = where + ret;
@@ -146,7 +146,7 @@ static int init_geom_with_reg(int fd, struct device *dev,
 			return 0;
 		}
 		sectors = statbuf->st_size /
-			(dev->sector_size ? dev->sector_size : 512);
+			(mt_off_t)(dev->sector_size ? dev->sector_size : 512);
 		dev->tot_sectors =
 			(sectors > (mt_off_t) UINT32_MAX)
 			? UINT32_MAX
@@ -186,7 +186,7 @@ static int file_geom(Stream_t *Stream, struct device *dev,
 }
 
 
-static int file_data(Stream_t *Stream, time_t *date, mt_size_t *size,
+static int file_data(Stream_t *Stream, time_t *date, mt_off_t *size,
 		     int *type, uint32_t *address)
 {
 	DeclareThis(SimpleFile_t);
@@ -194,7 +194,7 @@ static int file_data(Stream_t *Stream, time_t *date, mt_size_t *size,
 	if(date)
 		*date = This->statbuf.st_mtime;
 	if(size)
-		*size = (mt_size_t) This->statbuf.st_size;
+		*size = This->statbuf.st_size;
 	if(type)
 		*type = S_ISDIR(This->statbuf.st_mode);
 	if(address)
@@ -202,7 +202,7 @@ static int file_data(Stream_t *Stream, time_t *date, mt_size_t *size,
 	return 0;
 }
 
-static int file_discard(Stream_t *Stream)
+static int file_discard(Stream_t *Stream UNUSEDP)
 {
 #ifdef BLKFLSBUF
 	int ret;
@@ -266,7 +266,7 @@ int LockDevice(int fd, struct device *dev,
 
 Stream_t *SimpleFileOpen(struct device *dev, struct device *orig_dev,
 			 const char *name, int mode, char *errmsg,
-			 int mode2, int locked, mt_size_t *maxSize) {
+			 int mode2, int locked, mt_off_t *maxSize) {
 	return SimpleFileOpenWithLm(dev, orig_dev, name, mode,
 				    errmsg, mode2, locked, mode, maxSize,
 				    NULL);
@@ -275,7 +275,7 @@ Stream_t *SimpleFileOpen(struct device *dev, struct device *orig_dev,
 Stream_t *SimpleFileOpenWithLm(struct device *dev, struct device *orig_dev,
 			       const char *name, int mode, char *errmsg,
 			       int mode2, int locked, int lockMode,
-			       mt_size_t *maxSize, int *geomFailure)
+			       mt_off_t *maxSize, int *geomFailure)
 {
 	SimpleFile_t *This;
 #ifdef __EMX__
@@ -432,7 +432,7 @@ APIRET rc;
 	This->Buffer = 0;
 
 	if(maxSize)
-		*maxSize = (mt_size_t) max_off_t_seek;
+		*maxSize = max_off_t_seek;
 
 	This->lastwhere = 0;
 

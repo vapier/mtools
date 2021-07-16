@@ -34,7 +34,7 @@ typedef struct Fs_t {
 
 	int serialized;
 	unsigned long serial_number;
-	unsigned int cluster_size;
+	uint8_t cluster_size;
 	uint16_t sector_size;
 	int fat_error;
 

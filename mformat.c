@@ -945,7 +945,7 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 	uint8_t mediaDesc=0;
 	bool haveMediaDesc=false;
 
-	mt_size_t maxSize;
+	mt_off_t maxSize;
 
 	int Atari = 0; /* should we add an Atari-style serial number ? */
 
@@ -1116,7 +1116,7 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 				break;
 
 			case 'c':
-				Fs->cluster_size = atoui(optarg);
+				Fs->cluster_size = atou8(optarg);
 				break;
 
 			case 'r':
@@ -1260,7 +1260,7 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 		if(blocksize > MAX_SECTOR)
 			blocksize = MAX_SECTOR;
 
-		if((mt_size_t) tot_sectors * blocksize > maxSize) {
+		if((mt_off_t) tot_sectors * (mt_off_t) blocksize > maxSize) {
 			snprintf(errmsg, sizeof(errmsg)-1,
 				 "Requested size too large\n");
 			FREE(&Fs->Direct);
@@ -1487,8 +1487,7 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 #endif
 
 	format_root(Fs, label, &boot);
-	if(WRITES((Stream_t *)Fs, boot.characters,
-		  (mt_off_t) 0, Fs->sector_size) < 0) {
+	if(WRITES((Stream_t *)Fs, boot.characters, 0, Fs->sector_size) < 0) {
 		fprintf(stderr, "Error writing boot sector\n");
 		exit(1);
 	}

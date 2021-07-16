@@ -155,7 +155,7 @@ static ssize_t partition_write(Stream_t *Stream, char *buf,
 	return WRITES(This->Next, buf, start+This->offset, len);
 }
 
-static int partition_data(Stream_t *Stream, time_t *date, mt_size_t *size,
+static int partition_data(Stream_t *Stream, time_t *date, mt_off_t *size,
 			  int *type, uint32_t *address)
 {
 	DeclareThis(Partition_t);
@@ -166,7 +166,7 @@ static int partition_data(Stream_t *Stream, time_t *date, mt_size_t *size,
 			return ret;
 	}
 	if(size)
-		*size = (size_t) This->size * 512;
+		*size = This->size * 512;
 	return 0;
 }
 
@@ -195,12 +195,12 @@ static Class_t PartitionClass = {
 };
 
 Stream_t *OpenPartition(Stream_t *Next, struct device *dev,
-			char *errmsg, mt_size_t *maxSize) {
+			char *errmsg, mt_off_t *maxSize) {
 	Partition_t *This;
 	int has_activated;
 	unsigned char buf[2048];
 	struct partition *partTable=(struct partition *)(buf+ 0x1ae);
-	size_t partOff;
+	uint32_t partOff;
 	struct partition *partition;
 
 	if(!dev || (dev->partition > 4) || (dev->partition <= 0)) {
@@ -247,8 +247,8 @@ Stream_t *OpenPartition(Stream_t *Next, struct device *dev,
 				sprintf(errmsg,"init: Big disks not supported");
 			goto exit_0;
 		}
-		*maxSize -= (mt_size_t) partOff << 9;
-		maximize(*maxSize, (mt_size_t) (PART_SIZE(partition)) << 9);
+		*maxSize -= partOff << 9;
+		maximize(*maxSize, (PART_SIZE(partition)) << 9);
 	}
 
 	This->offset = (mt_off_t) partOff << 9;

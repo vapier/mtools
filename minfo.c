@@ -333,7 +333,7 @@ void minfo(int argc, char **argv, int type UNUSEDP)
 				exit(1);
 			}
 
-			ssize = READS(Stream, buf, (mt_off_t) 0, size);
+			ssize = READS(Stream, buf, 0, size);
 			if(ssize < 0) {
 				perror("read boot sector");
 				exit(1);

@@ -231,12 +231,12 @@ off_t str_to_offset_with_end(const char *str, char **endp) {
 /* Convert a string to a size. The string should be a number,
    optionally followed by S (sectors), K (K-Bytes), M (Megabytes), G
    (Gigabytes) */
-size_t str_to_size_with_end(const char *str, char **endp) {
+mt_off_t str_to_off_with_end(const char *str, char **endp) {
 	char s;
-	size_t siz;
+	mt_off_t siz;
 
 	*endp = NULL;
-	siz = strtoul(str, endp, 0);
+	siz = strtol(str, endp, 0);
 	s = **endp;
 	/* trailing char, see if it is a size specifier */
 	if (s == 's' || s == 'S')       /* sector */
