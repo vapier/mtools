@@ -46,23 +46,6 @@
 
 #endif
 
-/**
- * Narrow down quantity of sectors to 32bit quantity, and bail out if
- * it doesn't fit in 32 bits
- */
-static uint32_t smt_off_t_to_sectors(smt_off_t raw_sect) {
-#if SIZEOF_MT_OFF_T > 4
-	/* Number of sectors must fit into 32bit value */
-	if (raw_sect > UINT32_MAX) {
-		fprintf(stderr, "Too many sectors for FAT %08x%08x\n",
-			(uint32_t)(raw_sect>>32), (uint32_t)raw_sect);
-		exit(1);
-	}
-#endif
-	return (uint32_t) raw_sect;
-}
-
-
 static uint16_t init_geometry_boot(union bootsector *boot, struct device *dev,
 				   uint8_t sectors0,
 				   uint8_t rate_0, uint8_t rate_any,
@@ -1251,8 +1234,8 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 		if (!Fs->Direct)
 			continue;
 
-		if(!tot_sectors)
-			tot_sectors = used_dev.tot_sectors;
+		if(tot_sectors)
+			used_dev.tot_sectors = tot_sectors;
 
 		setFsSectorSize(Fs, &used_dev, msize);
 
@@ -1264,13 +1247,15 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 		if(blocksize > MAX_SECTOR)
 			blocksize = MAX_SECTOR;
 
-		if(tot_sectors > (smt_off_t) maxSize / (smt_off_t) blocksize) {
-			snprintf(errmsg, sizeof(errmsg)-1,
-				 "%d sectors too large for this platform\n",
-				 tot_sectors);
+		if(chs_to_totsectors(&used_dev, errmsg) < 0 ||
+		   check_if_sectors_fit(dev->tot_sectors, maxSize, blocksize,
+					errmsg) < 0) {
 			FREE(&Fs->Direct);
 			continue;
 		}
+
+		if(!tot_sectors)
+			tot_sectors = used_dev.tot_sectors;
 
 		/* do a "test" read */
 		if (!create &&
@@ -1296,17 +1281,6 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 		FREE(&Fs->Direct);
 		fprintf(stderr,"%s: %s\n", argv[0],errmsg);
 		exit(1);
-	}
-
-	/* calculate the total number of sectors */
-	if(tot_sectors == 0 &&
-	   used_dev.heads && used_dev.sectors && used_dev.tracks) {
-		uint32_t sect_per_track = used_dev.heads*used_dev.sectors;
-		smt_off_t rtot_sectors =
-			(smt_off_t)used_dev.tracks*sect_per_track;
-		if(rtot_sectors > used_dev.hidden%sect_per_track)
-			rtot_sectors -= used_dev.hidden%sect_per_track;
-		tot_sectors = smt_off_t_to_sectors(rtot_sectors);
 	}
 
 	if(tot_sectors == 0) {

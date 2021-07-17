@@ -61,9 +61,10 @@ void mcat(int argc, char **argv, int type UNUSEDP)
 	char buf[BUF_SIZE];
 
 	mt_off_t address = 0;
+	mt_off_t maxSize = 0;
 
 	char mode = O_RDONLY;
-	int optindex = 1;
+	int c;
 
 	noPrivileges = 1;
 
@@ -71,24 +72,28 @@ void mcat(int argc, char **argv, int type UNUSEDP)
 		usage();
 	}
 
-	if (argv[1][0] == '-') {
-		if (argv[1][1] != 'w') {
+	while ((c = getopt(argc,argv, "wi:"))!= EOF) {
+		switch (c) {
+		case 'w':
+			mode = O_WRONLY;
+			break;
+		case 'i':
+			set_cmd_line_image(optarg);
+			break;
+		default:
 			usage();
 		}
-		mode = O_WRONLY;
-		optindex++;
 	}
 
-	if (argc - optindex < 1)
+	if (argc - optind > 1)
 		usage();
-
-
-	if (!argv[optindex][0] || argv[optindex][1] != ':'
-	    || argv[optindex][2]) {
-		usage();
+	if(argc - optind == 1) {
+		if(!argv[optind][0] || argv[optind][1] != ':')
+			usage();
+		drive = ch_toupper(argv[argc -1][0]);
+	} else {
+		drive = get_default_drive();
 	}
-
-        drive = ch_toupper(argv[optindex][0]);
 
         /* check out a drive whose letter and parameters match */
         sprintf(errmsg, "Drive '%c:' not supported", drive);
@@ -104,7 +109,7 @@ void mcat(int argc, char **argv, int type UNUSEDP)
 #endif
 
 		Stream = OpenImage(&out_dev, dev, name, mode,
-				   errmsg, 0, mode, NULL,
+				   errmsg, ALWAYS_GET_GEOMETRY, mode, &maxSize,
 				   NULL, NULL);
                 if( !Stream)
                         continue;
@@ -112,19 +117,17 @@ void mcat(int argc, char **argv, int type UNUSEDP)
         }
 
         /* print error msg if needed */
-        if ( dev->drive == 0 ){
-                FREE(&Stream);
-                fprintf(stderr,"%s\n",errmsg);
-                exit(1);
-        }
-
+        if ( dev->drive == 0 )
+		goto exit_1;
 
 	if (mode == O_WRONLY) {
 		size_t len;
 		mt_off_t size=0;
-		size = to_mt_off_t(out_dev.sectors * out_dev.heads *
-				   out_dev.tracks);
-		size *= 512;
+		if(chs_to_totsectors(&out_dev, errmsg) < 0 ||
+		   check_if_sectors_fit(out_dev.tot_sectors,
+					maxSize, 512, errmsg))
+			goto exit_1;
+		size = 512 * (mt_off_t) out_dev.tot_sectors;
 		while ((len = fread(buf, 1,
 				    bufLen(BUF_SIZE, size, address),
 				    stdin)) > 0) {
@@ -144,4 +147,8 @@ void mcat(int argc, char **argv, int type UNUSEDP)
 
 	FREE(&Stream);
 	exit(0);
+exit_1:
+	FREE(&Stream);
+	fprintf(stderr,"%s\n",errmsg);
+	exit(1);
 }

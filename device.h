@@ -19,6 +19,8 @@
 
 /* Functions needed to work with struct device */
 
+#include "llong.h"
+
 /* Stuff related to particular device definitions are in devices.c
    (note the plural) */
 
@@ -91,5 +93,9 @@ extern const unsigned int nr_const_devices;
 int lock_dev(int fd, int mode, struct device *dev);
 
 void precmd(struct device *dev);
+
+int check_if_sectors_fit(uint32_t tot_sectors, mt_off_t maxBytes,
+			 uint32_t sectorSize, char *errmsg);
+int chs_to_totsectors(struct device *dev, char *errmsg);
 
 #endif

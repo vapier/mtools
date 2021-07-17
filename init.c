@@ -491,7 +491,8 @@ Stream_t *fs_init(char drive, int mode, int *isRop)
 	unsigned int cylinder_size;
 	struct device dev;
 	mt_off_t maxSize;
-
+	char errmsg[81];
+	
 	union bootsector boot;
 
 	Fs_t *This;
@@ -526,9 +527,10 @@ Stream_t *fs_init(char drive, int mode, int *isRop)
 		return NULL;
 	}
 
-	if (tot_sectors >= (smt_off_t)(maxSize >> This->sectorShift)) {
-		fprintf(stderr, "Big disks not supported on this architecture\n");
-		exit(1);
+	if (check_if_sectors_fit(tot_sectors, maxSize,
+				 This->sector_size, errmsg) < 0) {
+		fprintf(stderr, "%s", errmsg);
+		return NULL;
 	}
 
 	/* full cylinder buffering */
