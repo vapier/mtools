@@ -1,7 +1,7 @@
 #ifndef MTOOLS_LLONG_H
 #define MTOOLS_LLONG_H
 
-/*  Copyright 1999,2001-2004,2007-2009 Alain Knaff.
+/*  Copyright 1999,2001-2004,2007-2009,2021 Alain Knaff.
  *  This file is part of mtools.
  *
  *  Mtools is free software: you can redistribute it and/or modify
@@ -114,8 +114,6 @@ extern off_t truncBytes32(mt_off_t off); /* truncMtOffToOff */
 extern uint32_t truncMtOffTo32u(mt_off_t off);
 extern uint32_t truncSizeTo32u(size_t siz);
 extern int fileTooBig(mt_off_t off);
-ssize_t truncOffToSsize(off_t off);
-size_t truncOffToSize(off_t off);
 
 int mt_lseek(int fd, mt_off_t where, int whence);
 

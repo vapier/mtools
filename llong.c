@@ -63,25 +63,6 @@ uint32_t truncSizeTo32u(size_t siz)
 	return (uint32_t) siz;
 }
 
-ssize_t truncOffToSsize(off_t off)
-{
-	if (off > SSIZE_MAX) {
-		fprintf(stderr, "Internal error, offset out of range\n");
-		exit(1);
-	}
-	return (ssize_t) off;
-}
-
-size_t truncOffToSize(off_t off)
-{
-	if (off > (off_t)SIZE_MAX || off < 0) {
-		fprintf(stderr, "Internal error, offset out of range\n");
-		exit(1);
-	}
-	return (size_t) off;
-}
-
-
 #if SIZEOF_MT_OFF_T == 4
 mt_off_t to_mt_off_t(uint32_t off)
 {
