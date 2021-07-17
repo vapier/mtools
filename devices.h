@@ -182,6 +182,7 @@ UNUSED(static __inline__ int GET_DRIVE(int fd))
 /* void print_message(RawRequest_t *raw_cmd,char *message);*/
 int send_one_cmd(int fd, RawRequest_t *raw_cmd, const char *message);
 int analyze_one_reply(RawRequest_t *raw_cmd, int *bytes, int do_print);
-
+int init_geom(int fd, struct device *dev, struct device *orig_dev,
+	      struct MT_STAT *statbuf);
 
 #endif

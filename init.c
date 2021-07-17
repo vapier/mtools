@@ -24,6 +24,8 @@
 #include "msdos.h"
 #include "stream.h"
 #include "mtools.h"
+#include "device.h"
+#include "old_dos.h"
 #include "fsP.h"
 #include "buffer.h"
 #include "file_name.h"

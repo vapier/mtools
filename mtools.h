@@ -26,88 +26,7 @@ typedef struct dos_name_t dos_name_t;
 extern int lockf(int, int, off_t);  /* SCO has no proper include file for lockf */
 #endif
 
-#define SCSI_FLAG		0x001u
-#define PRIV_FLAG		0x002u
-#define NOLOCK_FLAG		0x004u
-#define USE_XDF_FLAG		0x008u
-#define MFORMAT_ONLY_FLAG	0x010u
-#define VOLD_FLAG		0x020u
-#define FLOPPYD_FLAG		0x040u
-#define FILTER_FLAG		0x080u
-#define SWAP_FLAG		0x100u
 
-#define IS_SCSI(x)  ((x) && ((x)->misc_flags & SCSI_FLAG))
-#define IS_PRIVILEGED(x) ((x) && ((x)->misc_flags & PRIV_FLAG))
-#define IS_NOLOCK(x) ((x) && ((x)->misc_flags & NOLOCK_FLAG))
-#define IS_MFORMAT_ONLY(x) ((x) && ((x)->misc_flags & MFORMAT_ONLY_FLAG))
-#define SHOULD_USE_VOLD(x) ((x)&& ((x)->misc_flags & VOLD_FLAG))
-#define SHOULD_USE_XDF(x) ((x)&& ((x)->misc_flags & USE_XDF_FLAG))
-#define DO_SWAP(x)  ((x) && ((x)->misc_flags & SWAP_FLAG))
-
-typedef struct device {
-	const char *name;       /* full path to device */
-
-	char drive;	   	/* the drive letter */
-	int fat_bits;		/* FAT encoding scheme */
-
-	int mode;		/* any special open() flags */
-	unsigned int tracks;	/* tracks */
-	uint16_t heads;		/* heads */
-	uint16_t sectors;	/* sectors */
-	unsigned int hidden;	/* number of hidden sectors. Used for
-				 * mformatting partitioned devices */
-
-	off_t offset;	       	/* skip this many bytes */
-
-	unsigned int partition;
-
-	unsigned int misc_flags;
-
-	/* Linux only stuff */
-	uint8_t ssize;
-	unsigned int use_2m;
-
-	char *precmd;		/* command to be executed before opening
-				 * the drive */
-
-	/* internal variables */
-	int file_nr;		/* used during parsing */
-	unsigned int blocksize;	/* size of disk block in bytes */
-
-	unsigned int codepage;		/* codepage for shortname encoding */
-
-	const char *data_map;
-
-	uint32_t tot_sectors;	/* Amount of total sectors, more
-				 * precise than tracks (in case of
-				 * partitions which may take up parts
-				 * of a track) */
-
-	uint16_t sector_size; /* Non-default sector size */
-
-	const char *cfg_filename; /* used for debugging purposes */
-} device_t;
-
-struct OldDos_t {
-	unsigned int tracks;
-	uint16_t sectors;
-	uint16_t  heads;
-
-	uint16_t dir_len;
-	uint8_t cluster_size;
-	uint32_t fat_len;
-
-	uint8_t media;
-};
-
-extern struct OldDos_t *getOldDosBySize(size_t size);
-extern struct OldDos_t *getOldDosByMedia(int media);
-extern struct OldDos_t *getOldDosByParams(unsigned int tracks,
-					  unsigned int heads,
-					  unsigned int sectors,
-					  unsigned int dir_len,
-					  unsigned int cluster_size);
-int setDeviceFromOldDos(int media, struct device *dev);
 
 
 #ifndef OS_linux
@@ -146,8 +65,6 @@ extern const char *short_illegals, *long_illegals;
 #ifdef OS_linux
 int get_sector_size(int fd);
 #endif
-int init_geom(int fd, struct device *dev, struct device *orig_dev,
-	      struct MT_STAT *statbuf);
 
 int readwrite_sectors(int fd, /* file descriptor */
 		      int *drive,
@@ -158,8 +75,6 @@ int readwrite_sectors(int fd, /* file descriptor */
 		      int bytes,
 		      int direction,
 		      int retries);
-
-int lock_dev(int fd, int mode, struct device *dev);
 
 char *unix_normalize (doscp_t *cp, char *ans, struct dos_name_t *dn,
 		      size_t ans_size);
@@ -283,10 +198,6 @@ uint16_t atou16(const char *str);
 uint32_t strtou32(const char *nptr, char **endptr, int base);
 uint32_t atou32(const char *str);
 
-extern struct device *devices;
-extern struct device const_devices[];
-extern const unsigned int nr_const_devices;
-
 #define New(type) ((type*)(calloc(1,sizeof(type))))
 #define Grow(adr,n,type) ((type*)(realloc((char *)adr,n*sizeof(type))))
 #define Free(adr) (free((char *)adr));
@@ -323,8 +234,6 @@ uid_t get_real_uid(void);
 void closeExec(int fd);
 
 extern const char *progname;
-
-void precmd(struct device *dev);
 
 void print_sector(const char *message, unsigned char *data, int size);
 time_t getTimeNow(time_t *now);

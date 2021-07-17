@@ -27,7 +27,7 @@ typedef struct Stream_t {
 
 #include "mtools.h"
 #include "msdos.h"
-
+#include "device.h"
 #include "llong.h"
 
 void limitSizeToOffT(size_t *len, mt_off_t maxLen);

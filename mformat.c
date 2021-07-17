@@ -24,6 +24,8 @@
 #include "msdos.h"
 #include "mtools.h"
 #include "mainloop.h"
+#include "device.h"
+#include "old_dos.h"
 #include "fsP.h"
 #include "file.h"
 #include "plain_io.h"
