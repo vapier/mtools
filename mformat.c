@@ -916,7 +916,7 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 	unsigned int argtracks;
 	uint16_t argheads, argsectors;
 	uint32_t tot_sectors=0;
-	size_t blocksize;
+	uint32_t blocksize;
 
 	char drive, name[EXPAND_BUF];
 
