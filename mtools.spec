@@ -1,7 +1,7 @@
 %define _binary_payload w9.gzdio
 Name:           mtools
 Summary:        mtools, read/write/list/format DOS disks under Unix
-Version:        4.0.32
+Version:        4.0.33
 Release:        1
 License:        GPLv3+
 Group:          Utilities/System
@@ -135,6 +135,14 @@ if [ -f %{_bindir}/install-info ] ; then
 fi
 
 %changelog
+* Sat Jul 17 2021 Alain Knaff <alain@knaff.lu>
+- Fix support for partitions (broken in
+- Portability fixes for Solaris 10 and 11
+- General simplifaction of configure script, and largefile handling
+- Tested and fixed for platforms *without* largefile support
+- In cases where lseek works with 32-bit offsets, prefer lseek64 over llseek
+- Fixed floppy sector size handling on platforms that are not Linux
+- Added support for image files on command line to mcat
 * Sat Jul 10 2021 Alain Knaff <alain@knaff.lu>
 - Simplify algorithm that choses filesystem parameters for
   format, and align it more closely with what Win7 does

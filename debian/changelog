@@ -1,3 +1,14 @@
+mtools (4.0.33) stable; urgency=low
+
+  * Fix support for partitions (broken in
+  * Portability fixes for Solaris 10 and 11
+  * General simplifaction of configure script, and largefile handling
+  * Tested and fixed for platforms *without* largefile support
+  * In cases where lseek works with 32-bit offsets, prefer lseek64 over llseek
+  * Fixed floppy sector size handling on platforms that are not Linux
+  * Added support for image files on command line to mcat
+
+ -- Alain Knaff <alain@knaff.lu>  Sat, 17 Jul 2021 18:31:38 +0200
 mtools (4.0.32) stable; urgency=low
 
   * Simplify algorithm that choses filesystem parameters for format, and align

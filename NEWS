@@ -1,3 +1,14 @@
+v4_0_33
+	- Fix support for partitions (broken in
+	- Portability fixes for Solaris 10 and 11
+	- General simplifaction of configure script, and largefile handling
+	- Tested and fixed for platforms *without* largefile support
+	- In cases where lseek works with 32-bit offsets, prefer
+          lseek64 over llseek
+	- Fixed floppy sector size handling on platforms that are not
+          Linux
+	- Added support for image files on command line to mcat
+
 v4_0_32
 	- Simplify algorithm that choses filesystem parameters for
           format, and align it more closely with what Win7 does
