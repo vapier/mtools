@@ -253,14 +253,6 @@ static void usage(int ret)
 	exit(ret);
 }
 
-static void checkTotalSectors(unsigned long tot_sectors) {
-	if(tot_sectors > UINT32_MAX) {
-		fprintf(stderr, "Too many total sectors %ld\n",
-			tot_sectors);
-		exit(1);
-	}
-}
-
 void mpartition(int argc, char **argv, int dummy UNUSEDP) NORETURN;
 void mpartition(int argc, char **argv, int dummy UNUSEDP)
 {
@@ -557,7 +549,6 @@ void mpartition(int argc, char **argv, int dummy UNUSEDP)
 
 	if(!used_dev.sectors && !used_dev.heads) {
 		if(tot_sectors) {
-			checkTotalSectors(tot_sectors);
 			setsize0((uint32_t)tot_sectors,&dummy2,&used_dev.heads,
 				 &used_dev.sectors);
 		} else {
@@ -574,9 +565,7 @@ void mpartition(int argc, char **argv, int dummy UNUSEDP)
 	if(create) {
 		unsigned int overlap;
 		if(!end_set && !size_set && tot_sectors) {
-			checkTotalSectors(tot_sectors);
-			end = (uint32_t) tot_sectors -
-				(uint32_t) tot_sectors % sec_per_cyl;
+			end = tot_sectors - tot_sectors % sec_per_cyl;
 			end_set = 1;
 		}
 
