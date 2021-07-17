@@ -149,7 +149,7 @@ static int init_geom_with_reg(int fd, struct device *dev,
 		sectors = statbuf->st_size /
 			(mt_off_t)(dev->sector_size ? dev->sector_size : 512);
 		dev->tot_sectors =
-			(sectors > (mt_off_t) UINT32_MAX)
+			((smt_off_t) sectors > UINT32_MAX)
 			? UINT32_MAX
 			: (uint32_t) sectors;
 		return 0;
