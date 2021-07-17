@@ -28,6 +28,7 @@
 #include "mtools.h"
 #include "msdos.h"
 #include "open_image.h"
+#include "devices.h"
 #include "plain_io.h"
 #include "llong.h"
 
