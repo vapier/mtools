@@ -49,15 +49,13 @@ typedef struct Remap_t {
 
 static enum map_type_t remap(Remap_t *This, mt_off_t *start, size_t *len) {
 	int i;
-	for(i=0; i <= This->mapSize; i++) {
-		if(i < This->mapSize && *start >= This->map[i+1].remapped)
-			continue;
-		if(i < This->mapSize)
+	for(i=0; i < This->mapSize - 1; i++)
+		if(*start < This->map[i+1].remapped) {
 			limitSizeToOffT(len, This->map[i+1].remapped - *start);
-		*start = *start - This->map[i].remapped + This->map[i].orig;
-		return This->map[i].type;
-	}
-	return ZERO;
+			break;
+		}
+	*start = *start - This->map[i].remapped + This->map[i].orig;
+	return This->map[i].type;
 }
 
 static ssize_t remap_read(Stream_t *Stream, char *buf,
@@ -202,7 +200,7 @@ Stream_t *Remap(Stream_t *Next, struct device *dev, char *errmsg) {
 		return NULL;
 	}
 
-	This->map = calloc((size_t)nrItems+1, sizeof(struct map));
+	This->map = calloc((size_t)nrItems, sizeof(struct map));
 	if(!This->map) {
 		printOom();
 		goto exit_0;
@@ -213,7 +211,7 @@ Stream_t *Remap(Stream_t *Next, struct device *dev, char *errmsg) {
 	if(adjust_tot_sectors(dev, This->net_offset, errmsg) < 0)
 		goto exit_1;
 
-	This->mapSize=nrItems-1;
+	This->mapSize=nrItems;
 	return (Stream_t *) This;
  exit_1:
 	free(This->map);
