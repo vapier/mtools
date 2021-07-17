@@ -967,7 +967,7 @@ int init_geom(int fd, struct device *dev, struct device *orig_dev,
 	dev->nheads = gdbuf.params.heads;
 	dev->nsect = gdbuf.params.psectrk;
 	dev->use_2m = 0x80;
-	dev->ssize = 0x82;
+	dev->ssize = 0x02;
 
 	gdbuf.params.pseccyl = gdbuf.params.psectrk * gdbuf.params.heads;
 	gdbuf.params.flags = 1;		/* disk type flag */
@@ -1055,7 +1055,7 @@ struct device devices[] = {
 #endif
 
 #ifndef SSIZE
-#define SSIZE(x) 0x82
+#define SSIZE(x) 0x02
 #endif
 
 #ifndef SET_2M
