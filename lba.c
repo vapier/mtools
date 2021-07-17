@@ -62,7 +62,7 @@ int compute_lba_geom_from_tot_sectors(struct device *dev)
 			dev->heads = 2;
 		}
 		dev->sectors =
-			(uint16_t) dev->tot_sectors / dev->heads / dev->tracks;
+			(uint16_t)(dev->tot_sectors / dev->heads / dev->tracks);
 	}
 
 
