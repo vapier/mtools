@@ -86,6 +86,7 @@ typedef struct Fs_t {
 #define abs(x) ((unsigned int)((x)>0?(x):-(x)))
 #endif
 
+mt_off_t sectorsToBytes(Fs_t *This, uint32_t off);
 int fs_free(Stream_t *Stream);
 
 void set_fat(Fs_t *This);

@@ -31,6 +31,11 @@
 
 #define FULL_CYL
 
+mt_off_t sectorsToBytes(Fs_t *This, uint32_t off)
+{
+	return (mt_off_t) off << This->sectorShift;
+}
+
 /*
  * Read the boot sector.  We glean the disk parameters from this sector.
  */

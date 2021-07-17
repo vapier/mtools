@@ -33,7 +33,6 @@
 #include "mtools.h"
 #include "vfat.h"
 #include "mainloop.h"
-#include "fsP.h"
 
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>

@@ -100,8 +100,6 @@ ssize_t read_pass_through(Stream_t *Stream, char *buf,
 ssize_t write_pass_through(Stream_t *Stream, char *buf,
 			   mt_off_t start, size_t len);
 
-mt_off_t sectorsToBytes(Stream_t *This, uint32_t off);
-
 mt_off_t getfree(Stream_t *Stream);
 int getfreeMinBytes(Stream_t *Stream, mt_off_t ref);
 

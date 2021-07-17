@@ -23,7 +23,6 @@
 #include "msdos.h"
 #include "mtools.h"
 #include "mainloop.h"
-#include "fsP.h"
 #include "open_image.h"
 
 static void usage(void) NORETURN;

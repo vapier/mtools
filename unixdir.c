@@ -19,7 +19,6 @@
 #include "msdos.h"
 #include "stream.h"
 #include "mtools.h"
-#include "fsP.h"
 #include "file.h"
 #include "htable.h"
 #include "mainloop.h"

@@ -366,7 +366,7 @@ static int normal_map(File_t *This, uint32_t where, uint32_t *len, int mode,
 		exit(1);
 	}
 
-	*res = sectorsToBytes((Stream_t*)Fs,
+	*res = sectorsToBytes(Fs,
 			      (This->PreviousAbsCluNr-2) * Fs->cluster_size +
 			      Fs->clus_start) + to_mt_off_t(offset);
 	return 1;
@@ -388,7 +388,7 @@ static int root_map(File_t *This, uint32_t where, uint32_t *len,
         if (*len == 0)
             return 0;
 
-	*res = sectorsToBytes((Stream_t*)Fs, Fs->dir_start) +
+	*res = sectorsToBytes(Fs, Fs->dir_start) +
 		to_mt_off_t(where);
 	return 1;
 }

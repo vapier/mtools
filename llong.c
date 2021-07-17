@@ -17,7 +17,6 @@
 
 #include "sysincludes.h"
 #include "stream.h"
-#include "fsP.h"
 #include "llong.h"
 #include "mtools.h"
 
@@ -82,12 +81,6 @@ size_t truncOffToSize(off_t off)
 	return (size_t) off;
 }
 
-
-mt_off_t sectorsToBytes(Stream_t *Stream, uint32_t off)
-{
-	DeclareThis(Fs_t);
-	return (mt_off_t) off << This->sectorShift;
-}
 
 #if SIZEOF_MT_OFF_T == 4
 mt_off_t to_mt_off_t(uint32_t off)

@@ -218,7 +218,7 @@ static __inline__ void format_root(Fs_t *Fs, char *label, union bootsector *boot
 	} else
 		dirlen = Fs->dir_len;
 	for (i = 0; i < dirlen; i++)
-		WRITES(RootDir, buf, sectorsToBytes((Stream_t*)Fs, i),
+		WRITES(RootDir, buf, sectorsToBytes(Fs, i),
 			   Fs->sector_size);
 
 	ch.ignore_entry = 1;
@@ -1315,7 +1315,7 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 	/* create the image file if needed */
 	if (create) {
 		WRITES(Fs->Direct, &boot.characters,
-		       sectorsToBytes((Stream_t*)Fs, tot_sectors-1),
+		       sectorsToBytes(Fs, tot_sectors-1),
 		       Fs->sector_size);
 	}
 
@@ -1496,8 +1496,7 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 
 	if(Fs->fat_bits == 32 && WORD_S(ext.fat32.backupBoot) != MAX16) {
 		if(WRITES((Stream_t *)Fs, boot.characters,
-			  sectorsToBytes((Stream_t*)Fs,
-					 WORD_S(ext.fat32.backupBoot)),
+			  sectorsToBytes(Fs, WORD_S(ext.fat32.backupBoot)),
 			  Fs->sector_size) < 0) {
 			fprintf(stderr, "Error writing backup boot sector\n");
 			exit(1);

@@ -41,7 +41,7 @@ typedef struct FatMap_t {
 static __inline__ ssize_t readSector(Fs_t *This, char *buf, unsigned int off,
 				     size_t size)
 {
-	return READS(This->Next, buf, sectorsToBytes((Stream_t *)This, off),
+	return READS(This->Next, buf, sectorsToBytes(This, off),
 		     size << This->sectorShift);
 }
 
@@ -49,7 +49,7 @@ static __inline__ ssize_t readSector(Fs_t *This, char *buf, unsigned int off,
 static __inline__ ssize_t forceReadSector(Fs_t *This, char *buf,
 					  unsigned int off, size_t size)
 {
-	return force_read(This->Next, buf, sectorsToBytes((Stream_t *)This, off),
+	return force_read(This->Next, buf, sectorsToBytes(This, off),
 					  size << This->sectorShift);
 }
 
@@ -57,7 +57,7 @@ static __inline__ ssize_t forceReadSector(Fs_t *This, char *buf,
 static __inline__ ssize_t forceWriteSector(Fs_t *This, char *buf, unsigned int off,
 					   size_t size)
 {
-	return force_write(This->Next, buf, sectorsToBytes((Stream_t*)This, off),
+	return force_write(This->Next, buf, sectorsToBytes(This, off),
 					   size << This->sectorShift);
 }
 
@@ -909,7 +909,7 @@ mt_off_t getfree(Stream_t *Dir)
 		}
 		This->freeSpace = total;
 	}
-	return sectorsToBytes((Stream_t*)This,
+	return sectorsToBytes(This,
 			      This->freeSpace * This->cluster_size);
 }
 
