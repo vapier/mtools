@@ -136,9 +136,9 @@ fi
 
 %changelog
 * Sat Jul 17 2021 Alain Knaff <alain@knaff.lu>
-- Fix support for partitions (broken in
+- Fix support for partitions (broken in in 4.0.30)
 - Portability fixes for Solaris 10 and 11
-- General simplifaction of configure script, and largefile handling
+- General simplification of configure script, and largefile handling
 - Tested and fixed for platforms *without* largefile support
 - In cases where lseek works with 32-bit offsets, prefer lseek64 over llseek
 - Fixed floppy sector size handling on platforms that are not Linux
