@@ -288,7 +288,7 @@ static int writeit(struct dos_name_t *dosname,
 	Stream_t *Target;
 	time_t now;
 	int type;
-	ssize_t ret;
+	mt_off_t ret;
 	uint32_t fat;
 	time_t date;
 	mt_off_t filesize, newsize;

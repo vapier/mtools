@@ -24,13 +24,12 @@
  * Copy the data from source to target
  */
 
-ssize_t copyfile(Stream_t *Source, Stream_t *Target)
+mt_off_t copyfile(Stream_t *Source, Stream_t *Target)
 {
 	char buffer[8*16384];
 	mt_off_t pos;
 	ssize_t ret;
 	ssize_t retw;
-	mt_off_t mt_len;
 
 	if (!Source){
 		fprintf(stderr,"Couldn't open source file\n");
@@ -43,7 +42,6 @@ ssize_t copyfile(Stream_t *Source, Stream_t *Target)
 	}
 
 	pos = 0;
-	GET_DATA(Source, 0, &mt_len, 0, 0);
 	while(1){
 		ret = READS(Source, buffer, pos, 8*16384);
 		if (ret < 0 ){
@@ -70,5 +68,5 @@ ssize_t copyfile(Stream_t *Source, Stream_t *Target)
 		}
 		pos += ret;
 	}
-	return 0;
+	return pos;
 }

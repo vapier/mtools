@@ -173,7 +173,7 @@ struct directory *mk_entry_from_base(const char *base, unsigned char attr,
 				     unsigned int fat, uint32_t size, time_t date,
 				     struct directory *ndir);
 
-ssize_t copyfile(Stream_t *Source, Stream_t *Target);
+mt_off_t copyfile(Stream_t *Source, Stream_t *Target);
 int getfreeMinClusters(Stream_t *Stream, uint32_t ref);
 
 FILE *opentty(int mode);
