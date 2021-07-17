@@ -83,7 +83,7 @@ typedef struct device {
 				 * partitions which may take up parts
 				 * of a track) */
 
-	uint32_t sector_size; /* Non-default sector size */
+	uint16_t sector_size; /* Non-default sector size */
 
 	const char *cfg_filename; /* used for debugging purposes */
 } device_t;

@@ -48,13 +48,15 @@
  * Narrow down quantity of sectors to 32bit quantity, and bail out if
  * it doesn't fit in 32 bits
  */
-static uint32_t mt_off_t_to_sectors(mt_off_t raw_sect) {
+static uint32_t smt_off_t_to_sectors(smt_off_t raw_sect) {
+#if SIZEOF_MT_OFF_T > 4
 	/* Number of sectors must fit into 32bit value */
 	if (raw_sect > UINT32_MAX) {
 		fprintf(stderr, "Too many sectors for FAT %08x%08x\n",
 			(uint32_t)(raw_sect>>32), (uint32_t)raw_sect);
 		exit(1);
 	}
+#endif
 	return (uint32_t) raw_sect;
 }
 
@@ -1260,13 +1262,13 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 		if(blocksize > MAX_SECTOR)
 			blocksize = MAX_SECTOR;
 
-		if((mt_off_t) tot_sectors * (mt_off_t) blocksize > maxSize) {
+		if(tot_sectors > (smt_off_t) maxSize / (smt_off_t) blocksize) {
 			snprintf(errmsg, sizeof(errmsg)-1,
-				 "Requested size too large\n");
+				 "%d sectors too large for this platform\n",
+				 tot_sectors);
 			FREE(&Fs->Direct);
 			continue;
 		}
-
 
 		/* do a "test" read */
 		if (!create &&
@@ -1298,11 +1300,11 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 	if(tot_sectors == 0 &&
 	   used_dev.heads && used_dev.sectors && used_dev.tracks) {
 		uint32_t sect_per_track = used_dev.heads*used_dev.sectors;
-		mt_off_t rtot_sectors =
-			used_dev.tracks*(mt_off_t)sect_per_track;
+		smt_off_t rtot_sectors =
+			(smt_off_t)used_dev.tracks*sect_per_track;
 		if(rtot_sectors > used_dev.hidden%sect_per_track)
 			rtot_sectors -= used_dev.hidden%sect_per_track;
-		tot_sectors = mt_off_t_to_sectors(rtot_sectors);
+		tot_sectors = smt_off_t_to_sectors(rtot_sectors);
 	}
 
 	if(tot_sectors == 0) {

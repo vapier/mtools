@@ -30,6 +30,8 @@ typedef struct Stream_t {
 
 #include "llong.h"
 
+void limitSizeToOffT(size_t *len, mt_off_t maxLen);
+
 doscp_t *get_dosConvert_pass_through(Stream_t *Stream);
 
 typedef struct Class_t {

@@ -123,7 +123,8 @@ void mcat(int argc, char **argv, int type UNUSEDP)
 	if (mode == O_WRONLY) {
 		size_t len;
 		mt_off_t size=0;
-		size = out_dev.sectors * out_dev.heads * out_dev.tracks;
+		size = to_mt_off_t(out_dev.sectors * out_dev.heads *
+				   out_dev.tracks);
 		size *= 512;
 		while ((len = fread(buf, 1,
 				    bufLen(BUF_SIZE, size, address),

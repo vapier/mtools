@@ -50,18 +50,10 @@ typedef struct Remap_t {
 static enum map_type_t remap(Remap_t *This, mt_off_t *start, size_t *len) {
 	int i;
 	for(i=0; i <= This->mapSize; i++) {
-		mt_off_t maxLen;
 		if(i < This->mapSize && *start >= This->map[i+1].remapped)
 			continue;
-		if(i < This->mapSize) {
-			maxLen = This->map[i+1].remapped - *start;
-#if SIZEOF_SIZE_T >= SIZEOF_MT_OFF_T
-			if(*len > (size_t) maxLen)
-#else
-			if(*len > maxLen)
-#endif
-				*len = (size_t) maxLen;
-		}
+		if(i < This->mapSize)
+			limitSizeToOffT(len, This->map[i+1].remapped - *start);
 		*start = *start - This->map[i].remapped + This->map[i].orig;
 		return This->map[i].type;
 	}

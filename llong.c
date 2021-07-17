@@ -89,6 +89,19 @@ mt_off_t sectorsToBytes(Stream_t *Stream, uint32_t off)
 	return (mt_off_t) off << This->sectorShift;
 }
 
+#if SIZEOF_MT_OFF_T == 4
+mt_off_t to_mt_off_t(uint32_t off)
+{
+	if(off > UINT32_MAX >> 1) {
+		fprintf(stderr, "File size/pos %d too big for this platform\n",
+			off);
+		exit(1);
+	}
+	return (mt_off_t) off;
+}
+#endif
+
+
 #if defined HAVE_LLSEEK
 # ifndef HAVE_LLSEEK_PROTOTYPE
 extern long long llseek (int fd, long long offset, int origin);
@@ -100,7 +113,6 @@ extern long long llseek (int fd, long long offset, int origin);
 extern long long lseek64 (int fd, long long offset, int origin);
 # endif
 #endif
-
 
 int mt_lseek(int fd, mt_off_t where, int whence)
 {

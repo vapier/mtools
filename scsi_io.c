@@ -125,9 +125,9 @@ static ssize_t scsi_io(Stream_t *Stream, char *buf,
 	unsigned char cdb[10];
 	DeclareThis(ScsiDevice_t);
 
-	firstblock=truncMtOffTo32u(where/This->scsi_sector_size);
+	firstblock=truncMtOffTo32u(where/(mt_off_t)This->scsi_sector_size);
 	/* 512,1024,2048,... bytes/sector supported */
-	offset=where % This->scsi_sector_size;
+	offset=(smt_off_t) where % This->scsi_sector_size;
 	nsect=bytesToSectors(offset+len, This->scsi_sector_size);
 #if defined(OS_sun) && defined(OS_i386)
 	if (This->scsi_sector_size>512)

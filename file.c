@@ -368,7 +368,7 @@ static int normal_map(File_t *This, uint32_t where, uint32_t *len, int mode,
 
 	*res = sectorsToBytes((Stream_t*)Fs,
 			      (This->PreviousAbsCluNr-2) * Fs->cluster_size +
-			      Fs->clus_start) + offset;
+			      Fs->clus_start) + to_mt_off_t(offset);
 	return 1;
 }
 
@@ -388,7 +388,8 @@ static int root_map(File_t *This, uint32_t where, uint32_t *len,
         if (*len == 0)
             return 0;
 
-	*res = sectorsToBytes((Stream_t*)Fs, Fs->dir_start) + where;
+	*res = sectorsToBytes((Stream_t*)Fs, Fs->dir_start) +
+		to_mt_off_t(where);
 	return 1;
 }
 
@@ -420,13 +421,14 @@ static ssize_t write_file(Stream_t *Stream, char *buf,
 	uint32_t bytesWritten;
 	Stream_t *Disk = This->Fs->Next;
 	uint32_t where = truncMtOffTo32u(iwhere);
+	uint32_t maxLen = UINT32_MAX-where;
 	uint32_t len;
 	int err;
 
-	if(iwhere+(mt_off_t)ilen > UINT32_MAX) {
-		ilen=(size_t) (UINT32_MAX-iwhere);
-	}
-	len = truncSizeTo32u(ilen);
+	if(ilen > maxLen) {
+		len = maxLen;
+	} else
+		len = (uint32_t) ilen;
 	requestedLen = len;
 	err = This->map(This, where, &len, MT_WRITE, &pos);
 	if( err <= 0)
@@ -521,7 +523,7 @@ static int get_file_data(Stream_t *Stream, time_t *date, mt_off_t *size,
 	if(date)
 		*date = conv_stamp(& This->direntry.dir);
 	if(size)
-		*size = This->FileSize;
+		*size = to_mt_off_t(This->FileSize);
 	if(type)
 		*type = This->direntry.dir.attr & ATTR_DIR;
 	if(address)

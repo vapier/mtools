@@ -21,6 +21,17 @@
 
 int batchmode = 0;
 
+void limitSizeToOffT(size_t *len, mt_off_t maxLen)
+{
+#if SIZEOF_SIZE_T >= SIZEOF_MT_OFF_T
+	if(*len > (size_t) maxLen)
+#else
+	if(*len > maxLen)
+#endif
+		*len = (size_t) maxLen;
+}
+
+
 int flush_stream(Stream_t *Stream)
 {
 	int ret=0;
@@ -109,11 +120,11 @@ int adjust_tot_sectors(struct device *dev, mt_off_t offset, char *errmsg)
 
 	mt_off_t offs_sectors = offset /
 		(dev->sector_size ? dev->sector_size : 512);
-	if(offs_sectors > 0 && dev->tot_sectors < offs_sectors) {
+	if(offs_sectors > 0 && dev->tot_sectors < (smt_off_t) offs_sectors) {
 		if(errmsg)
 			sprintf(errmsg,"init: Offset bigger than base image");
 		return -1;
 	}
-	dev->tot_sectors -= offs_sectors;
+	dev->tot_sectors -= (uint32_t) offs_sectors;
 	return 0;
 }

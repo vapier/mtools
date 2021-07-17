@@ -985,7 +985,7 @@ int getfreeMinBytes(Stream_t *Dir, mt_off_t size)
 	size2 = size  / (This->sector_size * This->cluster_size);
 	if(size % (This->sector_size * This->cluster_size))
 		size2++;
-	if(size2 > UINT32_MAX) {
+	if((smt_off_t)size2 > UINT32_MAX) {
 		fprintf(stderr, "Requested size too big\n");
 		exit(1);
 	}

@@ -519,7 +519,7 @@ Stream_t *fs_init(char drive, int mode, int *isRop)
 		return NULL;
 	}
 
-	if (tot_sectors >= (maxSize >> This->sectorShift)) {
+	if (tot_sectors >= (smt_off_t)(maxSize >> This->sectorShift)) {
 		fprintf(stderr, "Big disks not supported on this architecture\n");
 		exit(1);
 	}

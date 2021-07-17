@@ -68,6 +68,24 @@
 
 typedef MT_OFF_T mt_off_t;
 
+/* Define a common supertype of uint32_t and mt_off_t. Usually,
+ * mt_off_t is bigger, except on 32-bit architectures without large
+ * file support, where uint32_t can represent larger values. N.B. in
+ * such a setup, negative values of mt_off_t could not be handled, but
+ * we don't use any such values anyways in mtools
+ */
+#if SIZEOF_MT_OFF_T == 4
+
+typedef uint32_t smt_off_t;
+mt_off_t to_mt_off_t(uint32_t off);
+
+#else
+
+typedef mt_off_t smt_off_t;
+#define to_mt_off_t(x) (x)
+
+#endif
+
 #else
 /* testing: meant to flag dubious assignments between 32 bit length types
  * and 64 bit ones */

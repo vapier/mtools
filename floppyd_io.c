@@ -235,6 +235,7 @@ static int floppyd_lseek(int fd, int32_t offset, int whence)
 	return gotlen;
 }
 
+#if SIZEOF_OFF_T >= 8
 static mt_off_t floppyd_lseek64(int fd, mt_off_t offset, int whence)
 {
 	int errcode;
@@ -263,6 +264,7 @@ static mt_off_t floppyd_lseek64(int fd, mt_off_t offset, int whence)
 
 	return gotlen.v;
 }
+#endif
 
 static int floppyd_open(RemoteFile_t *This, int mode)
 {
@@ -313,13 +315,16 @@ static ssize_t floppyd_io(Stream_t *Stream, char *buf, mt_off_t where,
 	where += This->offset;
 
 	if (where != This->lastwhere ){
+#if SIZEOF_OFF_T >= 8
 		if(This->capabilities & FLOPPYD_CAP_LARGE_SEEK) {
 			if(floppyd_lseek64( This->fd, where, SEEK_SET) < 0 ){
 				perror("floppyd_lseek64");
 				This->lastwhere = -1;
 				return -1;
 			}
-		} else {
+		} else
+#endif
+			{
 			if(where > INT32_MAX  || where < INT32_MIN) {
 				fprintf(stderr, "Seek position out of range\n");
 				return -1;
