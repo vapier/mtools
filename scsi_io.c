@@ -102,7 +102,7 @@ static int scsi_init(ScsiDevice_t *This)
 
 
 /**
- * Overflow-safe conversion of bytes to cluster
+ * Overflow-safe conversion of bytes to sectors
  */
 static uint32_t bytesToSectors(size_t bytes, uint32_t sector_size) {
 	size_t sectors = bytes / sector_size;
