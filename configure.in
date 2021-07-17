@@ -338,13 +338,21 @@ if test X$use_floppyd = Xyes; then
     FLOPPYD_IO_OBJ=floppyd_io.o
     AC_DEFINE([USE_FLOPPYD],1,[Define when you want to include floppyd support])
     AC_FUNC_SETPGRP
+
+    FLOPPYD_LIBS=""
+    AC_CHECK_LIB(X11, XOpenDisplay, [ FLOPPYD_LIBS="-lX11 $FLOPPYD_LIBS" ])
+    AC_CHECK_LIB(Xau, XauFileName, [ FLOPPYD_LIBS="-lXau $FLOPPYD_LIBS" ])
 else
     FLOPPYD=
     BINFLOPPYD=
     FLOPPYD_IO_SRC=
     FLOPPYD_IO_OBJ=
+    FLOPPYD_LIBS=
 fi
 
+
+
+AC_SUBST(FLOPPYD_LIBS)
 AC_SUBST(FLOPPYD)
 AC_SUBST(BINFLOPPYD)
 AC_SUBST(FLOPPYD_IO_SRC)
