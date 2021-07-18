@@ -103,7 +103,8 @@ wchar_t *unix_name(doscp_t *fromDos,
 		   const char *base, const char *ext, uint8_t Case,
 		   wchar_t *answer);
 void *safe_malloc(size_t size);
-Stream_t *open_filter(Stream_t *Next,int convertCharset);
+Stream_t *open_dos2unix(Stream_t *Next,int convertCharset);
+Stream_t *open_unix2dos(Stream_t *Next,int convertCharset);
 
 extern int got_signal;
 /* int do_gotsignal(char *, int);

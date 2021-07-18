@@ -86,16 +86,16 @@ MAN5DIR	= $(DESTDIR)$(mandir)/man${MAN5EXT}
 
 # objects for building mtools
 OBJS_MTOOLS = buffer.o charsetConv.o codepages.o config.o copyfile.o	\
-device.o devices.o dirCache.o directory.o direntry.o expand.o fat.o	\
-fat_free.o file.o file_name.o filter.o force_io.o hash.o init.o lba.o	\
-llong.o lockdev.o match.o mainloop.o mattrib.o mbadblocks.o mcat.o	\
-mcd.o mclasserase.o mcopy.o mdel.o mdir.o mdoctorfat.o mdu.o		\
+device.o devices.o dirCache.o directory.o direntry.o dos2unix.o		\
+expand.o fat.o fat_free.o file.o file_name.o force_io.o hash.o init.o	\
+lba.o llong.o lockdev.o match.o mainloop.o mattrib.o mbadblocks.o	\
+mcat.o mcd.o mclasserase.o mcopy.o mdel.o mdir.o mdoctorfat.o mdu.o	\
 mformat.o minfo.o misc.o missFuncs.o mk_direntry.o mlabel.o mmd.o	\
 mmount.o mmove.o mpartition.o mshortname.o mshowfat.o mzip.o mtools.o	\
 offset.o old_dos.o open_image.o patchlevel.o partition.o plain_io.o	\
 precmd.o privileges.o remap.o scsi_io.o scsi.o signal.o stream.o	\
-streamcache.o subdir.o swap.o unixdir.o tty.o vfat.o strtonum.o		\
-@FLOPPYD_IO_OBJ@ @XDF_IO_OBJ@
+streamcache.o subdir.o swap.o unix2dos.o unixdir.o tty.o vfat.o		\
+strtonum.o @FLOPPYD_IO_OBJ@ @XDF_IO_OBJ@
 
 # objects for building mkmanifest
 OBJS_MKMANIFEST = missFuncs.o mkmanifest.o misc.o patchlevel.o
@@ -108,16 +108,16 @@ OBJS_FLOPPYD_INSTALLTEST = floppyd_installtest.o misc.o expand.o	\
 privileges.o strtonum.o
 
 SRCS = buffer.c codepages.c config.c copyfile.c device.c devices.c	\
-dirCache.c directory.c direntry.c expand.c fat.c fat_free.c file.c	\
-file_name.c file_read.c filter.c force_io.c hash.c init.c lba.c		\
+dirCache.c directory.c direntry.c dos2unix.c expand.c fat.c fat_free.c file.c	\
+file_name.c file_read.c force_io.c hash.c init.c lba.c		\
 lockdev.c match.c mainloop.c mattrib.c mbadblocks.c mcat.c mcd.c	\
 mclasserase.c mcopy.c mdel.c mdir.c mdu.c mdoctorfat.c mformat.c	\
 minfo.c misc.c missFuncs.c mk_direntry.c mlabel.c mmd.c mmount.c	\
 mmove.c mpartition.c mshortname.c mshowfat.c mzip.c mtools.c offset.c	\
 old_dos.c open_image.c partition.c plain_io.c precmd.c privileges.c	\
 remap.c scsi_io.c scsi.c signal.c stream.c streamcache.c subdir.c	\
-swap.c unixdir.c tty.c vfat.c mkmanifest.c @FLOPPYD_IO_SRC@		\
-@XDF_IO_SRC@
+swap.c unix2dos.s unixdir.c tty.c vfat.c mkmanifest.c			\
+@FLOPPYD_IO_SRC@ @XDF_IO_SRC@
 
 SRCS-@USE_FLOPPYD@ += floppyd_io.c
 SRCS-@USE_XDF@ += xdf_io.c
