@@ -58,24 +58,24 @@ static enum map_type_t remap(Remap_t *This, mt_off_t *start, size_t *len) {
 	return This->map[i].type;
 }
 
-static ssize_t remap_read(Stream_t *Stream, char *buf,
+static ssize_t remap_pread(Stream_t *Stream, char *buf,
 			  mt_off_t start, size_t len)
 {
 	DeclareThis(Remap_t);
 	if(remap(This, &start, &len)==DATA)
-		return READS(This->Next, buf, start, len);
+		return PREADS(This->Next, buf, start, len);
 	else {
 		memset(buf, 0, len);
 		return (ssize_t) len;
 	}
 }
 
-static ssize_t remap_write(Stream_t *Stream, char *buf,
+static ssize_t remap_pwrite(Stream_t *Stream, char *buf,
 			   mt_off_t start, size_t len)
 {
 	DeclareThis(Remap_t);
 	if(remap(This, &start, &len)==DATA)
-		return WRITES(This->Next, buf, start, len);
+		return PWRITES(This->Next, buf, start, len);
 	else {
 		unsigned int i;
 		/* When writing to a "zero" sector, make sure that we
@@ -102,8 +102,10 @@ static int remap_free(Stream_t *Stream)
 }
 
 static Class_t RemapClass = {
-	remap_read,
-	remap_write,
+	0,
+	0,
+	remap_pread,
+	remap_pwrite,
 	0, /* flush */
 	remap_free, /* free */
 	set_geom_pass_through, /* set_geom */

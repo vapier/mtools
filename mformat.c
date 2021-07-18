@@ -203,8 +203,8 @@ static __inline__ void format_root(Fs_t *Fs, char *label, union bootsector *boot
 	} else
 		dirlen = Fs->dir_len;
 	for (i = 0; i < dirlen; i++)
-		WRITES(RootDir, buf, sectorsToBytes(Fs, i),
-			   Fs->sector_size);
+		PWRITES(RootDir, buf, sectorsToBytes(Fs, i),
+			Fs->sector_size);
 
 	ch.ignore_entry = 1;
 	if(label[0])
@@ -1259,7 +1259,7 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 
 		/* do a "test" read */
 		if (!create &&
-		    READS(Fs->Direct, &boot.characters, 0, Fs->sector_size) !=
+		    PREADS(Fs->Direct, &boot.characters, 0, Fs->sector_size) !=
 		    (signed int) Fs->sector_size) {
 #ifdef HAVE_SNPRINTF
 			snprintf(errmsg, sizeof(errmsg)-1,
@@ -1290,9 +1290,9 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 
 	/* create the image file if needed */
 	if (create) {
-		WRITES(Fs->Direct, &boot.characters,
-		       sectorsToBytes(Fs, tot_sectors-1),
-		       Fs->sector_size);
+		PWRITES(Fs->Direct, &boot.characters,
+			sectorsToBytes(Fs, tot_sectors-1),
+			Fs->sector_size);
 	}
 
 	/* the boot sector */
@@ -1465,15 +1465,15 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 #endif
 
 	format_root(Fs, label, &boot);
-	if(WRITES((Stream_t *)Fs, boot.characters, 0, Fs->sector_size) < 0) {
+	if(PWRITES((Stream_t *)Fs, boot.characters, 0, Fs->sector_size) < 0) {
 		fprintf(stderr, "Error writing boot sector\n");
 		exit(1);
 	}
 
 	if(Fs->fat_bits == 32 && WORD_S(ext.fat32.backupBoot) != MAX16) {
-		if(WRITES((Stream_t *)Fs, boot.characters,
-			  sectorsToBytes(Fs, WORD_S(ext.fat32.backupBoot)),
-			  Fs->sector_size) < 0) {
+		if(PWRITES((Stream_t *)Fs, boot.characters,
+			   sectorsToBytes(Fs, WORD_S(ext.fat32.backupBoot)),
+			   Fs->sector_size) < 0) {
 			fprintf(stderr, "Error writing backup boot sector\n");
 			exit(1);
 		}

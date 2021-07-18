@@ -31,23 +31,25 @@ typedef struct Offset_t {
 	mt_off_t offset;
 } Offset_t;
 
-static ssize_t offset_read(Stream_t *Stream, char *buf,
-			  mt_off_t start, size_t len)
+static ssize_t offset_pread(Stream_t *Stream, char *buf,
+			    mt_off_t start, size_t len)
 {
 	DeclareThis(Offset_t);
-	return READS(This->Next, buf, start+This->offset, len);
+	return PREADS(This->Next, buf, start+This->offset, len);
 }
 
-static ssize_t offset_write(Stream_t *Stream, char *buf,
-			   mt_off_t start, size_t len)
+static ssize_t offset_pwrite(Stream_t *Stream, char *buf,
+			     mt_off_t start, size_t len)
 {
 	DeclareThis(Offset_t);
-	return WRITES(This->Next, buf, start+This->offset, len);
+	return PWRITES(This->Next, buf, start+This->offset, len);
 }
 
 static Class_t OffsetClass = {
-	offset_read,
-	offset_write,
+	0,
+	0,
+	offset_pread,
+	offset_pwrite,
 	0, /* flush */
 	0, /* free */
 	set_geom_pass_through, /* set_geom */

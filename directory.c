@@ -32,9 +32,9 @@ struct directory *dir_read(direntry_t *entry, int *error)
 {
 	ssize_t n;
 	*error = 0;
-	if((n=force_read(entry->Dir, (char *) (&entry->dir),
-			 (mt_off_t) entry->entry * MDIR_SIZE,
-			 MDIR_SIZE)) != MDIR_SIZE) {
+	if((n=force_pread(entry->Dir, (char *) (&entry->dir),
+			  (mt_off_t) entry->entry * MDIR_SIZE,
+			  MDIR_SIZE)) != MDIR_SIZE) {
 		if (n < 0) {
 			*error = -1;
 		}
@@ -68,7 +68,7 @@ int dir_grow(Stream_t *Dir, int size)
 	}
 
 	memset((char *) buffer, '\0', buflen);
-	ret = force_write(Dir, buffer, (mt_off_t) size * MDIR_SIZE, buflen);
+	ret = force_pwrite(Dir, buffer, (mt_off_t) size * MDIR_SIZE, buflen);
 	free(buffer);
 	if(ret < (int) buflen)
 		return -1;
@@ -78,15 +78,15 @@ int dir_grow(Stream_t *Dir, int size)
 
 void low_level_dir_write(direntry_t *entry)
 {
-	force_write(entry->Dir,
-		    (char *) (&entry->dir),
-		    (mt_off_t) entry->entry * MDIR_SIZE, MDIR_SIZE);
+	force_pwrite(entry->Dir,
+		     (char *) (&entry->dir),
+		     (mt_off_t) entry->entry * MDIR_SIZE, MDIR_SIZE);
 }
 
 void low_level_dir_write_end(Stream_t *Dir, int entry)
 {
 	char zero = ENDMARK;
-	force_write(Dir, &zero, (mt_off_t) entry * MDIR_SIZE, 1);
+	force_pwrite(Dir, &zero, (mt_off_t) entry * MDIR_SIZE, 1);
 }
 
 /*

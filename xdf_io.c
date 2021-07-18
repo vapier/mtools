@@ -509,8 +509,8 @@ static int decompose(Xdf_t *This, mt_off_t iwhere, size_t len,
 }
 
 
-static ssize_t xdf_read(Stream_t *Stream, char *buf,
-			mt_off_t where, size_t len)
+static ssize_t xdf_pread(Stream_t *Stream, char *buf,
+			 mt_off_t where, size_t len)
 {
 	uint32_t begin, end;
 	ssize_t ret;
@@ -527,7 +527,8 @@ static ssize_t xdf_read(Stream_t *Stream, char *buf,
 	return (ssize_t) (end - begin);
 }
 
-static ssize_t xdf_write(Stream_t *Stream, char *buf, mt_off_t where, size_t len)
+static ssize_t xdf_pwrite(Stream_t *Stream, char *buf,
+			  mt_off_t where, size_t len)
 {
 	uint32_t begin, end;
 	ssize_t len2;
@@ -614,8 +615,10 @@ static int config_geom(Stream_t *Stream UNUSEDP, struct device *dev,
 }
 
 static Class_t XdfClass = {
-	xdf_read,
-	xdf_write,
+	0,
+	0,
+	xdf_pread,
+	xdf_pwrite,
 	xdf_flush,
 	xdf_free,
 	config_geom,

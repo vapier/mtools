@@ -232,7 +232,8 @@ static ssize_t scsi_io(Stream_t *Stream, char *buf,
 	else return (ssize_t)(nsect*This->scsi_sector_size-offset);
 }
 
-static ssize_t scsi_read(Stream_t *Stream, char *buf, mt_off_t where, size_t len)
+static ssize_t scsi_pread(Stream_t *Stream, char *buf,
+			  mt_off_t where, size_t len)
 {
 #ifdef JPD
 	printf("zip: to read %d bytes at %d\n", len, where);
@@ -240,8 +241,8 @@ static ssize_t scsi_read(Stream_t *Stream, char *buf, mt_off_t where, size_t len
 	return scsi_io(Stream, buf, where, len, SCSI_IO_READ);
 }
 
-static ssize_t scsi_write(Stream_t *Stream, char *buf,
-			  mt_off_t where, size_t len)
+static ssize_t scsi_pwrite(Stream_t *Stream, char *buf,
+			   mt_off_t where, size_t len)
 {
 #ifdef JPD
 	Printf("zip: to write %d bytes at %d\n", len, where);
@@ -264,8 +265,10 @@ static int scsi_get_data(Stream_t *Stream, time_t *date, mt_off_t *size,
 
 
 static Class_t ScsiDeviceClass = {
-	scsi_read,
-	scsi_write,
+	0,
+	0,
+	scsi_pread,
+	scsi_pwrite,
 	0,
 	0,
 	set_geom_noop,

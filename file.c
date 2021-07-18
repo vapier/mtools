@@ -57,6 +57,8 @@ typedef struct File_t {
 
 	unsigned int loopDetectRel;
 	unsigned int loopDetectAbs;
+
+	uint32_t where;
 } File_t;
 
 static Class_t FileClass;
@@ -393,26 +395,27 @@ static int root_map(File_t *This, uint32_t where, uint32_t *len,
 	return 1;
 }
 
-
-static ssize_t read_file(Stream_t *Stream, char *buf, mt_off_t iwhere,
-			 size_t ilen)
+static ssize_t read_file(Stream_t *Stream, char *buf, size_t ilen)
 {
 	DeclareThis(File_t);
 	mt_off_t pos;
 	int err;
-	uint32_t where = truncMtOffTo32u(iwhere);
 	uint32_t len = truncSizeTo32u(ilen);
-
+	ssize_t ret;
+	
 	Stream_t *Disk = This->Fs->Next;
 
-	err = This->map(This, where, &len, MT_READ, &pos);
+	err = This->map(This, This->where, &len, MT_READ, &pos);
 	if(err <= 0)
 		return err;
-	return READS(Disk, buf, pos, len);
+	ret = PREADS(Disk, buf, pos, len);
+	if(ret < 0)
+		return ret;
+	This->where += (size_t) ret;
+	return ret;
 }
 
-static ssize_t write_file(Stream_t *Stream, char *buf,
-			  mt_off_t iwhere, size_t ilen)
+static ssize_t write_file(Stream_t *Stream, char *buf, size_t ilen)
 {
 	DeclareThis(File_t);
 	mt_off_t pos;
@@ -420,8 +423,7 @@ static ssize_t write_file(Stream_t *Stream, char *buf,
 	uint32_t requestedLen;
 	uint32_t bytesWritten;
 	Stream_t *Disk = This->Fs->Next;
-	uint32_t where = truncMtOffTo32u(iwhere);
-	uint32_t maxLen = UINT32_MAX-where;
+	uint32_t maxLen = UINT32_MAX-This->where;
 	uint32_t len;
 	int err;
 
@@ -430,26 +432,40 @@ static ssize_t write_file(Stream_t *Stream, char *buf,
 	} else
 		len = (uint32_t) ilen;
 	requestedLen = len;
-	err = This->map(This, where, &len, MT_WRITE, &pos);
+	err = This->map(This, This->where, &len, MT_WRITE, &pos);
 	if( err <= 0)
 		return err;
 	if(batchmode)
-		ret = force_write(Disk, buf, pos, len);
+		ret = force_pwrite(Disk, buf, pos, len);
 	else
-		ret = WRITES(Disk, buf, pos, len);
+		ret = PWRITES(Disk, buf, pos, len);
 	if(ret < 0)
 		/* Error occured */
 		return ret;
+	This->where += (size_t) ret;
 	if((uint32_t)ret > requestedLen)
 		bytesWritten = requestedLen;
 	else
 		bytesWritten = requestedLen;
-	if (where + bytesWritten > This->FileSize )
-		This->FileSize = where + bytesWritten;
+	if (This->where + bytesWritten > This->FileSize )
+		This->FileSize = This->where + bytesWritten;
 	recalcPreallocSize(This);
 	return ret;
 }
 
+static ssize_t pread_file(Stream_t *Stream, char *buf, mt_off_t where,
+			  size_t ilen) {
+	DeclareThis(File_t);
+	This->where = truncMtOffTo32u(where);
+	return read_file(Stream, buf, ilen);
+}
+
+static ssize_t pwrite_file(Stream_t *Stream, char *buf, mt_off_t where,
+			  size_t ilen) {
+	DeclareThis(File_t);
+	This->where = truncMtOffTo32u(where);
+	return write_file(Stream, buf, ilen);
+}
 
 /*
  * Convert an MSDOS time & date stamp to the Unix time() format
@@ -578,6 +594,8 @@ static int pre_allocate_file(Stream_t *Stream, mt_off_t isize)
 static Class_t FileClass = {
 	read_file,
 	write_file,
+	pread_file,
+	pwrite_file,
 	flush_file, /* flush */
 	free_file, /* free */
 	0, /* get_geom */
@@ -674,7 +692,7 @@ static Stream_t *_internalFileOpen(Stream_t *Dir, unsigned int first,
 		File->direntry.Dir = (Stream_t *) File; /* root directory */
 	else
 		COPY(File->direntry.Dir);
-
+	File->where = 0;
 	File->Class = &FileClass;
 	File->Fs = This;
 	if(first || (entry && !IS_DIR(entry)))

@@ -92,16 +92,16 @@ int get_data_pass_through(Stream_t *Stream, time_t *date, mt_off_t *size,
        return GET_DATA(Stream->Next, date, size, type, address);
 }
 
-ssize_t read_pass_through(Stream_t *Stream, char *buf,
-			  mt_off_t start, size_t len)
-{
-	return READS(Stream->Next, buf, start, len);
-}
-
-ssize_t write_pass_through(Stream_t *Stream, char *buf,
+ssize_t pread_pass_through(Stream_t *Stream, char *buf,
 			   mt_off_t start, size_t len)
 {
-	return WRITES(Stream->Next, buf, start, len);
+	return PREADS(Stream->Next, buf, start, len);
+}
+
+ssize_t pwrite_pass_through(Stream_t *Stream, char *buf,
+			    mt_off_t start, size_t len)
+{
+	return PWRITES(Stream->Next, buf, start, len);
 }
 
 doscp_t *get_dosConvert_pass_through(Stream_t *Stream)

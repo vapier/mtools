@@ -45,9 +45,9 @@ static void displayInfosector(Stream_t *Stream, union bootsector *boot)
 		return;
 
 	infosec = (InfoSector_t *) safe_malloc(WORD(secsiz));
-	force_read(Stream, (char *) infosec,
-			   (mt_off_t) WORD(secsiz) * WORD(ext.fat32.infoSector),
-			   WORD(secsiz));
+	force_pread(Stream, (char *) infosec,
+		    (mt_off_t) WORD(secsiz) * WORD(ext.fat32.infoSector),
+		    WORD(secsiz));
 	printf("\nInfosector:\n");
 	printf("signature=0x%08x\n", _DWORD(infosec->signature1));
 	if(_DWORD(infosec->count) != MAX32)
@@ -333,7 +333,7 @@ void minfo(int argc, char **argv, int type UNUSEDP)
 				exit(1);
 			}
 
-			ssize = READS(Stream, buf, 0, size);
+			ssize = PREADS(Stream, buf, 0, size);
 			if(ssize < 0) {
 				perror("read boot sector");
 				exit(1);

@@ -51,7 +51,7 @@ static int read_boot(Stream_t *Stream, union bootsector * boot, size_t size)
 	if(size > MAX_BOOT)
 		size = MAX_BOOT;
 
-	if (force_read(Stream, boot->characters, 0, size) != (ssize_t) size)
+	if (force_pread(Stream, boot->characters, 0, size) != (ssize_t) size)
 		return -1;
 
 	boot_sector_size = WORD(secsiz);
@@ -79,8 +79,10 @@ static doscp_t *get_dosConvert(Stream_t *Stream)
 }
 
 Class_t FsClass = {
-	read_pass_through, /* read */
-	write_pass_through, /* write */
+	0,
+	0,
+	pread_pass_through, /* read */
+	pwrite_pass_through, /* write */
 	fs_flush,
 	fs_free, /* free */
 	0, /* set geometry */
@@ -104,7 +106,7 @@ static int get_media_type(Stream_t *St, union bootsector *boot)
 		char temp[512];
 		/* old DOS disk. Media descriptor in the first FAT byte */
 		/* we assume 512-byte sectors here */
-		if (force_read(St,temp,512,512) == 512)
+		if (force_pread(St,temp,512,512) == 512)
 			media = (unsigned char) temp[0];
 		else
 			media = 0;

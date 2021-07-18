@@ -131,7 +131,7 @@ void mcat(int argc, char **argv, int type UNUSEDP)
 		while ((len = fread(buf, 1,
 				    bufLen(BUF_SIZE, size, address),
 				    stdin)) > 0) {
-			ssize_t r = WRITES(Stream, buf, address, len);
+			ssize_t r = PWRITES(Stream, buf, address, len);
 			fprintf(stderr, "Wrote to %d\n", (int) address);
 			if(r < 0)
 				break;
@@ -139,7 +139,7 @@ void mcat(int argc, char **argv, int type UNUSEDP)
 		}
 	} else {
 		ssize_t len;
-		while ((len = READS(Stream, buf, address, BUF_SIZE)) > 0) {
+		while ((len = PREADS(Stream, buf, address, BUF_SIZE)) > 0) {
 			fwrite(buf, 1, (size_t) len, stdout);
 			address += (size_t) len;
 		}

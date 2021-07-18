@@ -30,8 +30,6 @@ typedef struct Filter_t {
 
 	char buffer[U2D_BUFSIZE];
 	
-	mt_off_t outPos; /* absolute position in output stream */
-	mt_off_t srcPos; /* source position */
 	size_t readBytes; /* how many bytes read into buffer */
 	size_t bufPos; /* position in buffer */
 
@@ -40,14 +38,11 @@ typedef struct Filter_t {
 } Filter_t;
 
 /* Add CR before NL, and 0x1a at end of file */
-static ssize_t read_filter(Stream_t *Stream, char *output,
-			   mt_off_t where, size_t len)
+static ssize_t read_filter(Stream_t *Stream, char *output, size_t len)
 {
 	DeclareThis(Filter_t);
 	size_t i;
 	
-	assert(where == This->outPos);
-
 	if(This->eof)
 		return 0;
 	
@@ -60,7 +55,6 @@ static ssize_t read_filter(Stream_t *Stream, char *output,
 			if(This->bufPos == This->readBytes) {
 				ssize_t ret = READS(This->Next,
 						    This->buffer,
-						    This->srcPos,
 						    U2D_BUFSIZE);
 				if(ret < 0) {
 					/* an error */
@@ -73,7 +67,6 @@ static ssize_t read_filter(Stream_t *Stream, char *output,
 						break;
 				}
 				This->readBytes = (size_t) ret;
-				This->srcPos += This->readBytes;
 				This->bufPos = 0;
 			}
 
@@ -93,12 +86,13 @@ static ssize_t read_filter(Stream_t *Stream, char *output,
 		output[i]=c;
 	}
 
-	This->outPos += i;
 	return (ssize_t) i;
 }
 
 static Class_t FilterClass = {
 	read_filter,
+	0,
+	0,
 	0,
 	0, /* flush */
 	0,
@@ -117,7 +111,6 @@ Stream_t *open_unix2dos(Stream_t *Next, int convertCharset UNUSEDP)
 	if (!This)
 		return NULL;
 	This->Class = &FilterClass;
-	This->outPos = This->srcPos = 0;
 	This->Next = Next;
 	This->refs = 1;
 

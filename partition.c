@@ -140,22 +140,22 @@ static int limit_size(Partition_t *This, mt_off_t start, size_t *len)
 	return 0;
 }
 
-static ssize_t partition_read(Stream_t *Stream, char *buf,
-			      mt_off_t start, size_t len)
-{
-	DeclareThis(Partition_t);
-	if(limit_size(This, start, &len) < 0)
-		return -1;
-	return READS(This->Next, buf, start+This->offset, len);
-}
-
-static ssize_t partition_write(Stream_t *Stream, char *buf,
+static ssize_t partition_pread(Stream_t *Stream, char *buf,
 			       mt_off_t start, size_t len)
 {
 	DeclareThis(Partition_t);
 	if(limit_size(This, start, &len) < 0)
 		return -1;
-	return WRITES(This->Next, buf, start+This->offset, len);
+	return PREADS(This->Next, buf, start+This->offset, len);
+}
+
+static ssize_t partition_pwrite(Stream_t *Stream, char *buf,
+				mt_off_t start, size_t len)
+{
+	DeclareThis(Partition_t);
+	if(limit_size(This, start, &len) < 0)
+		return -1;
+	return PWRITES(This->Next, buf, start+This->offset, len);
 }
 
 static int partition_data(Stream_t *Stream, time_t *date, mt_off_t *size,
@@ -186,8 +186,10 @@ static int partition_geom(Stream_t *Stream, struct device *dev,
 }
 
 static Class_t PartitionClass = {
-	partition_read,
-	partition_write,
+	0,
+	0,
+	partition_pread,
+	partition_pwrite,
 	0, /* flush */
 	0, /* free */
 	partition_geom, /* set_geom */
@@ -225,7 +227,7 @@ Stream_t *OpenPartition(Stream_t *Next, struct device *dev,
 
 
 	/* read the first sector, or part of it */
-	if (force_read(This->Next, (char*) buf, 0, 512) != 512)
+	if (force_pread(This->Next, (char*) buf, 0, 512) != 512)
 		goto exit_0;
 	if( _WORD(buf+510) != 0xaa55) {
 		/* Not a partition table */

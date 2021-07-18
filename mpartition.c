@@ -442,7 +442,7 @@ void mpartition(int argc, char **argv, int dummy UNUSEDP)
 		tot_sectors = used_dev.tot_sectors;
 
 		/* read the partition table */
-		if (READS(Stream, (char *) buf, 0, 512) != 512 && !initialize){
+		if (PREADS(Stream, (char *) buf, 0, 512) != 512 && !initialize){
 #ifdef HAVE_SNPRINTF
 			snprintf(errmsg, sizeof(errmsg)-1,
 				"Error reading from '%s', wrong parameters?",
@@ -671,7 +671,7 @@ void mpartition(int argc, char **argv, int dummy UNUSEDP)
 		/* write data back to the disk */
 		if(verbose>=2)
 			print_sector("Writing sector", buf, 512);
-		if (WRITES(Stream, (char *) buf, 0, 512) != 512) {
+		if (PWRITES(Stream, (char *) buf, 0, 512) != 512) {
 			fprintf(stderr,"Error writing partition table");
 			exit(1);
 		}

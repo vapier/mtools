@@ -41,24 +41,24 @@ typedef struct FatMap_t {
 static __inline__ ssize_t readSector(Fs_t *This, char *buf, unsigned int off,
 				     size_t size)
 {
-	return READS(This->Next, buf, sectorsToBytes(This, off),
-		     size << This->sectorShift);
+	return PREADS(This->Next, buf, sectorsToBytes(This, off),
+		      size << This->sectorShift);
 }
 
 
 static __inline__ ssize_t forceReadSector(Fs_t *This, char *buf,
 					  unsigned int off, size_t size)
 {
-	return force_read(This->Next, buf, sectorsToBytes(This, off),
-					  size << This->sectorShift);
+	return force_pread(This->Next, buf, sectorsToBytes(This, off),
+			   size << This->sectorShift);
 }
 
 
 static __inline__ ssize_t forceWriteSector(Fs_t *This, char *buf, unsigned int off,
 					   size_t size)
 {
-	return force_write(This->Next, buf, sectorsToBytes(This, off),
-					   size << This->sectorShift);
+	return force_pwrite(This->Next, buf, sectorsToBytes(This, off),
+			    size << This->sectorShift);
 }
 
 

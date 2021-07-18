@@ -79,15 +79,17 @@ static int _buf_flush(Buffer_t *Buffer)
 		Buffer->dirty_end - Buffer->dirty_pos);
 #endif
 
-	ret = force_write(Buffer->Next,
-			  Buffer->buf + Buffer->dirty_pos,
-			  Buffer->current + (mt_off_t) Buffer->dirty_pos,
-			  Buffer->dirty_end - Buffer->dirty_pos);
-	if(ret != (signed int) (Buffer->dirty_end - Buffer->dirty_pos)) {
-		if(ret < 0)
-			perror("buffer_flush: write");
-		else
-			fprintf(stderr,"buffer_flush: short write\n");
+	ret = force_pwrite(Buffer->Next,
+			   Buffer->buf + Buffer->dirty_pos,
+			   Buffer->current + (mt_off_t) Buffer->dirty_pos,
+			   Buffer->dirty_end - Buffer->dirty_pos);
+	if(ret < 0) {
+		perror("buffer_flush: write");
+		return -1;
+	}
+	
+	if((size_t) ret != Buffer->dirty_end - Buffer->dirty_pos) {
+		fprintf(stderr,"buffer_flush: short write\n");
 		return -1;
 	}
 	Buffer->dirty = 0;
@@ -146,7 +148,8 @@ static position_t isInBuffer(Buffer_t *This, mt_off_t start, size_t *len)
 	}
 }
 
-static ssize_t buf_read(Stream_t *Stream, char *buf, mt_off_t start, size_t len)
+static ssize_t buf_pread(Stream_t *Stream, char *buf,
+			 mt_off_t start, size_t len)
 {
 	size_t length;
 	size_t offset;
@@ -166,10 +169,10 @@ static ssize_t buf_read(Stream_t *Stream, char *buf, mt_off_t start, size_t len)
 			maximize(length, This->size - This->cur_size);
 
 			/* read it! */
-			ret=READS(This->Next,
-				  This->buf + This->cur_size,
-				  This->current + (mt_off_t) This->cur_size,
-				  length);
+			ret=PREADS(This->Next,
+				   This->buf + This->cur_size,
+				   This->current + (mt_off_t) This->cur_size,
+				   length);
 			if ( ret < 0 )
 				return ret;
 			This->cur_size += (size_t) ret;
@@ -192,8 +195,8 @@ static ssize_t buf_read(Stream_t *Stream, char *buf, mt_off_t start, size_t len)
 	return (ssize_t) len;
 }
 
-static ssize_t buf_write(Stream_t *Stream, char *buf,
-			 mt_off_t start, size_t len)
+static ssize_t buf_pwrite(Stream_t *Stream, char *buf,
+			  mt_off_t start, size_t len)
 {
 	char *disk_ptr;
 	DeclareThis(Buffer_t);
@@ -227,7 +230,8 @@ static ssize_t buf_write(Stream_t *Stream, char *buf,
 				readSize = This->cylinderSize -
 					(size_t)(This->current % (mt_off_t) This->cylinderSize);
 
-				ret=READS(This->Next, This->buf, (mt_off_t)This->current, readSize);
+				ret=PREADS(This->Next, This->buf,
+					   (mt_off_t)This->current, readSize);
 				/* read it! */
 				if ( ret < 0 )
 					return ret;
@@ -337,8 +341,10 @@ static int buf_free(Stream_t *Stream)
 }
 
 static Class_t BufferClass = {
-	buf_read,
-	buf_write,
+	0,
+	0,
+	buf_pread,
+	buf_pwrite,
 	buf_flush,
 	buf_free,
 	0, /* set_geom */

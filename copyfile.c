@@ -43,7 +43,7 @@ mt_off_t copyfile(Stream_t *Source, Stream_t *Target)
 
 	pos = 0;
 	while(1){
-		ret = READS(Source, buffer, pos, 8*16384);
+		ret = READS(Source, buffer, 8*16384);
 		if (ret < 0 ){
 			perror("file read");
 			return -1;
@@ -54,8 +54,7 @@ mt_off_t copyfile(Stream_t *Source, Stream_t *Target)
 			return -1;
 		if (ret == 0)
 			break;
-		if ((retw = force_write(Target, buffer,
-					pos, (size_t) ret)) != ret){
+		if ((retw = force_write(Target, buffer, (size_t) ret)) != ret){
 			if(retw < 0 )
 				perror("write in copy");
 			else

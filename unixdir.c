@@ -68,6 +68,8 @@ static int dir_free(Stream_t *Stream)
 static Class_t DirClass = {
 	0, /* read */
 	0, /* write */
+	0, /* pread */
+	0, /* pwrite */
 	0, /* flush */
 	dir_free, /* free */
 	0, /* get_geom */
