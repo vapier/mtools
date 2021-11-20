@@ -1,6 +1,11 @@
+mtools (4.0.34) stable; urgency=low
+
+  *  Fix mcopy -s issue
+
+  -- Alain Knaff <alain@knaff.lu>  Fri, 23 Jul 2021 12:41:11 +0200
 mtools (4.0.33) stable; urgency=low
 
-  * Fix support for partitions (broken in in 4.0.30)
+  * Fix support for partitions (broken in 4.0.30)
   * Portability fixes for Solaris 10 and 11
   * General simplification of configure script, and largefile handling
   * Tested and fixed for platforms *without* largefile support

@@ -29,8 +29,8 @@ typedef struct FsPublic_t {
 
 	int serialized;
 	unsigned long serial_number;
-	unsigned int cluster_size;
-	unsigned int sector_size;
+	uint8_t cluster_size;
+	uint16_t sector_size;
 } FsPublic_t;
 
 Stream_t *fs_init(char drive, int mode, int *isRop);

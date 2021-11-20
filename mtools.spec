@@ -1,7 +1,7 @@
 %define _binary_payload w9.gzdio
 Name:           mtools
 Summary:        mtools, read/write/list/format DOS disks under Unix
-Version:        4.0.33
+Version:        4.0.34
 Release:        1
 License:        GPLv3+
 Group:          Utilities/System
@@ -135,8 +135,10 @@ if [ -f %{_bindir}/install-info ] ; then
 fi
 
 %changelog
+* Fri Jul 23 2021 Alain Knaff <alain@knaff.lu>
+- Fix mcopy -s issue
 * Sat Jul 17 2021 Alain Knaff <alain@knaff.lu>
-- Fix support for partitions (broken in in 4.0.30)
+- Fix support for partitions (broken in 4.0.30)
 - Portability fixes for Solaris 10 and 11
 - General simplification of configure script, and largefile handling
 - Tested and fixed for platforms *without* largefile support
