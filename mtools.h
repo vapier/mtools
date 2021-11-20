@@ -186,6 +186,7 @@ void read_config(void);
 off_t str_to_offset_with_end(const char *str, char **endp);
 mt_off_t str_to_off_with_end(const char *str, char **endp);
 off_t str_to_offset(char *str);
+uint32_t parseSize(char *sizeStr);
 unsigned int strtoui(const char *nptr, char **endptr, int base);
 unsigned int atoui(const char *nptr);
 #ifndef HAVE_STRTOI

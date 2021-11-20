@@ -379,7 +379,7 @@ void mpartition(int argc, char **argv, int dummy UNUSEDP)
 				break;
 			case 'l':
 				size_set = 1;
-				length = strtoui(optarg, &endptr, 0);
+				length = parseSize(optarg);
 				break;
 
 			default:
