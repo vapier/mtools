@@ -52,7 +52,7 @@ struct directory *dir_read(direntry_t *entry, int *error)
 int dir_grow(Stream_t *Dir, int size)
 {
 	Stream_t *Stream = GetFs(Dir);
-	DeclareThis(FsPublic_t);
+	DeclareThis(Fs_t);
 	ssize_t ret;
 	unsigned int buflen;
 	char *buffer;
@@ -60,7 +60,7 @@ int dir_grow(Stream_t *Dir, int size)
 	if (!getfreeMinClusters(Dir, 1))
 		return -1;
 
-	buflen = This->cluster_size * This->sector_size;
+	buflen = getClusterBytes(This);
 
 	if(! (buffer=malloc(buflen)) ){
 		perror("dir_grow: malloc");

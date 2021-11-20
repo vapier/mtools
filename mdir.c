@@ -184,7 +184,7 @@ static __inline__ int print_volume_label(Stream_t *Dir, char drive)
 {
 	Stream_t *Stream = GetFs(Dir);
 	direntry_t entry;
-	DeclareThis(FsPublic_t);
+	DeclareThis(Fs_t);
 	char shortname[13];
 	char longname[VBUFSIZE];
 	int r;
@@ -210,10 +210,12 @@ static __inline__ int print_volume_label(Stream_t *Dir, char drive)
 	else
 		printf(" Volume in drive %c is %s",
 		       drive, shortname);
-	if(This->serialized)
+	if(getSerialized(This)) {
+		unsigned long serial_number = getSerialNumber(This);
 		printf("\n Volume Serial Number is %04lX-%04lX",
-		       (This->serial_number >> 16) & 0xffff,
-		       This->serial_number & 0xffff);
+		       (serial_number >> 16) & 0xffff,
+		       serial_number & 0xffff);
+	}
 	return 0;
 }
 

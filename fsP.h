@@ -33,8 +33,6 @@ typedef struct Fs_t {
 	unsigned long serial_number;
 	uint8_t cluster_size;
 	uint16_t sector_size;
-	/* Beware: anything up to this point is duplicated in
-	   FsPublic_t in fs.h */
 	
 	int fat_error;
 

@@ -863,6 +863,18 @@ unsigned int get_next_free_cluster(Fs_t *This, unsigned int last)
 	return 1;
 }
 
+bool getSerialized(Fs_t *Fs) {
+	return Fs->serialized;
+}
+
+unsigned long getSerialNumber(Fs_t *Fs) {
+	return Fs->serial_number;
+}
+
+uint32_t getClusterBytes(Fs_t *Fs) {
+	return Fs->cluster_size * Fs->sector_size;
+}
+
 int fat_error(Stream_t *Dir)
 {
 	Stream_t *Stream = GetFs(Dir);
