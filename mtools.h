@@ -201,7 +201,7 @@ uint32_t atou32(const char *str);
 
 #define New(type) ((type*)(calloc(1,sizeof(type))))
 #define Grow(adr,n,type) ((type*)(realloc((char *)adr,n*sizeof(type))))
-#define Free(adr) (free((char *)adr));
+#define Free(adr) (free((char *)adr))
 #define NewArray(size,type) ((type*)(calloc((size),sizeof(type))))
 
 void mattrib(int argc, char **argv, int type);

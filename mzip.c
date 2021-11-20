@@ -245,7 +245,7 @@ void mzip(int argc, char **argv, int type UNUSEDP)
 	if(request & ZIP_MODE_CHANGE) usage(1); \
 	request |= ZIP_MODE_CHANGE; \
 	newMode = x; \
-	break;
+	break
 
 	/* get command line options */
 	if(helpFlag(argc, argv))
@@ -279,7 +279,7 @@ void mzip(int argc, char **argv, int type UNUSEDP)
 			case 'x': /* password protected */
 				setMode(ZIP_PW);
 			case 'u': /* password protected */
-				setMode(ZIP_UNLOCK_TIL_EJECT)
+				setMode(ZIP_UNLOCK_TIL_EJECT);
 			case 'h':
 				usage(0);
 			default:  /* unrecognized */

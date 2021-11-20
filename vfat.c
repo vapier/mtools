@@ -183,7 +183,7 @@ static __inline__ unsigned char sum_shortname(const dos_name_t *dn)
  */
 static __inline__ void check_vfat(struct vfat_state *v, struct directory *dir)
 {
-	dos_name_t dn;;
+	dos_name_t dn;
 
 	if (! v->subentries) {
 #ifdef DEBUG
