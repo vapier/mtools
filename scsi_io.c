@@ -36,10 +36,7 @@
 #include "scsi_io.h"
 
 typedef struct ScsiDevice_t {
-	Class_t *Class;
-	int refs;
-	Stream_t *Next;
-	Stream_t *Buffer;
+	struct Stream_t head;
 
 	int fd;
 	int privileged;
@@ -294,8 +291,8 @@ Stream_t *OpenScsi(struct device *dev,
 		return 0;
 	}
 	memset((void*)This, 0, sizeof(ScsiDevice_t));
+	init_head(&This->head, &ScsiDeviceClass, NULL);
 	This->scsi_sector_size = 512;
-	This->Class = &ScsiDeviceClass;
 
 	if(dev) {
 		if(!(mode2 & NO_PRIV))
@@ -333,13 +330,9 @@ Stream_t *OpenScsi(struct device *dev,
 
 	if(LockDevice(This->fd, dev, locked, lockMode, errmsg) < 0)
 		goto exit_0;
-	This->refs = 1;
-	This->Next = 0;
-	This->Buffer = 0;
 
 	if(maxSize)
 		*maxSize = MAX_OFF_T_B(31+log_2(This->scsi_sector_size));
-	This->Class = &ScsiDeviceClass;
 	if(This->privileged)
 		reclaim_privs();
 	ret=scsi_init(This);
@@ -348,7 +341,7 @@ Stream_t *OpenScsi(struct device *dev,
 	if(ret < 0)
 		goto exit_0;
 	dev->tot_sectors = This->tot_sectors;
-	return (Stream_t *) This;
+	return &This->head;
  exit_0:
 	close(This->fd);
  exit_1:

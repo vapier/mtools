@@ -503,11 +503,8 @@ Stream_t *fs_init(char drive, int mode, int *isRop)
 	if (!This)
 		return NULL;
 
+	init_head(&This->head, &FsClass, NULL);
 	This->Direct = NULL;
-	This->Next = NULL;
-	This->refs = 1;
-	This->Buffer = 0;
-	This->Class = &FsClass;
 	This->preallocatedClusters = 0;
 	This->lastFatSectorNr = 0;
 	This->lastFatAccessMode = 0;
@@ -568,24 +565,24 @@ Stream_t *fs_init(char drive, int mode, int *isRop)
 	else
 		blocksize = dev.blocksize;
 	if (disk_size)
-		This->Next = buf_init(This->Direct,
-				      8 * disk_size * blocksize,
-				      disk_size * blocksize,
-				      This->sector_size);
+		This->head.Next = buf_init(This->Direct,
+					   8 * disk_size * blocksize,
+					   disk_size * blocksize,
+					   This->sector_size);
 	else
-		This->Next = This->Direct;
+		This->head.Next = This->Direct;
 
-	if (This->Next == NULL) {
+	if (This->head.Next == NULL) {
 		perror("init: allocate buffer");
-		This->Next = This->Direct;
+		This->head.Next = This->Direct;
 	}
 
 	/* read the FAT sectors */
 	if(fat_read(This, &boot, dev.use_2m&0x7f)){
 		fprintf(stderr, "Error reading FAT\n");
 		This->num_fat = 1;
-		FREE(&This->Next);
-		Free(This->Next);
+		FREE(&This->head.Next);
+		Free(This->head.Next);
 		return NULL;
 	}
 
@@ -594,8 +591,8 @@ Stream_t *fs_init(char drive, int mode, int *isRop)
 	if(This->cp == NULL) {
 		fprintf(stderr, "Error setting code page\n");
 		fs_free((Stream_t *)This);
-		FREE(&This->Next);
-		Free(This->Next);
+		FREE(&This->head.Next);
+		Free(This->head.Next);
 		return NULL;
 	}
 
@@ -606,7 +603,7 @@ char getDrive(Stream_t *Stream)
 {
 	DeclareThis(Fs_t);
 
-	if(This->Class != &FsClass)
+	if(This->head.Class != &FsClass)
 		return getDrive(GetFs(Stream));
 	else
 		return This->drive;

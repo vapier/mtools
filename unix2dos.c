@@ -23,10 +23,7 @@
 #define U2D_BUFSIZE 4096
 
 typedef struct Filter_t {
-	Class_t *Class;
-	int refs;
-	Stream_t *Next;
-	Stream_t *Buffer;
+	struct Stream_t head;
 
 	char buffer[U2D_BUFSIZE];
 	
@@ -53,7 +50,7 @@ static ssize_t read_filter(Stream_t *Stream, char *output, size_t len)
 			This->pendingNl=false;
 		} else {
 			if(This->bufPos == This->readBytes) {
-				ssize_t ret = READS(This->Next,
+				ssize_t ret = READS(This->head.Next,
 						    This->buffer,
 						    U2D_BUFSIZE);
 				if(ret < 0) {
@@ -110,13 +107,11 @@ Stream_t *open_unix2dos(Stream_t *Next, int convertCharset UNUSEDP)
 	This = New(Filter_t);
 	if (!This)
 		return NULL;
-	This->Class = &FilterClass;
-	This->Next = Next;
-	This->refs = 1;
+	init_head(&This->head, &FilterClass, Next);
 
 	This->readBytes = This->bufPos = 0;
 	This->pendingNl = false;
 	This->eof = false;
 
-	return (Stream_t *) This;
+	return &This->head;
 }

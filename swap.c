@@ -23,11 +23,7 @@
 #include "swap.h"
 
 typedef struct Swap_t {
-	struct Class_t *Class;
-	int refs;
-	struct Stream_t *Next;
-	struct Stream_t *Buffer;
-
+	struct Stream_t head;
 } Swap_t;
 
 static void swap_buffer(char *buf, size_t len)
@@ -46,7 +42,7 @@ static ssize_t swap_pread(Stream_t *Stream, char *buf,
 {
 	DeclareThis(Swap_t);
 
-	ssize_t result = PREADS(This->Next, buf, where, len);
+	ssize_t result = PREADS(This->head.Next, buf, where, len);
 	if(result < 0)
 		return result;
 	swap_buffer( buf, (size_t) result);
@@ -63,7 +59,7 @@ static ssize_t swap_pwrite(Stream_t *Stream, char *buf,
 	memcpy( swapping, buf, len );
 	swap_buffer( swapping, len );
 
-	result = PWRITES(This->Next, swapping, where, len);
+	result = PWRITES(This->head.Next, swapping, where, len);
 
 	free(swapping);
 	return result;
@@ -93,9 +89,7 @@ Stream_t *OpenSwap(Stream_t *Next) {
 		return 0;
 	}
 	memset((void*)This, 0, sizeof(Swap_t));
-	This->Class = &SwapClass;
-	This->refs = 1;
-	This->Next = Next;
+	init_head(&This->head, &SwapClass, Next);
 
-	return (Stream_t *) This;
+	return &This->head;
 }

@@ -93,6 +93,8 @@ copy_stream( (stream) )
 
 #define DeclareThis(x) x *This = (x *) Stream
 
+void init_head(Stream_t *Stream, struct Class_t *Class, Stream_t *Next);
+
 ssize_t force_pwrite(Stream_t *Stream, char *buf, mt_off_t start, size_t len);
 ssize_t force_pread(Stream_t *Stream, char *buf, mt_off_t start, size_t len);
 

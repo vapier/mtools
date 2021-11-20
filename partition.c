@@ -23,10 +23,7 @@
 #include "partition.h"
 
 typedef struct Partition_t {
-	struct Class_t *Class;
-	int refs;
-	struct Stream_t *Next;
-	struct Stream_t *Buffer;
+	struct Stream_t head;
 
 	mt_off_t offset; /* Offset, in bytes */
 	mt_off_t size; /* size, in bytes */
@@ -146,7 +143,7 @@ static ssize_t partition_pread(Stream_t *Stream, char *buf,
 	DeclareThis(Partition_t);
 	if(limit_size(This, start, &len) < 0)
 		return -1;
-	return PREADS(This->Next, buf, start+This->offset, len);
+	return PREADS(This->head.Next, buf, start+This->offset, len);
 }
 
 static ssize_t partition_pwrite(Stream_t *Stream, char *buf,
@@ -155,7 +152,7 @@ static ssize_t partition_pwrite(Stream_t *Stream, char *buf,
 	DeclareThis(Partition_t);
 	if(limit_size(This, start, &len) < 0)
 		return -1;
-	return PWRITES(This->Next, buf, start+This->offset, len);
+	return PWRITES(This->head.Next, buf, start+This->offset, len);
 }
 
 static int partition_data(Stream_t *Stream, time_t *date, mt_off_t *size,
@@ -164,7 +161,7 @@ static int partition_data(Stream_t *Stream, time_t *date, mt_off_t *size,
 	DeclareThis(Partition_t);
 
 	if(date || type || address) {
-		int ret = GET_DATA(This->Next, date, NULL, type, address);
+		int ret = GET_DATA(This->head.Next, date, NULL, type, address);
 		if(ret < 0)
 			return ret;
 	}
@@ -221,13 +218,11 @@ Stream_t *OpenPartition(Stream_t *Next, struct device *dev,
 		return 0;
 	}
 	memset((void*)This, 0, sizeof(Partition_t));
-	This->Class = &PartitionClass;
-	This->refs = 1;
-	This->Next = Next;
+	init_head(&This->head, &PartitionClass, Next);
 
 
 	/* read the first sector, or part of it */
-	if (force_pread(This->Next, (char*) buf, 0, 512) != 512)
+	if (force_pread(This->head.Next, (char*) buf, 0, 512) != 512)
 		goto exit_0;
 	if( _WORD(buf+510) != 0xaa55) {
 		/* Not a partition table */
@@ -278,7 +273,7 @@ Stream_t *OpenPartition(Stream_t *Next, struct device *dev,
 	}
 	dev->tot_sectors = This->nbSect = PART_SIZE(partition);
 	This->size = (mt_off_t) This->nbSect << 9;
-	return (Stream_t *) This;
+	return &This->head;
  exit_0:
 	Free(This);
 	return NULL;

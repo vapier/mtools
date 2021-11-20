@@ -190,7 +190,7 @@ void mbadblocks(int argc, char **argv, int type UNUSEDP)
 	}
 	for(i=0; i < Fs->clus_start; i++ ){
 		ssize_t r;
-		r = PREADS(Fs->Next, in_buf,
+		r = PREADS(Fs->head.Next, in_buf,
 			   sectorsToBytes(Fs, i), Fs->sector_size);
 		if( r < 0 ){
 			perror("early error");
@@ -238,7 +238,7 @@ void mbadblocks(int argc, char **argv, int type UNUSEDP)
 		}
 	} else {
 		Stream_t *dev;
-		dev = Fs->Next;
+		dev = Fs->head.Next;
 		if(dev->Next)
 			dev = dev->Next;
 

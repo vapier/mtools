@@ -85,10 +85,7 @@ typedef struct {
 
 
 typedef struct Xdf_t {
-	Class_t *Class;
-	int refs;
-	Stream_t *Next;
-	Stream_t *Buffer;
+	struct Stream_t head;
 
 	int fd;
 	char *buffer;
@@ -644,8 +641,8 @@ Stream_t *XdfOpen(struct device *dev, const char *name,
 	This = New(Xdf_t);
 	if (!This)
 		return NULL;
+	init_head(&This->head, &XdfClass, NULL);
 
-	This->Class = &XdfClass;
 	This->sector_size = 512;
 	This->stretch = 0;
 
@@ -729,12 +726,9 @@ Stream_t *XdfOpen(struct device *dev, const char *name,
 	}
 	decompose(This, 0, 512, &begin, &end, 1);
 
-	This->refs = 1;
-	This->Next = 0;
-	This->Buffer = 0;
 	if(dev)
 		set_geom(This, dev);
-	return (Stream_t *) This;
+	return &This->head;
 
 exit_3:
 	Free(This->track_map);

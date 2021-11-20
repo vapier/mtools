@@ -36,10 +36,7 @@ struct map {
 };
 
 typedef struct Remap_t {
-	struct Class_t *Class;
-	int refs;
-	struct Stream_t *Next;
-	struct Stream_t *Buffer;
+	struct Stream_t head;
 
 	struct map *map;
 	int mapSize;
@@ -63,7 +60,7 @@ static ssize_t remap_pread(Stream_t *Stream, char *buf,
 {
 	DeclareThis(Remap_t);
 	if(remap(This, &start, &len)==DATA)
-		return PREADS(This->Next, buf, start, len);
+		return PREADS(This->head.Next, buf, start, len);
 	else {
 		memset(buf, 0, len);
 		return (ssize_t) len;
@@ -75,7 +72,7 @@ static ssize_t remap_pwrite(Stream_t *Stream, char *buf,
 {
 	DeclareThis(Remap_t);
 	if(remap(This, &start, &len)==DATA)
-		return PWRITES(This->Next, buf, start, len);
+		return PWRITES(This->head.Next, buf, start, len);
 	else {
 		unsigned int i;
 		/* When writing to a "zero" sector, make sure that we
@@ -191,9 +188,7 @@ Stream_t *Remap(Stream_t *Next, struct device *dev, char *errmsg) {
 		return 0;
 	}
 	memset((void*)This, 0, sizeof(Remap_t));
-	This->Class = &RemapClass;
-	This->refs = 1;
-	This->Next = Next;
+	init_head(&This->head, &RemapClass, Next);
 
 	/* First count number of items */
 	nrItems=process_map(This, map, 1, errmsg);
@@ -214,7 +209,7 @@ Stream_t *Remap(Stream_t *Next, struct device *dev, char *errmsg) {
 		goto exit_1;
 
 	This->mapSize=nrItems;
-	return (Stream_t *) This;
+	return &This->head;
  exit_1:
 	free(This->map);
  exit_0:

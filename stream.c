@@ -31,6 +31,13 @@ void limitSizeToOffT(size_t *len, mt_off_t maxLen)
 		*len = (size_t) maxLen;
 }
 
+void init_head(Stream_t *Stream, struct Class_t *Class, Stream_t *Next)
+{
+	Stream->Class = Class;
+	Stream->refs = 1;
+	Stream->Next = Next;
+	Stream->Buffer = NULL;
+}
 
 int flush_stream(Stream_t *Stream)
 {

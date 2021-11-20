@@ -21,10 +21,7 @@
 #include "codepage.h"
 
 typedef struct Filter_t {
-	Class_t *Class;
-	int refs;
-	Stream_t *Next;
-	Stream_t *Buffer;
+	struct Stream_t head;
 
 	int mode;
 	/* int convertCharset; */
@@ -39,7 +36,7 @@ static ssize_t read_filter(Stream_t *Stream, char *buf, size_t len)
 	ssize_t ret;
 	char newchar;
 
-	ret = READS(This->Next, buf, len);
+	ret = READS(This->head.Next, buf, len);
 	if ( ret < 0 )
 		return ret;
 
@@ -80,13 +77,10 @@ Stream_t *open_dos2unix(Stream_t *Next, int convertCharset UNUSEDP)
 	This = New(Filter_t);
 	if (!This)
 		return NULL;
-	This->Class = &FilterClass;
-	This->Next = Next;
-	This->refs = 1;
-	This->Buffer = 0;
+	init_head(&This->head, &FilterClass, Next);
 	/*
 	  This->convertCharset = convertCharset;
 	*/
 
-	return (Stream_t *) This;
+	return &This->head;
 }

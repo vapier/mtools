@@ -778,9 +778,7 @@ int calc_fs_parameters(struct device *dev, bool fat32,
 void initFsForFormat(Fs_t *Fs)
 {
 	memset(Fs, 0, sizeof(*Fs));
-
-	Fs->Class = &FsClass;
-	Fs->refs = 1;
+	init_head(&Fs->head, &FsClass, NULL);
 
 	Fs->cluster_size = 0;
 	Fs->dir_len = 0;
@@ -1316,11 +1314,10 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 	if(!keepBoot && !(used_dev.use_2m & 0x7f))
 		memset(boot.characters, '\0', Fs->sector_size);
 
-	Fs->Next = buf_init(Fs->Direct,
-			    blocksize * used_dev.heads * used_dev.sectors,
-			    blocksize * used_dev.heads * used_dev.sectors,
-			    blocksize);
-	Fs->Buffer = 0;
+	Fs->head.Next = buf_init(Fs->Direct,
+				 blocksize * used_dev.heads * used_dev.sectors,
+				 blocksize * used_dev.heads * used_dev.sectors,
+				 blocksize);
 
 	boot.boot.nfat = Fs->num_fat;
 	if(!keepBoot)

@@ -37,10 +37,8 @@
 #endif
 
 typedef struct SimpleFile_t {
-    Class_t *Class;
-    int refs;
-    Stream_t *Next;
-    Stream_t *Buffer;
+    struct Stream_t head;
+
     struct MT_STAT statbuf;
     int fd;
     mt_off_t lastwhere;
@@ -310,16 +308,13 @@ APIRET rc;
 #ifdef OS_hpux
 	This->size_limited = 0;
 #endif
-	This->Class = &SimpleFileClass;
+	init_head(&This->head, &SimpleFileClass, NULL);
 	if (!name || strcmp(name,"-") == 0 ){
 		if (mode == O_RDONLY)
 			This->fd = 0;
 		else
 			This->fd = 1;
 		This->seekable = 0;
-		This->refs = 1;
-		This->Next = 0;
-		This->Buffer = 0;
 		if (MT_FSTAT(This->fd, &This->statbuf) < 0) {
 		    Free(This);
 		    if(errmsg)
@@ -333,7 +328,7 @@ APIRET rc;
 		    return NULL;
 		}
 
-		return (Stream_t *) This;
+		return &This->head;
 	}
 
 
@@ -442,16 +437,12 @@ APIRET rc;
 		}
 	}
 
-	This->refs = 1;
-	This->Next = 0;
-	This->Buffer = 0;
-
 	if(maxSize)
 		*maxSize = max_off_t_seek;
 
 	This->lastwhere = 0;
 
-	return (Stream_t *) This;
+	return &This->head;
  exit_0:
 	close(This->fd);
  exit_1:
@@ -463,7 +454,7 @@ int get_fd(Stream_t *Stream)
 {
 	Class_t *clazz;
 	DeclareThis(SimpleFile_t);
-	clazz = This->Class;
+	clazz = This->head.Class;
 	if(clazz != &SimpleFileClass)
 	  return -1;
 	else

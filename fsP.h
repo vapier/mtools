@@ -27,10 +27,7 @@ typedef enum fatAccessMode_t {
 } fatAccessMode_t;
 
 typedef struct Fs_t {
-	Class_t *Class;
-	int refs;
-	Stream_t *Next;
-	Stream_t *Buffer;
+	struct Stream_t head;
 
 	int serialized;
 	unsigned long serial_number;

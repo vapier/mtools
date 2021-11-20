@@ -23,10 +23,7 @@
 #include "buffer.h"
 
 typedef struct Buffer_t {
-	Class_t *Class;
-	int refs;
-	Stream_t *Next;
-	Stream_t *Buffer;
+	struct Stream_t head;
 
 	size_t size;     	/* size of read/write buffer */
 	int dirty;	       	/* is the buffer dirty? */
@@ -69,7 +66,11 @@ static int _buf_flush(Buffer_t *Buffer)
 {
 	ssize_t ret;
 
-	if (!Buffer->Next || !Buffer->dirty)
+#ifdef HAVE_ASSERT_H
+	assert(Buffer->head.Next != NULL);
+#endif
+	
+	if (!Buffer->dirty)
 		return 0;
 #ifdef DEBUG
 	fprintf(stderr, "write %08x -- %02x %08x %08x\n",
@@ -79,7 +80,7 @@ static int _buf_flush(Buffer_t *Buffer)
 		Buffer->dirty_end - Buffer->dirty_pos);
 #endif
 
-	ret = force_pwrite(Buffer->Next,
+	ret = force_pwrite(Buffer->head.Next,
 			   Buffer->buf + Buffer->dirty_pos,
 			   Buffer->current + (mt_off_t) Buffer->dirty_pos,
 			   Buffer->dirty_end - Buffer->dirty_pos);
@@ -169,7 +170,7 @@ static ssize_t buf_pread(Stream_t *Stream, char *buf,
 			maximize(length, This->size - This->cur_size);
 
 			/* read it! */
-			ret=PREADS(This->Next,
+			ret=PREADS(This->head.Next,
 				   This->buf + This->cur_size,
 				   This->current + (mt_off_t) This->cur_size,
 				   length);
@@ -230,7 +231,7 @@ static ssize_t buf_pwrite(Stream_t *Stream, char *buf,
 				readSize = This->cylinderSize -
 					(size_t)(This->current % (mt_off_t) This->cylinderSize);
 
-				ret=PREADS(This->Next, This->buf,
+				ret=PREADS(This->head.Next, This->buf,
 					   (mt_off_t)This->current, readSize);
 				/* read it! */
 				if ( ret < 0 )
@@ -262,8 +263,8 @@ static ssize_t buf_pwrite(Stream_t *Stream, char *buf,
 			offset = OFFSET;
 			maximize(len, This->size - offset);
 			This->cur_size += len;
-			if(This->Next->Class->pre_allocate)
-				PRE_ALLOCATE(This->Next, cur_end(This));
+			if(This->head.Next->Class->pre_allocate)
+				PRE_ALLOCATE(This->head.Next, cur_end(This));
 			break;
 		case INSIDE:
 			/* nothing to do */
@@ -365,6 +366,7 @@ Stream_t *buf_init(Stream_t *Next, size_t size,
 	assert(size != 0);
 	assert(cylinderSize != 0);
 	assert(sectorSize != 0);
+	assert(Next != NULL);
 #endif
 
 	if(size % cylinderSize != 0) {
@@ -402,11 +404,8 @@ Stream_t *buf_init(Stream_t *Next, size_t size,
 	Buffer->current = 0L;
 	Buffer->cur_size = 0; /* buffer currently empty */
 
-	Buffer->Next = Next;
-	Buffer->Class = &BufferClass;
-	Buffer->refs = 1;
-	Buffer->Buffer = 0;
-	Buffer->Next->Buffer = (Stream_t *) Buffer;
+	init_head(&Buffer->head, &BufferClass, Next);
+	Buffer->head.Next->Buffer = &Buffer->head;
 	return Stream;
 }
 

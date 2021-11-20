@@ -89,7 +89,7 @@ static int makeit(dos_name_t *dosname,
 	mk_entry_from_base("..      ", ATTR_DIR, fat, 0, arg->mtime, &subEntry.dir);
 	dir_write(&subEntry);
 
-	FLUSH((Stream_t *) Target);
+	FLUSH(Target);
 	subEntry.entry = 0;
 	GET_DATA(Target, 0, 0, 0, &fat);
 	mk_entry_from_base(".       ", ATTR_DIR, fat, 0, arg->mtime, &subEntry.dir);
