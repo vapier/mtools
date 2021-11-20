@@ -499,7 +499,7 @@ static int list_recurs_directory(direntry_t *entry UNUSEDP,
 	/* then list subdirectories */
 	subMp = *mp;
 	subMp.lookupflags = ACCEPT_DIR | NO_DOTS | NO_MSG | DO_OPEN;
-	return ret | mp->loop(mp->File, &subMp, "*");
+	return ret | mp->loop(mp->File, &subMp, "*") | GOT_ONE;
 }
 
 #if 0
@@ -602,9 +602,10 @@ void mdir(int argc, char **argv, int type UNUSEDP)
 		mp.dirCallback = test_directory;
 	} else
 #endif
-		if(recursive) {
-		mp.lookupflags = ACCEPT_DIR | DO_OPEN_DIRS | NO_DOTS;
+	if(recursive) {
+		mp.lookupflags = ACCEPT_DIR | ACCEPT_PLAIN | DO_OPEN_DIRS | NO_DOTS;
 		mp.dirCallback = list_recurs_directory;
+		mp.callback = list_file;
 	} else {
 		mp.lookupflags = ACCEPT_DIR | ACCEPT_PLAIN | DO_OPEN_DIRS;
 		mp.dirCallback = list_non_recurs_directory;
