@@ -1,3 +1,9 @@
+mtools (4.0.35) stable; urgency=low
+
+  * Fix cluster padding at end of file in batch mode, and add comments
+    about what happens here
+
+ -- Alain Knaff <alain@knaff.lu>  Fri,  6 Aug 2021 20:13:59 +0200
 mtools (4.0.34) stable; urgency=low
 
   *  Fix mcopy -s issue

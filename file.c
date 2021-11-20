@@ -359,6 +359,9 @@ static int normal_map(File_t *This, uint32_t where, uint32_t *len, int mode,
 	if(batchmode &&
 	   mode == MT_WRITE &&
 	   end >= This->FileSize) {
+		/* In batch mode, when writing at end of file, "pad"
+		 * to nearest cluster boundary so that we don't have
+		 * to read that data back from disk. */
 		*len += ROUND_UP(end, clus_size) - end;
 	}
 
@@ -442,15 +445,19 @@ static ssize_t write_file(Stream_t *Stream, char *buf, size_t ilen)
 	if(ret < 0)
 		/* Error occured */
 		return ret;
-	This->where += (size_t) ret;
 	if((uint32_t)ret > requestedLen)
+		/* More data than requested may be written to lower
+		 * levels if batch mode is active, in order to "pad"
+		 * the last cluster of a file, so that we don't have
+		 * to read that back from disk */
 		bytesWritten = requestedLen;
 	else
-		bytesWritten = requestedLen;
-	if (This->where + bytesWritten > This->FileSize )
-		This->FileSize = This->where + bytesWritten;
+		bytesWritten = (uint32_t)ret;
+	This->where += bytesWritten;
+	if (This->where > This->FileSize )
+		This->FileSize = This->where;
 	recalcPreallocSize(This);
-	return ret;
+	return (ssize_t) bytesWritten;
 }
 
 static ssize_t pread_file(Stream_t *Stream, char *buf, mt_off_t where,

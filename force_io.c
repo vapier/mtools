@@ -1,4 +1,4 @@
-/*  Copyright 1996,1997,1999,2001,2002,2009 Alain Knaff.
+/*  Copyright 1996,1997,1999,2001,2002,2009,2021 Alain Knaff.
  *  This file is part of mtools.
  *
  *  Mtools is free software: you can redistribute it and/or modify
@@ -42,6 +42,7 @@ static ssize_t force_pio(Stream_t *Stream,
 			else
 				return ret;
 		}
+		assert((size_t)ret <= len);
 		start += (size_t) ret;
 		done += ret;
 		len -= (size_t) ret;
