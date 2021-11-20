@@ -1,3 +1,9 @@
+v4_0_36
+	- Fix error status of recursive listing of empty root directory
+	- If recursive listing, also show matched files at level one
+	- Use "seekless" reads & write internally, where possible
+	- Text mode conversion refactoring
+
 v4_0_35
 	- Fix cluster padding at end of file in batch mode, and add
 	  comments about what happens here
