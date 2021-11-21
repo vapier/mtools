@@ -23,10 +23,13 @@
 #include "file.h"
 #include "htable.h"
 #include "dirCache.h"
+#include "buffer.h"
 
 typedef struct File_t {
 	struct Stream_t head;
 
+	struct Stream_t *Buffer;
+	
 	int (*map)(struct File_t *this, uint32_t where, uint32_t *len, int mode,
 			   mt_off_t *res);
 	uint32_t FileSize;
@@ -692,6 +695,7 @@ static Stream_t *_internalFileOpen(Stream_t *Dir, unsigned int first,
 	if (!File)
 		return NULL;
 	init_head(&File->head, &FileClass, &This->head);
+	File->Buffer = NULL;
 	File->dcp = 0;
 	File->preallocatedClusters = 0;
 	File->preallocatedSize = 0;
@@ -716,10 +720,35 @@ static Stream_t *_internalFileOpen(Stream_t *Dir, unsigned int first,
 
 	File->PreviousRelCluNr = 0xffff;
 	File->FileSize = size;
-	File->head.Buffer = 0;
 	hash_add(filehash, (void *) File, &File->hint);
 	return (Stream_t *) File;
 }
+
+static void bufferize(Stream_t **Dir)
+{
+	Stream_t *BDir;
+	File_t *file = (File_t *) *Dir;
+	
+	if(!*Dir)
+		return;
+
+	if(file->Buffer){
+		(*Dir)->refs--;
+		file->Buffer->refs++;
+		*Dir = file->Buffer;
+		return;
+	}
+	
+	BDir = buf_init(*Dir, 64*16384, 512, MDIR_SIZE);
+	if(!BDir){
+		FREE(Dir);
+		*Dir = NULL;
+	} else {
+		file->Buffer = BDir;
+		*Dir = BDir;
+	}
+}
+
 
 Stream_t *OpenRoot(Stream_t *Dir)
 {

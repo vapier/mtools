@@ -22,7 +22,6 @@ typedef struct Stream_t {
 	struct Class_t *Class;
 	int refs;
 	struct Stream_t *Next;
-	struct Stream_t *Buffer;
 } Stream_t;
 
 #include "mtools.h"

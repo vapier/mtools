@@ -360,7 +360,6 @@ Stream_t *buf_init(Stream_t *Next, size_t size,
 		   size_t sectorSize)
 {
 	Buffer_t *Buffer;
-	Stream_t *Stream;
 
 #ifdef HAVE_ASSERT_H
 	assert(size != 0);
@@ -378,19 +377,13 @@ Stream_t *buf_init(Stream_t *Next, size_t size,
 		exit(1);
 	}
 
-	if(Next->Buffer){
-		Next->refs--;
-		Next->Buffer->refs++;
-		return Next->Buffer;
-	}
-
-	Stream = (Stream_t *) malloc (sizeof(Buffer_t));
-	if(!Stream)
+	Buffer = New(Buffer_t);
+	if(!Buffer)
 		return 0;
-	Buffer = (Buffer_t *) Stream;
+	init_head(&Buffer->head, &BufferClass, Next);
 	Buffer->buf = malloc(size);
 	if ( !Buffer->buf){
-		Free(Stream);
+		Free(Buffer);
 		return 0;
 	}
 	Buffer->size = size;
@@ -404,8 +397,6 @@ Stream_t *buf_init(Stream_t *Next, size_t size,
 	Buffer->current = 0L;
 	Buffer->cur_size = 0; /* buffer currently empty */
 
-	init_head(&Buffer->head, &BufferClass, Next);
-	Buffer->head.Next->Buffer = &Buffer->head;
-	return Stream;
+	return &Buffer->head;
 }
 

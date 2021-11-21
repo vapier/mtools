@@ -94,7 +94,6 @@ int getfreeMinClusters(Stream_t *Stream, uint32_t ref);
 FILE *opentty(int mode);
 
 int is_dir(Stream_t *Dir, char *path);
-void bufferize(Stream_t **Dir);
 
 int dir_grow(Stream_t *Dir, int size);
 int match(const wchar_t *, const wchar_t *, wchar_t *, int,  int);
