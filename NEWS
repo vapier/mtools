@@ -3,6 +3,7 @@ v4_0_36
 	- If recursive listing, also show matched files at level one
 	- Use "seekless" reads & write internally, where possible
 	- Text mode conversion refactoring
+	- Misc refactoring
 
 v4_0_35
 	- Fix cluster padding at end of file in batch mode, and add

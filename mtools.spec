@@ -1,7 +1,7 @@
 %define _binary_payload w9.gzdio
 Name:           mtools
 Summary:        mtools, read/write/list/format DOS disks under Unix
-Version:        4.0.35
+Version:        4.0.36
 Release:        1
 License:        GPLv3+
 Group:          Utilities/System
@@ -135,6 +135,12 @@ if [ -f %{_bindir}/install-info ] ; then
 fi
 
 %changelog
+* Sun Nov 21 2021 Alain Knaff <alain@knaff.lu>
+- Fix error status of recursive listing of empty root directory
+- If recursive listing, also show matched files at level one
+- Use "seekless" reads & write internally, where possible
+- Text mode conversion refactoring
+- Misc refactoring
 * Fri Aug 06 2021 Alain Knaff <alain@knaff.lu>
 - Fix cluster padding at end of file in batch mode, and add comments about what
   happens here
