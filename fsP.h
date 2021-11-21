@@ -40,7 +40,6 @@ typedef struct Fs_t {
 	void (*fat_encode)(struct Fs_t *This, unsigned int num,
 			   unsigned int code);
 
-	Stream_t *Direct;
 	int fat_dirty;
 	uint16_t fat_start;
 	uint32_t fat_len;

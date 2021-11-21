@@ -504,7 +504,6 @@ Stream_t *fs_init(char drive, int mode, int *isRop)
 		return NULL;
 
 	init_head(&This->head, &FsClass, NULL);
-	This->Direct = NULL;
 	This->preallocatedClusters = 0;
 	This->lastFatSectorNr = 0;
 	This->lastFatAccessMode = 0;
@@ -512,9 +511,9 @@ Stream_t *fs_init(char drive, int mode, int *isRop)
 	This->drive = drive;
 	This->last = 0;
 
-	This->Direct = find_device(drive, mode, &dev, &boot, name, &media,
-				   &maxSize, isRop);
-	if(!This->Direct)
+	This->head.Next = find_device(drive, mode, &dev, &boot, name, &media,
+				      &maxSize, isRop);
+	if(!This->head.Next)
 		return NULL;
 
 	cylinder_size = dev.heads * dev.sectors;
@@ -564,17 +563,16 @@ Stream_t *fs_init(char drive, int mode, int *isRop)
 		blocksize = This->sector_size;
 	else
 		blocksize = dev.blocksize;
-	if (disk_size)
-		This->head.Next = buf_init(This->Direct,
-					   8 * disk_size * blocksize,
-					   disk_size * blocksize,
-					   This->sector_size);
-	else
-		This->head.Next = This->Direct;
+	if (disk_size) {
+		Stream_t *Buffer = buf_init(This->head.Next,
+					    8 * disk_size * blocksize,
+					    disk_size * blocksize,
+					    This->sector_size);
 
-	if (This->head.Next == NULL) {
-		perror("init: allocate buffer");
-		This->head.Next = This->Direct;
+		if (Buffer != NULL)
+			This->head.Next = Buffer;
+		else
+			perror("init: allocate buffer");
 	}
 
 	/* read the FAT sectors */
