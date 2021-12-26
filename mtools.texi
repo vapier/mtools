@@ -165,14 +165,17 @@ All options use the @code{-} (minus) as their first character, not
 Most mtools commands allow multiple filename parameters, which
 doesn't follow MS-DOS conventions, but which is more user-friendly.
 
-Most mtools commands allow options that instruct them how to handle file
-name clashes. @xref{name clashes}, for more details on these. All
-commands accept the @code{-V} flag which prints the version, and most
-accept the @code{-v} flag, which switches on verbose mode. In verbose
-mode, these commands print out the name of the MS-DOS files upon which
-they act, unless stated otherwise. @xref{Commands}, for a description of
-the options which are specific to each command.
+Most mtools commands allow options that instruct them how to handle
+file name clashes. @xref{name clashes}, for more details on these.
 
+All commands accept the @code{-i} flag which allows to specify an
+image file (@xref{Drive letters}).
+
+All commands accept the @code{-V} flag which prints the version, and
+most accept the @code{-v} flag, which switches on verbose mode. In
+verbose mode, these commands print out the name of the MS-DOS files
+upon which they act, unless stated otherwise. @xref{Commands}, for a
+description of the options which are specific to each command.
 
 @node drive letters, directory, arguments, Common features
 @section Drive letters
