@@ -40,7 +40,7 @@ static const char* AuthErrors[] = {
 	"Auth failed: Packet oversized",
 	"Auth failed: X-Cookie doesn't match",
 	"Auth failed: Wrong transmission protocol version",
-	"Auth failed: Device locked"
+	"Auth failed: Device locked",
 	"Auth failed: Bad packet",
 	"Auth failed: I/O Error"
 };
