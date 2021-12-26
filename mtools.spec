@@ -49,7 +49,6 @@ rm %{buildroot}%{_infodir}/dir
 %{_mandir}/man1/mbadblocks.1*
 %{_mandir}/man1/mcat.1*
 %{_mandir}/man1/mcd.1*
-%{_mandir}/man1/mclasserase.1*
 %{_mandir}/man1/mcopy.1*
 %{_mandir}/man1/mdel.1*
 %{_mandir}/man1/mdeltree.1*
@@ -77,7 +76,6 @@ rm %{buildroot}%{_infodir}/dir
 %{_bindir}/mbadblocks
 %{_bindir}/mcat
 %{_bindir}/mcd
-%{_bindir}/mclasserase
 %{_bindir}/mcopy
 %{_bindir}/mdel
 %{_bindir}/mdeltree

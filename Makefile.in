@@ -73,7 +73,7 @@ INSTALL_INFO	= @INSTALL_INFO@
 .SUFFIXES: .o .c
 
 MAN1 = floppyd.1 floppyd_installtest.1 mattrib.1 mbadblocks.1 mcat.1	\
-mcd.1 mclasserase.1 mcopy.1 mdel.1 mdeltree.1 mdir.1 mdu.1 mformat.1	\
+mcd.1 mcopy.1 mdel.1 mdeltree.1 mdir.1 mdu.1 mformat.1	\
 minfo.1 mkmanifest.1 mlabel.1 mmd.1 mmount.1 mmove.1 mpartition.1	\
 mrd.1 mren.1 mshortname.1 mshowfat.1 mtoolstest.1 mtools.1 mtype.1	\
 mzip.1
@@ -89,7 +89,7 @@ OBJS_MTOOLS = buffer.o charsetConv.o codepages.o config.o copyfile.o	\
 device.o devices.o dirCache.o directory.o direntry.o dos2unix.o		\
 expand.o fat.o fat_free.o file.o file_name.o force_io.o hash.o init.o	\
 lba.o llong.o lockdev.o match.o mainloop.o mattrib.o mbadblocks.o	\
-mcat.o mcd.o mclasserase.o mcopy.o mdel.o mdir.o mdoctorfat.o mdu.o	\
+mcat.o mcd.o mcopy.o mdel.o mdir.o mdoctorfat.o mdu.o	\
 mformat.o minfo.o misc.o missFuncs.o mk_direntry.o mlabel.o mmd.o	\
 mmount.o mmove.o mpartition.o mshortname.o mshowfat.o mzip.o mtools.o	\
 offset.o old_dos.o open_image.o patchlevel.o partition.o plain_io.o	\
@@ -111,7 +111,7 @@ SRCS = buffer.c codepages.c config.c copyfile.c device.c devices.c	\
 dirCache.c directory.c direntry.c dos2unix.c expand.c fat.c		\
 fat_free.c file.c file_name.c file_read.c force_io.c hash.c init.c	\
 lba.c lockdev.c match.c mainloop.c mattrib.c mbadblocks.c mcat.c	\
-mcd.c mclasserase.c mcopy.c mdel.c mdir.c mdu.c mdoctorfat.c		\
+mcd.c mcopy.c mdel.c mdir.c mdu.c mdoctorfat.c		\
 mformat.c minfo.c misc.c missFuncs.c mk_direntry.c mlabel.c mmd.c	\
 mmount.c mmove.c mpartition.c mshortname.c mshowfat.c mzip.c mtools.c	\
 offset.c old_dos.c open_image.c partition.c plain_io.c precmd.c		\
@@ -124,7 +124,7 @@ SRCS-@USE_XDF@ += xdf_io.c
 
 SCRIPTS = mcheck mxtar uz tgz mcomp amuFormat.sh
 
-LINKS=mattrib mcat mcd mclasserase mcopy mdel mdeltree mdir mdu	\
+LINKS=mattrib mcat mcd mcopy mdel mdeltree mdir mdu	\
 mformat minfo mlabel mmd mmount mmove mpartition mrd mren mtype	\
 mtoolstest mshortname mshowfat mbadblocks mzip
 

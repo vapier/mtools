@@ -208,7 +208,6 @@ void mattrib(int argc, char **argv, int type);
 void mbadblocks(int argc, char **argv, int type);
 void mcat(int argc, char **argv, int type);
 void mcd(int argc, char **argv, int type);
-void mclasserase(int argc, char **argv, int type);
 void mcopy(int argc, char **argv, int type);
 void mdel(int argc, char **argv, int type);
 void mdir(int argc, char **argv, int type);

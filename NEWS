@@ -1,3 +1,7 @@
+v4_0_37
+	- Removed mclasserase commands, which doesn't fit the coding
+          structure of the rest of mtools
+
 v4_0_36
 	- Fix error status of recursive listing of empty root directory
 	- If recursive listing, also show matched files at level one
