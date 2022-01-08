@@ -1,3 +1,12 @@
+mtools (4.0.37) stable; urgency=low
+
+  * Removed mclasserase commands, which doesn't fit the coding
+    structure of the rest of mtools
+  * Add support to -i option to mcd
+  * Document -i in mtools.1
+  * Fix a missing commad error in floppyd_io.c
+
+ -- Alain Knaff <alain@knaff.lu>  Sun, 26 Dec 2021 18:57:02 +0100
 mtools (4.0.36) stable; urgency=low
 
   * Fix error status of recursive listing of empty root directory

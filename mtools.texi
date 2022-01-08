@@ -169,7 +169,7 @@ Most mtools commands allow options that instruct them how to handle
 file name clashes. @xref{name clashes}, for more details on these.
 
 All commands accept the @code{-i} flag which allows to specify an
-image file (@xref{Drive letters}).
+image file (@xref{drive letters}).
 
 All commands accept the @code{-V} flag which prints the version, and
 most accept the @code{-v} flag, which switches on verbose mode. In
