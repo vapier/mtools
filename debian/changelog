@@ -4,7 +4,7 @@ mtools (4.0.37) stable; urgency=low
     structure of the rest of mtools
   * Add support to -i option to mcd
   * Document -i in mtools.1
-  * Fix a missing commad error in floppyd_io.c
+  * Fix a missing command error in floppyd_io.c
 
  -- Alain Knaff <alain@knaff.lu>  Sun, 26 Dec 2021 18:57:02 +0100
 mtools (4.0.36) stable; urgency=low

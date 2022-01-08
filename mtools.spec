@@ -138,7 +138,7 @@ fi
   structure of the rest of mtools
 - Add support to -i option to mcd
 - Document -i in mtools.1
-- Fix a missing commad error in floppyd_io.c
+- Fix a missing command error in floppyd_io.c
 * Sun Nov 21 2021 Alain Knaff <alain@knaff.lu>
 - Fix error status of recursive listing of empty root directory
 - If recursive listing, also show matched files at level one
