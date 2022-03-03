@@ -1,3 +1,9 @@
+mtools (4.0.38) stable; urgency=low
+
+  * Make sure case byte is cleared when making the special
+    directory entries "." and ".."
+
+ -- Alain Knaff <alain@knaff.lu>  Thu,  3 Mar 2022 21:24:44 +0100
 mtools (4.0.37) stable; urgency=low
 
   * Removed mclasserase commands, which doesn't fit the coding

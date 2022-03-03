@@ -1,3 +1,6 @@
+v4_0_38
+	- Make sure case byte is cleared when making the special
+          directory entries "." and ".."
 v4_0_37
 	- Removed mclasserase commands, which doesn't fit the coding
           structure of the rest of mtools
