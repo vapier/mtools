@@ -1216,7 +1216,7 @@ description of those.
 @menu
 * floppyd::           floppy daemon to run on your X server box
 * floppyd_installtest:: small utility to check for the presence of floppyd
-* mattrib::           change MS-DOS file attribute flags
+* mattrib::           change MS-DOS file attribute bits
 * mbadblocks::        tests a floppy disk, and marks the bad blocks in the FAT
 * mcat::              same as cat. Only useful with floppyd.
 * mcd::               change MS-DOS directory
@@ -1401,14 +1401,14 @@ The connect-String has the format described in the floppyd-section:
 @cindex System files
 @cindex Archive bit
 
-@code{Mattrib} is used to change MS-DOS file attribute flags. It has the
+@code{Mattrib} is used to change MS-DOS file attribute bits. It has the
 following syntax:
 
 @code{mattrib} [@code{-a|+a}] [@code{-h|+h}] [@code{-r|+r}]
 [@code{-s|+s}] [@code{-/}]  [@code{-p}] [@code{-X}] @var{msdosfile} [ @var{msdosfiles} @dots{} ]
 
-@code{Mattrib} adds attribute flags to an MS-DOS file (with the
-`@code{+}' operator) or remove attribute flags (with the `@code{-}'
+@code{Mattrib} adds attribute bits to an MS-DOS file (with the
+`@code{+}' operator) or remove attribute bits (with the `@code{-}'
 operator).
 
 @code{Mattrib} supports the following attribute bits:
