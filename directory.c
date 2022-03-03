@@ -139,5 +139,7 @@ struct directory *mk_entry_from_base(const char *base, unsigned char attr,
 	struct dos_name_t dn;
 	strncpy(dn.base, base, 8);
 	strncpy(dn.ext, "   ", 3);
-	return mk_entry(&dn, attr, fat, size, date, ndir);
+	struct directory *entry = mk_entry(&dn, attr, fat, size, date, ndir);
+	entry->Case = 0;
+	return entry;
 }
