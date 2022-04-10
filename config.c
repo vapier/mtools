@@ -266,7 +266,7 @@ static void get_env_conf(void)
 	    errno = 0;
 	    switch(global_switches[i].type) {
 	    case T_INT:
-		* ((int *)global_switches[i].address) = strtoi(s,0,0);
+		* ((int *)global_switches[i].address) = strtosi(s,0,0);
 		break;
 	    case T_UINT:
 		* ((unsigned int *)global_switches[i].address) = strtoui(s,0,0);

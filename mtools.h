@@ -188,9 +188,7 @@ off_t str_to_offset(char *str);
 uint32_t parseSize(char *sizeStr);
 unsigned int strtoui(const char *nptr, char **endptr, int base);
 unsigned int atoui(const char *nptr);
-#ifndef HAVE_STRTOI
-int strtoi(const char *nptr, char **endptr, int base);
-#endif
+int strtosi(const char *nptr, char **endptr, int base);
 unsigned long atoul(const char *nptr);
 uint8_t strtou8(const char *nptr, char **endptr, int base);
 uint8_t atou8(const char *str);

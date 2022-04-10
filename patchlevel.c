@@ -18,10 +18,10 @@
 #include "sysincludes.h"
 #include "msdos.h"
 
-const char *mversion="4.0.38";
+const char *mversion="4.0.39";
 
 /* Multiple releases on same day should be marked with (b), (cd), (d) after
  * date string below */
-const char *mdate = "March 3rd, 2022";
+const char *mdate = "April 10th, 2022";
 
-const char *mformat_banner = "MTOO4038";
+const char *mformat_banner = "MTOO4039";

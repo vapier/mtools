@@ -1,3 +1,7 @@
+v4_0_39
+	- Rename strtoi to strosi (string to signed int). The strtoi
+          function on BSD does something else (returns an intmax, not
+          an int)
 v4_0_38
 	- Make sure case byte is cleared when making the special
           directory entries "." and ".."

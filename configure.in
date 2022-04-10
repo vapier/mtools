@@ -105,7 +105,7 @@ dnl Checks for header files.
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
 AC_HEADER_STDBOOL
-AC_CHECK_HEADERS(getopt.h stdarg.h stdlib.h unistd.h linux/unistd.h \
+AC_CHECK_HEADERS(getopt.h stdarg.h stdlib.h inttypes.h unistd.h linux/unistd.h \
 libc.h fcntl.h limits.h sys/file.h sys/ioctl.h sys/time.h strings.h string.h \
 sys/param.h memory.h malloc.h io.h signal.h sys/signal.h utime.h sgtty.h \
 sys/floppy.h mntent.h sys/sysmacros.h netinet/in.h netinet/tcp.h assert.h \
@@ -218,7 +218,7 @@ dnl Checks for library functions.
 AC_TYPE_SIGNAL
 AC_CHECK_FUNCS(strerror random srandom strchr strrchr lockf flock \
 strcasecmp strncasecmp strnlen atexit on_exit getpass memmove \
-strdup strndup strcspn strspn strtoul strtol strtoll strtoi strtoui \
+strdup strndup strcspn strspn strtoul strtol strtoll strtoui \
 memcpy strpbrk memset setenv seteuid setresuid setpgrp \
 tcsetattr tcflush basename fchdir media_oldaliases  \
 snprintf setlocale toupper_l strncasecmp_l \

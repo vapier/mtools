@@ -52,11 +52,9 @@ unsigned int atoui(const char *str) {
     return strtoui(str, 0, 0);
 }
 
-#ifndef HAVE_STRTOI
-int strtoi(const char *nptr, char **endptr, int base) {
+int strtosi(const char *nptr, char **endptr, int base) {
     return (int) strtol_with_range(nptr, endptr, base, INT_MIN, INT_MAX);
 }
-#endif
 
 unsigned long atoul(const char *str) {
     return strtoul(str, 0, 0);
