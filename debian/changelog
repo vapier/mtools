@@ -1,3 +1,8 @@
+mtools (20220509) stable; urgency=low
+
+  * Remove libbsd dependency
+
+ -- Alain Knaff <alain@knaff.lu>  Mon,  9 May 2022 21:26:09 +0200
 mtools (4.0.39) stable; urgency=low
 
   * Rename strtoi to strosi (string to signed int). The strtoi

@@ -133,6 +133,8 @@ if [ -f %{_bindir}/install-info ] ; then
 fi
 
 %changelog
+* Thu May 12 2022 Alain Knaff <alain@knaff.lu>
+- Remove libbsd dependency
 * Sun Apr 10 2022 Alain Knaff <alain@knaff.lu>
 - Rename strtoi to strosi (string to signed int). The strtoi function
   on BSD does something else (returns an intmax, not an int)
