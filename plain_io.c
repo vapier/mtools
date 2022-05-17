@@ -91,7 +91,7 @@ static ssize_t file_io(SimpleFile_t *This, char *buf,
 #endif
 
 	if ( ret == -1 ){
-		perror("plain_io");
+		perror("plain_io read/write");
 		return -1;
 	}
 	This->lastwhere = where + ret;
