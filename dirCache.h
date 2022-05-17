@@ -17,6 +17,8 @@
  *  You should have received a copy of the GNU General Public License
  *  along with Mtools.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+#include "stream.h"
 typedef enum {
 	DCET_FREE,
 	DCET_USED,
