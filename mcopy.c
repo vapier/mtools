@@ -24,7 +24,6 @@
 #include "sysincludes.h"
 #include "msdos.h"
 #include "mtools.h"
-#include "vfat.h"
 #include "mainloop.h"
 #include "plain_io.h"
 #include "nameclash.h"

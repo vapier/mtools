@@ -15,11 +15,10 @@
  *  along with Mtools.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "sysincludes.h"
-#include "vfat.h"
+#include "mtoolsDirentry.h"
 #include "dirCache.h"
 #include "dirCacheP.h"
 #include <assert.h>
-
 
 #define BITS_PER_INT (sizeof(unsigned int) * 8)
 

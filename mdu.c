@@ -20,7 +20,6 @@
 
 #include "sysincludes.h"
 #include "msdos.h"
-#include "vfat.h"
 #include "mtools.h"
 #include "file.h"
 #include "mainloop.h"

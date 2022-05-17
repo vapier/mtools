@@ -19,7 +19,6 @@
  */
 
 #include <sys/param.h>
-#include "vfat.h"
 #include "mtoolsDirentry.h"
 
 typedef struct bounded_string {

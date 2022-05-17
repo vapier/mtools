@@ -21,7 +21,6 @@
 #include "sysincludes.h"
 #include "msdos.h"
 #include "mtools.h"
-#include "vfat.h"
 #include "fs.h"
 #include "mainloop.h"
 #include "plain_io.h"
@@ -33,7 +32,6 @@ static Stream_t *fss[256]; /* open drives */
 static void finish_sc(void)
 {
 	int i;
-
 	for(i=0; i<256; i++){
 		if(fss[i] && fss[i]->refs != 1 )
 			fprintf(stderr,"Streamcache allocation problem:%c %d\n",

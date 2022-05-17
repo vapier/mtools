@@ -20,7 +20,6 @@
 #include "sysincludes.h"
 #include "msdos.h"
 #include "stream.h"
-#include "vfat.h"
 #include "mtools.h"
 
 
