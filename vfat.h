@@ -21,38 +21,9 @@
 
 #include "msdos.h"
 
-/*
- * VFAT-related common header file
- */
-#define VFAT_SUPPORT
-
-struct unicode_char {
-	unsigned char lchar;
-	unsigned char uchar;
-};
-
-
 /* #define MAX_VFAT_SUBENTRIES 32 */ /* Theoretical max # of VSEs */
 #define MAX_VFAT_SUBENTRIES 20		/* Max useful # of VSEs */
 #define VSE_NAMELEN 13
-
-#define VSE1SIZE 5
-#define VSE2SIZE 6
-#define VSE3SIZE 2
-
-#include "stream.h"
-
-struct vfat_subentry {
-	unsigned char id;		/* 0x40 = last; & 0x1f = VSE ID */
-	struct unicode_char text1[VSE1SIZE];
-	unsigned char attribute;	/* 0x0f for VFAT */
-	unsigned char hash1;		/* Always 0? */
-	unsigned char sum;		/* Checksum of short name */
-	struct unicode_char text2[VSE2SIZE];
-	unsigned char sector_l;		/* 0 for VFAT */
-	unsigned char sector_u;		/* 0 for VFAT */
-	struct unicode_char text3[VSE3SIZE];
-};
 
 /* Enough size for a worst case number of full VSEs plus a null */
 #define VBUFSIZE ((MAX_VFAT_SUBENTRIES*VSE_NAMELEN) + 1)
@@ -60,19 +31,7 @@ struct vfat_subentry {
 /* Max legal length of a VFAT long name */
 #define MAX_VNAMELEN (255)
 
-#define VSE_PRESENT 0x01
-#define VSE_LAST 0x40
-#define VSE_MASK 0x1f
-
-struct vfat_state {
-	wchar_t name[VBUFSIZE];
-	int status; /* is now a bit map of 32 bits */
-	int subentries;
-	unsigned char sum; /* no need to remember the sum for each entry,
-			    * it is the same anyways */
-	int present;
-};
-
+#include "stream.h"
 
 struct scan_state {
 	int match_free;
@@ -87,9 +46,6 @@ struct scan_state {
 };
 
 #include "mtoolsDirentry.h"
-
-void clear_vfat(struct vfat_state  *);
-int unicode_write(wchar_t *, struct unicode_char *, int num, int *end);
 
 int clear_vses(Stream_t *, int, unsigned int);
 void autorename_short(struct dos_name_t *, int);

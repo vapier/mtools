@@ -19,14 +19,13 @@
  */
 #include "stream.h"
 #include "msdos.h"
-#include "fs.h"
 
 typedef enum fatAccessMode_t {
 	FAT_ACCESS_READ,
 	FAT_ACCESS_WRITE
 } fatAccessMode_t;
 
-typedef struct Fs_t {
+struct Fs_t {
 	struct Stream_t head;
 
 	int serialized;
@@ -77,7 +76,10 @@ typedef struct Fs_t {
 	unsigned int sectorShift;
 
 	doscp_t *cp;
-} Fs_t;
+};
+
+#include "fs.h"
+
 
 #ifndef abs
 #define abs(x) ((unsigned int)((x)>0?(x):-(x)))

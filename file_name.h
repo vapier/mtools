@@ -18,7 +18,7 @@
  *  along with Mtools.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <sysincludes.h>
+#include "sysincludes.h"
 #include "mtools.h"
 
 /**

@@ -739,7 +739,7 @@ static void bufferize(Stream_t **Dir)
 		return;
 	}
 	
-	BDir = buf_init(*Dir, 64*16384, 512, MDIR_SIZE);
+	BDir = buf_init(*Dir, 16384, 512, MDIR_SIZE);
 	if(!BDir){
 		FREE(Dir);
 		*Dir = NULL;

@@ -22,7 +22,53 @@
 #include "file.h"
 #include "htable.h"
 #include "mainloop.h"
+
+#ifdef HAVE_READDIR
+
+#ifdef HAVE_DIRENT_H
 #include <dirent.h>
+#endif
+
+#else
+
+/* So far only supported platform that has no readdir is AT&T UnixPC.
+ * Here, the following works: */
+struct dirent {
+	unsigned short d_ino;
+	char d_name[15]; /* One more than physically read, in order
+			  * to have a terminating character */
+};
+
+typedef struct DIR {
+	int fd;
+	struct dirent entry;
+} DIR;
+
+static DIR *opendir(const char *filename) {
+	DIR *dirp;
+	int fd = open(filename, O_RDONLY);
+	if(fd < 0)
+		return NULL;
+	dirp = calloc(1, sizeof(DIR));
+	dirp->fd = fd;
+	return dirp;
+}
+
+static struct dirent *readdir(DIR *dirp) {
+	int n = read(dirp->fd, &dirp->entry, 16);
+	if(n <= 0)
+		return NULL;
+	dirp->entry.d_name[14]='\0'; /* Terminating null */
+	return &dirp->entry;
+}
+
+static int closedir(DIR* dirp) {
+	close(dirp->fd);
+	free(dirp);
+	return 0;
+}
+
+#endif
 
 typedef struct Dir_t {
 	struct Stream_t head;

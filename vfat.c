@@ -28,8 +28,40 @@
 #include "dirCache.h"
 #include "dirCacheP.h"
 #include "file_name.h"
+#include "stream.h"
 
 /* #define DEBUG */
+
+
+#define VSE1SIZE 5
+#define VSE2SIZE 6
+#define VSE3SIZE 2
+
+
+struct vfat_subentry {
+	unsigned char id;		/* 0x40 = last; & 0x1f = VSE ID */
+	unsigned char text1[VSE1SIZE*2];
+	unsigned char attribute;	/* 0x0f for VFAT */
+	unsigned char hash1;		/* Always 0? */
+	unsigned char sum;		/* Checksum of short name */
+	unsigned char text2[VSE2SIZE*2];
+	unsigned char sector_l;		/* 0 for VFAT */
+	unsigned char sector_u;		/* 0 for VFAT */
+	unsigned char text3[VSE3SIZE*2];
+};
+
+#define VSE_PRESENT 0x01
+#define VSE_LAST 0x40
+#define VSE_MASK 0x1f
+
+struct vfat_state {
+	wchar_t name[VBUFSIZE];
+	int status; /* is now a bit map of 32 bits */
+	int subentries;
+	unsigned char sum; /* no need to remember the sum for each entry,
+			    * it is the same anyways */
+	int present;
+};
 
 const char *short_illegals=";+=[]',\"*\\<>/?:|";
 const char *long_illegals = "\"*\\<>/?:|\005";
@@ -117,21 +149,34 @@ void autorename_long(char *name, int bump)
 	autorename(name, '-', '\0', long_illegals, 255, bump);
 }
 
-
-static __inline__ int unicode_read(struct unicode_char *in,
-				   wchar_t *out, int num)
+/* If null encountered, set *end to 0x40 and write nulls rest of way
+ * 950820: Win95 does not like this!  It complains about bad characters.
+ * So, instead: If null encountered, set *end to 0x40, write the null, and
+ * write 0xff the rest of the way (that is what Win95 seems to do; hopefully
+ * that will make it happy)
+ */
+/* Always return num */
+static int unicode_write(wchar_t *in, unsigned char *out, int num, int *end_p)
 {
-	wchar_t *end_out = out+num;
+	int j;
 
-	while(out < end_out) {
-#ifdef HAVE_WCHAR_H
-		*out = in->lchar | ((in->uchar) << 8);
-#else
-		if (in->uchar)
-			*out = '_';
-		else
-			*out = in->lchar;
-#endif
+	for (j=0; j<num; ++j) {
+		if (*end_p)
+			/* Fill with 0xff */
+			out[0] = out[1] = 0xff;
+		else {
+			/* TODO / FIXME : handle case where wchat has more
+			 * than 2 bytes (i.e. bytes 2 or 3 are set.
+			 * ==> generate surrogate pairs?
+			 */
+			out[1] = (*in & 0xffff) >> 8;
+			out[0] = *in & 0xff;
+			if (! *in) {
+				*end_p = VSE_LAST;
+			}
+		}
+
+		++out;
 		++out;
 		++in;
 	}
@@ -139,7 +184,29 @@ static __inline__ int unicode_read(struct unicode_char *in,
 }
 
 
-void clear_vfat(struct vfat_state *v)
+static __inline__ int unicode_read(unsigned char *in,
+				   wchar_t *out, int num)
+{
+	wchar_t *end_out = out+num;
+
+	while(out < end_out) {
+#ifdef HAVE_WCHAR_H
+		*out = in[0] | ((in[1]) << 8);
+#else
+		if (in[1])
+			*out = '_';
+		else
+			*out = in[0];
+#endif
+		++out;
+		++in;
+		++in;
+	}
+	return num;
+}
+
+
+static void clear_vfat(struct vfat_state *v)
 {
 	v->subentries = 0;
 	v->status = 0;

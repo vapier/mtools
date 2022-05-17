@@ -938,12 +938,17 @@ struct device devices[] = {
 
 
 #if (!defined(predefined_devices) && defined (CPU_m68000) && defined (OS_sysv))
+
+#undef F_LOCK
+/* F_LOCK is doubly defined!, both in unistd.h and sys/gdisk.h , with
+   different value! */
+
 #include <sys/gdioctl.h>
 
 #define predefined_devices
 struct device devices[] = {
-	{"/dev/rfp020",		'A', 12,O_NDELAY,40,2, 9, 0, MDEF_ARG},
-	{"/usr/bin/DOS/dvd000", 'C', GENFD},
+	{"/dev/rfp020",		'A', 0, O_NDELAY, 40, 2, 9, 0, FDEF_ARG },
+	{"/usr/bin/DOS/dvd000", 'C', GENFD },
 	REMOTE
 };
 
@@ -957,23 +962,22 @@ int init_geom(int fd, struct device *dev, struct device *orig_dev,
 		ioctl(fd, GDDISMNT, &gdbuf);
 		return 1;
 	}
-	if((dev->use_2m & 0x7f) || (dev->ssize & 0x7f))
-		return 1;
-
-	SET_INT(gdbuf.params.cyls,dev->ntracks);
-	SET_INT(gdbuf.params.heads,dev->nheads);
-	SET_INT(gdbuf.params.psectrk,dev->nsect);
-	dev->ntracks = gdbuf.params.cyls;
-	dev->nheads = gdbuf.params.heads;
-	dev->nsect = gdbuf.params.psectrk;
-	dev->use_2m = 0x80;
-	dev->ssize = 0x02;
+	SET_INT(gdbuf.params.cyls,dev->tracks);
+	SET_INT(gdbuf.params.heads,dev->heads);
+	SET_INT(gdbuf.params.psectrk,dev->sectors);
+	dev->tracks = gdbuf.params.cyls;
+	dev->heads = gdbuf.params.heads;
+	dev->sectors = gdbuf.params.psectrk;
 
 	gdbuf.params.pseccyl = gdbuf.params.psectrk * gdbuf.params.heads;
 	gdbuf.params.flags = 1;		/* disk type flag */
 	gdbuf.params.step = 0;		/* step rate for controller */
 	gdbuf.params.sectorsz = 512;	/* sector size */
 
+	/* On AT&T UnixPC, the GDSETA needs to be performed unconditionally
+	 * even if parameters didn't actually change, or else the driver
+	 * forbids reading/writing to the device
+	 */
 	if (ioctl(fd, GDSETA, &gdbuf) < 0) {
 		ioctl(fd, GDDISMNT, &gdbuf);
 		return(1);
@@ -1191,7 +1195,7 @@ int init_geom(int fd, struct device *dev, struct device *orig_dev,
 
 #ifdef INIT_NOOP
 int init_geom(int fd, struct device *dev, struct device *orig_dev,
-			  struct MT_STAT *statbuf)
+	      struct MT_STAT *statbuf)
 {
 	return compare_geom(dev, orig_dev);
 }

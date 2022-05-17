@@ -184,10 +184,6 @@ typedef unsigned char _Bool;
 # include <unistd.h>
 #endif
 
-#ifdef HAVE_LINUX_UNISTD_H
-# include <linux/unistd.h>
-#endif
-
 #ifdef HAVE_LIBC_H
 # include <libc.h>
 #endif
@@ -350,6 +346,7 @@ extern int errno;
 # define wcschr strchr
 # define wcspbrk strpbrk
 # define wchar_t char
+# define wint_t unsigned int
 # define putwc putc
 #endif
 
@@ -443,6 +440,9 @@ extern int errno;
 # define strrchr rindex
 #endif
 
+#ifndef HAVE_STRSTR
+extern const char * strstr (const char* haystack, const char *needle);
+#endif
 
 #ifndef HAVE_STRDUP
 extern char *strdup(const char *str);
@@ -633,6 +633,25 @@ struct utimbuf
 # undef HAVE_OFFSET_T
 #endif
 
+#if (defined (CPU_m68000) && defined (OS_sysv))
+/* AT&T UnixPC lacks prototypes for some system functions */
+ssize_t read(int fd, void *buf, size_t count);
+ssize_t write(int fd, const void *buf, size_t count);
+int fstat(int fd, struct stat *statbuf);
+#define S_ISREG(x) ((x)&S_IFREG)
+#define S_ISDIR(x) ((x)&S_IFDIR)
+#define S_ISLNK(x) (0)
+int toupper(int c);
+int tolower(int c);
+#define srandom srand48
+void srandom(long seed);
+#define random lrand48
+long random();
+#endif
+
+#ifndef HAVE_LSTAT
+#define lstat stat
+#endif
 
 #ifdef HAVE_STAT64
 #define MT_STAT stat64

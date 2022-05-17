@@ -22,7 +22,6 @@
 
 #include <stdio.h>
 #include <errno.h>
-#include <stdlib.h>
 #include "file_name.h"
 
 
@@ -382,7 +381,11 @@ size_t wchar_to_native(const wchar_t *wchar, char *native, size_t len,
 	memset(&ps, 0, sizeof(ps));
 	for(i=0; i<len && wchar[i] != 0; i++) {
 		size_t r = wcrtomb(dptr, wchar[i], &ps);
-		if(r == (size_t) -1 && errno == EILSEQ) {
+		if(r == (size_t) -1
+#ifdef EILSEQ
+		   && errno == EILSEQ
+#endif
+		   ) {
 			r=1;
 			*dptr='_';
 		}

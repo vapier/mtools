@@ -315,7 +315,7 @@ static Stream_t *try_device(struct device *dev,
 #else
 			sprintf(errmsg,
 				"Can't set disk parameters for %c: %s",
-				drive, strerror(errno));
+				dev->drive, strerror(errno));
 #endif
 			else
 				sprintf(errmsg,

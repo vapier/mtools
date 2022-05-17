@@ -148,6 +148,53 @@ char * strrchr (const char* s1, int c)
 
 #endif
 
+#ifndef HAVE_STRSTR
+const char * strstr (const char* haystack, const char *needle)
+{
+	const char *start;
+	int i;
+	if (!haystack) return NULL;
+	for(start=haystack; *start;start++) {
+		for(i=0; start[i] && needle[i]; i++)
+			if(start[i] != needle[i])
+				break;
+		if(!needle[i])
+			return start;
+	}
+	return NULL;
+}
+#endif
+
+#ifndef HAVE_MKDIR
+int mkdir (const char* file, int mode)
+{
+	pid_t pid;
+	int stat_loc;
+	
+	switch(pid=fork()) {
+	case 0: /* in the child */
+		execl("/bin/mkdir", "mkdir", file, 0);
+		perror("execl");
+		exit(127);
+		break;
+	case -1:
+		perror("fork");
+		return -1;
+	default:
+		if(wait(&stat_loc) <0) {
+			perror("wait");
+			return -1;
+		} else if(stat_loc & 0xffff != 0) {
+			fprintf(stderr, "wait returned %x\n",
+				stat_loc & 0xffff);
+			return -1;
+		}
+	}
+	return 0;
+}
+#endif
+
+
 #ifndef HAVE_STRPBRK
 /*
  * Return ptr to first occurrence of any character from `brkset'
@@ -184,6 +231,8 @@ static int getdigit(char a, int max)
 		dig = a - 'a' + 10;
 	else if(a >= 'A')
 		dig = a - 'A' + 10;
+	else
+		return -1;
 	if(dig >= max)
 		return -1;
 	else

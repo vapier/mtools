@@ -344,11 +344,12 @@ static unsigned int fat16_decode(Fs_t *Stream, unsigned int num)
 
 static void fat16_encode(Fs_t *Stream, unsigned int num, unsigned int code)
 {
+	unsigned char *address;
 	if(code > UINT16_MAX) {
 		fprintf(stderr, "FAT16 code %x too big\n", code);
 		exit(1);
 	}
-	unsigned char *address = getAddress(Stream, num << 1, FAT_ACCESS_WRITE);
+	address = getAddress(Stream, num << 1, FAT_ACCESS_WRITE);
 	set_word(address, (uint16_t) code);
 }
 
