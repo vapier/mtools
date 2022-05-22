@@ -149,7 +149,7 @@ char * strrchr (const char* s1, int c)
 #endif
 
 #ifndef HAVE_STRSTR
-const char * strstr (const char* haystack, const char *needle)
+char * strstr (const char* haystack, const char *needle)
 {
 	const char *start;
 	int i;
@@ -159,7 +159,7 @@ const char * strstr (const char* haystack, const char *needle)
 			if(start[i] != needle[i])
 				break;
 		if(!needle[i])
-			return start;
+			return (char *)start;
 	}
 	return NULL;
 }
@@ -184,7 +184,7 @@ int mkdir (const char* file, int mode)
 		if(wait(&stat_loc) <0) {
 			perror("wait");
 			return -1;
-		} else if(stat_loc & 0xffff != 0) {
+		} else if((stat_loc & 0xffff) != 0) {
 			fprintf(stderr, "wait returned %x\n",
 				stat_loc & 0xffff);
 			return -1;

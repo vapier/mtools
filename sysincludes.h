@@ -411,7 +411,7 @@ extern int errno;
 #endif
 
 #ifndef HAVE_STRSTR
-extern const char * strstr (const char* haystack, const char *needle);
+extern char * strstr (const char* haystack, const char *needle);
 #endif
 
 #ifndef HAVE_STRDUP
@@ -619,8 +619,19 @@ struct utimbuf
 
 #if (defined (CPU_m68000) && defined (OS_sysv))
 /* AT&T UnixPC lacks prototypes for some system functions */
+void *calloc(size_t nmemb, size_t size);
 ssize_t read(int fd, void *buf, size_t count);
 ssize_t write(int fd, const void *buf, size_t count);
+int access(const char *pathname, int mode);
+int open(const char *path, int oflag, ...);
+int close(int fildes);
+int lockf(int fd, int cmd, off_t len);
+off_t lseek(int fd, off_t offset, int whence);
+int ioctl(int fd, unsigned long request, ...);
+int fcntl(int fd, int cmd, ...);
+int pipe(int pipefd[2]);
+int dup(int oldfd);
+int stat(const char *path, struct stat *buf);
 int fstat(int fd, struct stat *statbuf);
 #define S_ISREG(x) ((x)&S_IFREG)
 #define S_ISDIR(x) ((x)&S_IFDIR)
@@ -628,6 +639,48 @@ int fstat(int fd, struct stat *statbuf);
 int toupper(int c);
 int tolower(int c);
 void srand48(long seed);
+long lrand48(void);
+time_t time(time_t *);
+long strtol(const char *str, char **ptr, int base);
+int printf(const char *format, ...);
+int fprintf(FILE *stream, const char *format, ...);
+int sprintf(char *s, const char *format, ...);
+int vfprintf(FILE *stream, const char *format, ...);
+int sscanf(const char *str, const char *format, ...);
+int fclose(FILE *stream);
+void perror(const char *s);
+int fflush(FILE *stream);
+size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream);
+size_t fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream);
+void exit(int status);
+int fputs(char *, FILE *stream);
+int fputc(int c, FILE *stream);
+int fgetc(FILE *stream);
+int isatty(int fd);
+int atexit(void (*function)(void));
+int getuid(void);
+int geteuid(void);
+int getegid(void);
+int getgid(void);
+int setuid(uid_t uid);
+int setgid(gid_t gid);
+void bcopy(const void *src, void *dest, size_t n);
+int _flsbuf(unsigned char x, FILE *p);
+pid_t fork(void);
+int execl(const char *pathname, const char *arg, ...);
+int execvp(const char *file, char *const argv[]);
+pid_t wait(int *stat_loc);
+int kill(pid_t pid, int sig);
+char *getpass(const char *prompt);
+int getopt(int argc, char * const argv[], const char *optstring);
+char *getenv(const char *name);
+char *getlogin(void);
+struct passwd *getpwnam(const char *name);
+struct passwd *getpwuid(uid_t uid);
+int unlink(const char *pathname);
+int access(const char *pathname, int mode);
+int mkdir (const char* file, int mode);
+unsigned int sleep(unsigned int seconds);
 #endif
 
 #ifndef HAVE_LSTAT
