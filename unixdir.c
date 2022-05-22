@@ -34,7 +34,7 @@
 /* So far only supported platform that has no readdir is AT&T UnixPC.
  * Here, the following works: */
 struct dirent {
-	unsigned short d_ino;
+	ino_t d_ino;
 	char d_name[15]; /* One more than physically read, in order
 			  * to have a terminating character */
 };
