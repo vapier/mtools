@@ -50,7 +50,6 @@ struct vfat_subentry {
 	unsigned char text3[VSE3SIZE*2];
 };
 
-#define VSE_PRESENT 0x01
 #define VSE_LAST 0x40
 #define VSE_MASK 0x1f
 
