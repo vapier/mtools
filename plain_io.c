@@ -32,10 +32,6 @@
 #include "plain_io.h"
 #include "llong.h"
 
-#ifdef HAVE_LINUX_FS_H
-# include <linux/fs.h>
-#endif
-
 typedef struct SimpleFile_t {
     struct Stream_t head;
 
