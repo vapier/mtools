@@ -37,6 +37,7 @@
 #include "mtools.h"
 #include "scsi.h"
 
+#ifdef HAVE_SCSI
 #ifndef _PASSWORD_LEN
 #define _PASSWORD_LEN 33
 #endif
@@ -53,7 +54,6 @@
 #include "devices.h"
 
 #endif
-
 
 static int zip_cmd(int priv, int fd, unsigned char cdb[6], uint8_t clen,
 		   scsi_io_mode_t mode, void *data, uint32_t len,
@@ -221,8 +221,11 @@ static int door_command(int priv, int fd, uint8_t cmd1, uint8_t cmd2,
 {
 	return short_command(priv, fd, cmd1, 0, cmd2, 0, extra_data);
 }
+#endif
 
 void mzip(int argc, char **argv, int type UNUSEDP) NORETURN;
+
+#ifdef HAVE_SCSI
 void mzip(int argc, char **argv, int type UNUSEDP)
 {
 	void *extra_data = NULL;
@@ -552,3 +555,11 @@ void mzip(int argc, char **argv, int type UNUSEDP)
 	close(fd);
 	exit(0);
 }
+
+#else
+void mzip(UNUSEDP int argc, UNUSEDP char **argv, int type UNUSEDP)
+{
+	fprintf(stderr, "Mzip only available where SCSI is supported\n");
+	exit(-1);
+}
+#endif

@@ -17,6 +17,8 @@
  *  along with Mtools.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifdef HAVE_SCSI
+
 #define SCSI_READ 0x8
 #define SCSI_WRITE 0xA
 #define SCSI_IOMEGA 0xC
@@ -33,5 +35,7 @@ unsigned int scsi_max_length(void);
 int scsi_cmd(int fd, unsigned char cdb[6], uint8_t clen, scsi_io_mode_t mode,
 	     void *data, uint32_t len, void *extra_data);
 int scsi_open(const char *name, int flags, int mode, void **extra_data);
+
+#endif /* HAVE_SCSI */
 
 #endif /* __mtools_scsi_h */

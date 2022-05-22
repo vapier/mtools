@@ -34,7 +34,7 @@
 #include "scsi.h"
 #include "plain_io.h"
 #include "scsi_io.h"
-
+#ifdef HAVE_SCSI
 typedef struct ScsiDevice_t {
 	struct Stream_t head;
 
@@ -348,3 +348,4 @@ Stream_t *OpenScsi(struct device *dev,
 	Free(This);
 	return NULL;
 }
+#endif

@@ -36,6 +36,8 @@
 #include "mtools.h"
 #include "scsi.h"
 
+#ifdef HAVE_SCSI
+
 #if defined OS_hpux
 #include <sys/scsi.h>
 #endif
@@ -321,3 +323,5 @@ sc.retsts);
       return -1;
 #endif
 }
+#endif
+

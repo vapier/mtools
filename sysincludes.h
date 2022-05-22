@@ -527,6 +527,18 @@ void _stripexe(char *filename);
 #define O_ACCMODE (O_RDONLY | O_RDWR | O_WRONLY)
 #endif
 
+
+#if defined OS_hpux || \
+    defined OS_sunos || defined OS_solaris || \
+    defined OS_linux || \
+    (defined _SCO_DS) && (defined SCSIUSERCMD) || \
+    defined sgi || \
+    (defined OS_freebsd) && (__FreeBSD__ >= 2) || \
+    defined(OS_netbsd) || defined(OS_netbsdelf)
+# define HAVE_SCSI
+#endif
+
+
 /***************************************************************************/
 /*                                                                         */
 /* Prototypes for systems where the functions exist but not the prototypes */

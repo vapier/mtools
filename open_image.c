@@ -74,6 +74,7 @@ Stream_t *OpenImage(struct device *out_dev, struct device *dev,
 		}
 #endif
 
+#ifdef HAVE_SCSI
 		if (!Stream) {
 			Stream = OpenScsi(out_dev, name,
 					  mode,
@@ -81,7 +82,7 @@ Stream_t *OpenImage(struct device *out_dev, struct device *dev,
 					  lockMode,
 					  maxSize);
 		}
-
+#endif
 		if (!Stream) {
 			Stream = SimpleFileOpenWithLm(out_dev, dev, name,
 						      mode,
