@@ -1,5 +1,5 @@
 /*  Copyright 1991 Free Software Foundation, Inc.
- *  Copyright 1997,1999-2002,2007-2009 Alain Knaff.
+ *  Copyright 1997,1999-2002,2007-2009,2022 Alain Knaff.
  *  This file is part of mtools.
  *
  *  Mtools is free software: you can redistribute it and/or modify
@@ -337,7 +337,7 @@ size_t strcspn (const char *s, const char *reject)
 
 #ifndef HAVE_STRERROR
 
-#ifndef DECL_SYS_ERRLIST
+#if !HAVE_DECL_SYS_ERRLIST
 extern char *sys_errlist[];
 #endif
 

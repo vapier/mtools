@@ -1,4 +1,4 @@
-/*  Copyright 1996-1999,2001,2002,2007-2009 Alain Knaff.
+/*  Copyright 1996-1999,2001,2002,2007-2009,2022 Alain Knaff.
  *  This file is part of mtools.
  *
  *  Mtools is free software: you can redistribute it and/or modify
@@ -192,6 +192,11 @@ typedef unsigned char _Bool;
 # include <getopt.h>
 #endif
 
+#if !HAVE_DECL_OPTARG
+extern char *optarg;
+extern int optind;
+#endif
+
 #ifdef HAVE_FCNTL_H
 # include <fcntl.h>
 #endif
@@ -215,14 +220,11 @@ typedef unsigned char _Bool;
  * suppress warnings if the platform is broken, as long as these warnings do
  * not prevent compilation */
 
-#ifdef TIME_WITH_SYS_TIME
-# include <sys/time.h>
+#ifdef HAVE_TIME_H
 # include <time.h>
 #else
 # ifdef HAVE_SYS_TIME_H
 #  include <sys/time.h>
-# else
-#  include <time.h>
 # endif
 #endif
 
@@ -368,38 +370,6 @@ extern int errno;
 # include <xlocale.h>
 #endif
 
-#ifdef USE_FLOPPYD
-
-#ifdef HAVE_SYS_SOCKET_H
-#include <sys/socket.h>
-#endif
-
-#ifdef HAVE_NETINET_IN_H
-#include <netinet/in.h>
-#endif
-
-#ifdef HAVE_NETINET_TCP_H
-#include <netinet/tcp.h>
-#endif
-
-#ifdef HAVE_ARPA_INET_H
-#include <arpa/inet.h>
-#endif
-
-#ifdef HAVE_NETDB_H
-#include <netdb.h>
-#endif
-
-#ifdef HAVE_X11_XAUTH_H
-#include <X11/Xauth.h>
-#endif
-
-#ifdef HAVE_X11_XLIB_H
-#include <X11/Xlib.h>
-#endif
-
-#endif
-
 #ifndef INADDR_NONE
 #define INADDR_NONE (-1)
 #endif
@@ -541,7 +511,21 @@ void _stripexe(char *filename);
 # endif
 #endif /* !__STDC__ */
 
+#ifndef UINT8_MAX
+#define UINT8_MAX (0xff)
+#endif
 
+#ifndef UINT16_MAX
+#define UINT16_MAX (0xffff)
+#endif
+
+#ifndef UINT32_MAX
+#define UINT32_MAX (0xffffffffU)
+#endif
+
+#ifndef O_ACCMODE
+#define O_ACCMODE (O_RDONLY | O_RDWR | O_WRONLY)
+#endif
 
 /***************************************************************************/
 /*                                                                         */
@@ -643,10 +627,7 @@ int fstat(int fd, struct stat *statbuf);
 #define S_ISLNK(x) (0)
 int toupper(int c);
 int tolower(int c);
-#define srandom srand48
-void srandom(long seed);
-#define random lrand48
-long random();
+void srand48(long seed);
 #endif
 
 #ifndef HAVE_LSTAT

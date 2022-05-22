@@ -1,5 +1,5 @@
 /*  Copyright 1999 Peter Schlaile.
- *  Copyright 1999-2005,2007-2009 Alain Knaff.
+ *  Copyright 1999-2005,2007-2009,2022 Alain Knaff.
  *  This file is part of mtools.
  *
  *  Mtools is free software: you can redistribute it and/or modify
@@ -40,10 +40,15 @@
 
 #include "sysincludes.h"
 #include "grp.h"
-#include <X11/Xlib.h>
-#include <X11/Xauth.h>
 
 #include "floppyd_io.h"
+#ifdef HAVE_X11_XAUTH_H
+#include <X11/Xauth.h>
+#endif
+
+#ifdef HAVE_X11_XLIB_H
+#include <X11/Xlib.h>
+#endif
 
 #ifndef SIGCLD
 #define SIGCLD SIGCHLD

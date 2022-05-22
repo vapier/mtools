@@ -2,7 +2,7 @@
 #define MTOOLS_FLOPPYDIO_H
 
 /*  Copyright 1999 Peter Schlaile.
- *  Copyright 1998,2000-2002,2009 Alain Knaff.
+ *  Copyright 1998,2000-2002,2009,2022 Alain Knaff.
  *  This file is part of mtools.
  *
  *  Mtools is free software: you can redistribute it and/or modify
@@ -22,6 +22,29 @@
 #ifdef USE_FLOPPYD
 
 #include "stream.h"
+
+/* Networking headers needed by floppyd */
+#ifdef HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
+
+#ifdef HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif
+
+#ifdef HAVE_NETINET_TCP_H
+#include <netinet/tcp.h>
+#endif
+
+#ifdef HAVE_ARPA_INET_H
+#include <arpa/inet.h>
+#endif
+
+#ifdef HAVE_NETDB_H
+#include <netdb.h>
+#endif
+
+/* End Networking headers needed by floppyd */
 
 typedef uint8_t Byte;
 typedef uint32_t Dword;
@@ -64,6 +87,7 @@ enum AuthErrorsEnum {
 	AUTH_BADPACKET,
 	AUTH_IO_ERROR
 };
+
 
 
 UNUSED(static inline void cork(int sockhandle, int on))

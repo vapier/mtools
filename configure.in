@@ -1,4 +1,4 @@
-dnl Copyright 1996-2003,2005,2006,2008,2009 Alain Knaff.
+dnl Copyright 1996-2003,2005,2006,2008,2009,2022 Alain Knaff.
 dnl This file is part of mtools.
 dnl
 dnl Mtools is free software: you can redistribute it and/or modify
@@ -15,9 +15,10 @@ dnl You should have received a copy of the GNU General Public License
 dnl along with Mtools.  If not, see <http://www.gnu.org/licenses/>.
 dnl
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT(buffer.c)
+AC_INIT
+AC_CONFIG_SRCDIR([buffer.c])
 m4_include([m4/ax_lib_socket_nsl.m4])
-AC_CONFIG_HEADER(config.h)
+AC_CONFIG_HEADERS([config.h])
 
 dnl Checks for compiler
 AC_PROG_CC
@@ -30,7 +31,7 @@ AC_PATH_PROG(INSTALL_INFO, install-info, "")
 
 dnl Check for Systems
 AC_USE_SYSTEM_EXTENSIONS
-AC_CANONICAL_SYSTEM
+AC_CANONICAL_TARGET
 
 AC_C_CONST
 AC_C_INLINE
@@ -91,7 +92,8 @@ AC_DEFINE([USE_RAWTERM],1,[Define on non Unix OS'es which don't have the concept
 
 dnl Checks for libraries.
 
-dnl AC_IRIX_SUN
+dnl AC_FUNC_GETMNTENT
+AC_CHECK_LIB([sun],[getpwnam])
 AC_CHECK_LIB(sun, getpwnam)
 AC_CHECK_LIB(cam, cam_open_device)
 AC_CHECK_LIB(iconv, iconv)
@@ -101,20 +103,22 @@ AC_CHECK_LIB(socket,main)
 AX_LIB_SOCKET_NSL
 
 dnl Checks for header files.
-AC_HEADER_STDC
+AC_CHECK_INCLUDES_DEFAULT
+AC_PROG_EGREP
+
 AC_HEADER_SYS_WAIT
 AC_HEADER_STDBOOL
 AC_CHECK_HEADERS(getopt.h stdarg.h stdlib.h inttypes.h unistd.h \
-libc.h fcntl.h limits.h sys/file.h sys/ioctl.h sys/time.h strings.h string.h \
+libc.h fcntl.h limits.h sys/file.h sys/ioctl.h time.h sys/time.h \
+strings.h string.h sys/types.h \
 sys/param.h memory.h malloc.h io.h signal.h sys/signal.h utime.h sgtty.h \
-sys/floppy.h mntent.h sys/sysmacros.h netinet/in.h netinet/tcp.h assert.h \
+sys/floppy.h mntent.h sys/sysmacros.h assert.h \
 iconv.h wctype.h wchar.h locale.h xlocale.h linux/fs.h dirent.h)
 AC_CHECK_HEADERS(termio.h sys/termio.h, [break])
 AC_CHECK_HEADERS(termios.h sys/termios.h, [break])
 
 dnl Check for platform-specific header files
 AC_CHECK_HEADERS(sys/fdio.h)
-AC_CHECK_HEADERS(sys/socket.h arpa/inet.h netdb.h)
 
 dnl Check for types
 AC_SYS_LARGEFILE
@@ -127,7 +131,7 @@ AC_TYPE_UINT32_T
 AC_TYPE_SSIZE_T
 AC_TYPE_SIZE_T
 AC_TYPE_OFF_T
-AC_TYPE_SIGNAL
+
 AC_TYPE_UID_T
 AC_TYPE_PID_T
 
@@ -210,12 +214,12 @@ dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
 AC_C_INLINE
 AC_TYPE_SIZE_T
-AC_HEADER_TIME
+
 AC_STRUCT_TM
 
 
 dnl Checks for library functions.
-AC_TYPE_SIGNAL
+
 AC_CHECK_FUNCS(strerror random srandom strchr strrchr lockf flock \
 strcasecmp strncasecmp strnlen atexit on_exit getpass memmove \
 strdup strndup strcspn strspn strtoul strtol strtoll strtoui \
@@ -230,7 +234,7 @@ alarm sigaction usleep lstat unsetenv mkdir)
 AC_CHECK_FUNCS(utimes utime, [break])
 AC_CHECK_FUNCS(tzset gettimeofday)
 
-CF_SYS_ERRLIST
+AC_CHECK_DECLS([sys_errlist, optarg])
 
 [
 host_os0=`echo $host_os | sed 's/-/_/g'`
@@ -342,6 +346,8 @@ if test X$use_floppyd = Xyes; then
     FLOPPYD_LIBS=""
     AC_CHECK_LIB(X11, XOpenDisplay, [ FLOPPYD_LIBS="-lX11 $FLOPPYD_LIBS" ])
     AC_CHECK_LIB(Xau, XauFileName, [ FLOPPYD_LIBS="-lXau $FLOPPYD_LIBS" ])
+    AC_CHECK_HEADERS(sys/socket.h arpa/inet.h netdb.h netinet/in.h \
+                     netinet/tcp.h X11/Xauth.h X11/Xlib.h)
 else
     FLOPPYD=
     BINFLOPPYD=
@@ -364,4 +370,5 @@ AC_SUBST(MACHDEPLIBS)
 AC_SUBST(SHLIB)
 AC_SUBST(host_cpu)
 AC_SUBST(HOST_ID)
-AC_OUTPUT(Makefile)
+AC_CONFIG_FILES([Makefile])
+AC_OUTPUT
