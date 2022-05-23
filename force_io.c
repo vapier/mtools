@@ -42,7 +42,9 @@ static ssize_t force_pio(Stream_t *Stream,
 			else
 				return ret;
 		}
+#ifdef HAVE_ASSERT_H
 		assert((size_t)ret <= len);
+#endif
 		start += (size_t) ret;
 		done += ret;
 		len -= (size_t) ret;
