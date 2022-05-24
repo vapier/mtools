@@ -49,7 +49,7 @@ static int cur_dev; /* device being filled in. If negative, none */
 static int trusted=0; /* is the currently parsed device entry trusted? */
 static unsigned int nr_dev; /* number of devices that the current table can
 			       hold */
-struct device *devices; /* the device table */
+struct device *devices=NULL; /* the device table */
 static int token_nr; /* number of tokens in line */
 
 static char default_drive='\0'; /* default drive */
