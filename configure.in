@@ -113,7 +113,7 @@ libc.h fcntl.h limits.h sys/file.h sys/ioctl.h time.h sys/time.h \
 strings.h string.h sys/types.h \
 sys/param.h memory.h malloc.h io.h signal.h sys/signal.h utime.h sgtty.h \
 sys/floppy.h mntent.h sys/sysmacros.h assert.h \
-iconv.h wctype.h wchar.h locale.h xlocale.h linux/fs.h dirent.h)
+iconv.h wctype.h wchar.h locale.h xlocale.h dirent.h)
 AC_CHECK_HEADERS(termio.h sys/termio.h, [break])
 AC_CHECK_HEADERS(termios.h sys/termios.h, [break])
 
