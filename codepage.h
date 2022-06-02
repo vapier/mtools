@@ -16,8 +16,8 @@
  */
 
 typedef struct Codepage_l {
-	int nr;
-	unsigned char tounix[128];
+	unsigned int nr;
+	char tounix[128];
 } Codepage_t;
 
 
@@ -39,4 +39,3 @@ extern char *mstoupper;
 extern country_t countries[];
 extern unsigned char toucase[][128];
 extern Codepage_t codepages[];
-extern char *country_string;

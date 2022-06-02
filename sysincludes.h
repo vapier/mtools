@@ -348,7 +348,7 @@ extern int errno;
 # define wcschr strchr
 # define wcspbrk strpbrk
 # define wchar_t char
-# define wint_t unsigned int
+# define wint_t int
 # define putwc putc
 #endif
 

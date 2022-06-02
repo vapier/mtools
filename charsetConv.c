@@ -225,8 +225,8 @@ void wchar_to_dos(doscp_t *cp,
 #include "codepage.h"
 
 struct doscp_t {
-	unsigned char *from_dos;
-	unsigned char to_dos[0x80];
+	char *from_dos;
+	char to_dos[0x80];
 };
 
 doscp_t *cp_open(unsigned int codepage)
@@ -258,7 +258,7 @@ doscp_t *cp_open(unsigned int codepage)
 		char native = ret->from_dos[i];
 		if(! (native & 0x80))
 			continue;
-		ret->to_dos[native & 0x7f] = 0x80 | i;
+		ret->to_dos[native & 0x7f] = (char) (0x80 | i);
 	}
 	return ret;
 }
@@ -270,7 +270,7 @@ void cp_close(doscp_t *cp)
 
 size_t dos_to_wchar(doscp_t *cp, const char *dos, wchar_t *wchar, size_t len)
 {
-	int i;
+	size_t i;
 
 	for(i=0; i<len && dos[i]; i++) {
 		char c = dos[i];
@@ -288,7 +288,7 @@ size_t dos_to_wchar(doscp_t *cp, const char *dos, wchar_t *wchar, size_t len)
 void wchar_to_dos(doscp_t *cp,
 		  wchar_t *wchar, char *dos, size_t len, int *mangled)
 {
-	int i;
+	size_t i;
 	for(i=0; i<len && wchar[i]; i++) {
 		char c = wchar[i];
 		if(c >= ' ' && c <= '~')
@@ -310,14 +310,14 @@ void wchar_to_dos(doscp_t *cp,
 
 typedef int mbstate_t;
 
-static inline size_t wcrtomb(char *s, wchar_t wc, mbstate_t *ps)
+static inline size_t wcrtomb(char *s, wchar_t wc, mbstate_t *ps UNUSEDP)
 {
 	*s = wc;
 	return 1;
 }
 
 static inline size_t mbrtowc(wchar_t *pwc, const char *s,
-			     size_t n, mbstate_t *ps)
+			     size_t n UNUSEDP, mbstate_t *ps UNUSEDP)
 {
 	*pwc = *s;
 	return 1;
@@ -364,7 +364,7 @@ static void initialize_to_native(void)
  * Returns number of generated native characters
  */
 size_t wchar_to_native(const wchar_t *wchar, char *native, size_t len,
-		       size_t out_len)
+		       size_t out_len UNUSEDP)
 {
 #ifdef HAVE_ICONV_H
 	int mangled;
@@ -375,7 +375,7 @@ size_t wchar_to_native(const wchar_t *wchar, char *native, size_t len,
 	native[r]='\0';
 	return r;
 #else
-	int i;
+	size_t i;
 	char *dptr = native;
 	mbstate_t ps;
 	memset(&ps, 0, sizeof(ps));
@@ -392,7 +392,7 @@ size_t wchar_to_native(const wchar_t *wchar, char *native, size_t len,
 		dptr+=r;
 	}
 	*dptr='\0';
-	return dptr-native;
+	return (size_t) (dptr-native);
 #endif
 }
 
@@ -417,7 +417,7 @@ size_t native_to_wchar(const char *native, wchar_t *wchar, size_t len,
 			*/
 			char c = *native;
 			if(c >= '\xa0' && c < '\xff')
-				wchar[i] = c & 0xff;
+				wchar[i] = (wchar_t) (c & 0xff);
 			else
 				wchar[i] = '_';
 			memset(&ps, 0, sizeof(ps));

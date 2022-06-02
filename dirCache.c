@@ -46,7 +46,7 @@ static uint32_t calcHash(wchar_t *name)
 				     * successive letters cannot cover each
 				     * other easily */
 		c = towupper((wint_t)*name);
-		hash ^=  (c * (c+2)) ^ (i * (i+2));
+		hash ^= (uint32_t) (c * (c+2)) ^ (i * (i+2));
 		hash &= 0xffffffff;
 		i++;
 		name++;

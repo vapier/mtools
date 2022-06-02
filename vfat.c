@@ -195,7 +195,7 @@ static __inline__ int unicode_read(unsigned char *in,
 		if (in[1])
 			*out = '_';
 		else
-			*out = in[0];
+			*out = (char) in[0];
 #endif
 		++out;
 		++in;
