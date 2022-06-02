@@ -320,7 +320,7 @@ static inline size_t mbrtowc(wchar_t *pwc, const char *s,
 			     size_t n UNUSEDP, mbstate_t *ps UNUSEDP)
 {
 	*pwc = *s;
-	return 1;
+	return *pwc ? 1 : 0;
 }
 
 #endif
