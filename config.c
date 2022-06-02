@@ -17,7 +17,6 @@
  */
 #include "sysincludes.h"
 #include "mtools.h"
-#include "codepage.h"
 #include "mtoolsPaths.h"
 
 /* global variables */
@@ -67,7 +66,6 @@ unsigned int mtools_twenty_four_hour_clock=1;
 unsigned int mtools_lock_timeout=30;
 unsigned int mtools_default_codepage=850;
 const char *mtools_date_string="yyyy-mm-dd";
-char *country_string=0;
 
 typedef struct switches_l {
     const char *name;

@@ -25,7 +25,6 @@
 #include "file.h"
 #include "mainloop.h"
 #include "fs.h"
-#include "codepage.h"
 #include "file_name.h"
 
 #ifdef TEST_SIZE

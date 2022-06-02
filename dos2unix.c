@@ -18,7 +18,6 @@
 #include "sysincludes.h"
 #include "msdos.h"
 #include "mtools.h"
-#include "codepage.h"
 
 typedef struct Filter_t {
 	struct Stream_t head;

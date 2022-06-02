@@ -24,7 +24,6 @@
 #include "file.h"
 #include "mainloop.h"
 #include "fs.h"
-#include "codepage.h"
 
 
 typedef struct Arg_t {

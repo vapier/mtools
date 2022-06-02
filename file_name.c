@@ -20,7 +20,6 @@
 #include "msdos.h"
 #include "mtools.h"
 #include "vfat.h"
-#include "codepage.h"
 #include "file_name.h"
 
 /* Write a DOS name + extension into a legal unix-style name.  */
