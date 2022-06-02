@@ -673,6 +673,7 @@ static Stream_t *_internalFileOpen(Stream_t *Dir, unsigned int first,
 	This->head.refs++;
 
 	if(first != 1){
+		void *Result;
 		/* we use the illegal cluster 1 to mark newly created files.
 		 * do not manage those by hashtable */
 		init_head(&Pattern.head, &FileClass, &This->head);
@@ -683,8 +684,9 @@ static Stream_t *_internalFileOpen(Stream_t *Dir, unsigned int first,
 		Pattern.FirstAbsCluNr = first;
 		Pattern.loopDetectRel = 0;
 		Pattern.loopDetectAbs = first;
-		if(!hash_lookup(filehash, (T_HashTableEl) &Pattern,
-				(T_HashTableEl **)&File, 0)){
+		if(!hash_lookup(filehash, &Pattern,
+				&Result, 0)){
+			File=Result;
 			File->head.refs++;
 			This->head.refs--;
 			return (Stream_t *) File;
@@ -720,7 +722,7 @@ static Stream_t *_internalFileOpen(Stream_t *Dir, unsigned int first,
 
 	File->PreviousRelCluNr = 0xffff;
 	File->FileSize = size;
-	hash_add(filehash, (void *) File, &File->hint);
+	hash_add(filehash, File, &File->hint);
 	return (Stream_t *) File;
 }
 

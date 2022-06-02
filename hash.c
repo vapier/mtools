@@ -28,7 +28,7 @@ struct hashtable {
   size_t fill;  /* number of deleted or in use slots */
   size_t inuse; /* number of slots in use */
   size_t max;   /* maximal number of elements to keep efficient */
-  T_HashTableEl *entries;
+  void **entries;
 };
 
 static size_t sizes[]=
@@ -64,7 +64,7 @@ static int alloc_ht(T_HashTable *H, size_t size)
   H->size = size;
   H->fill = 0;
   H->inuse = 0;
-  H->entries = NewArray(size, T_HashTableEl);
+  H->entries = NewArray(size, void*);
   if (H->entries == NULL)
     return -1; /* out of memory error */
 
@@ -104,7 +104,7 @@ int free_ht(T_HashTable *H, T_HashFunc entry_free)
 }
 
 /* add into hash table without checking for repeats */
-static int _hash_add(T_HashTable *H,T_HashTableEl *E, size_t *hint)
+static int _hash_add(T_HashTable *H,void *E, size_t *hint)
 {
   size_t f2, pos;
   int ctr;
@@ -132,7 +132,7 @@ static int _hash_add(T_HashTable *H,T_HashTableEl *E, size_t *hint)
 static int rehash(T_HashTable *H)
 {
   size_t size,i;
-  T_HashTableEl *oldentries;
+  void **oldentries;
   /* resize the table */
 
   size = H->size;
@@ -148,7 +148,7 @@ static int rehash(T_HashTable *H)
   return 0;
 }
 
-int hash_add(T_HashTable *H, T_HashTableEl *E, size_t *hint)
+int hash_add(T_HashTable *H, void *E, size_t *hint)
 {
   if (H->fill >= H->max)
     rehash(H);
@@ -159,7 +159,7 @@ int hash_add(T_HashTable *H, T_HashTableEl *E, size_t *hint)
 
 
 /* add into hash table without checking for repeats */
-static int _hash_lookup(T_HashTable *H,T_HashTableEl *E, T_HashTableEl **E2,
+static int _hash_lookup(T_HashTable *H,void *E, void **E2,
 			size_t *hint, int isIdentity)
 {
 	size_t f2, pos, upos, ttl;
@@ -194,16 +194,16 @@ static int _hash_lookup(T_HashTable *H,T_HashTableEl *E, T_HashTableEl **E2,
 }
 
 
-int hash_lookup(T_HashTable *H,T_HashTableEl *E, T_HashTableEl **E2,
+int hash_lookup(T_HashTable *H,void *E, void **E2,
 		size_t *hint)
 {
 	return _hash_lookup(H, E, E2, hint, 0);
 }
 
 /* add into hash table without checking for repeats */
-int hash_remove(T_HashTable *H,T_HashTableEl *E, size_t hint)
+int hash_remove(T_HashTable *H,void *E, size_t hint)
 {
-  T_HashTableEl *E2;
+  void *E2;
 
   if (hint < H->size && H->entries[hint] == E){
     H->inuse--;
