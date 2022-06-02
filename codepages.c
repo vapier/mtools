@@ -17,6 +17,8 @@
  */
 #include "config.h"
 
+#ifndef HAVE_ICONV_H
+
 #include "codepage.h"
 
 Codepage_t codepages[]= {
@@ -112,3 +114,7 @@ Codepage_t codepages[]= {
 
 	{ 0 }
 };
+#else
+/* Shut down warning: ISO C forbids an empty translation unit warning [-Wpedantic]: */
+typedef int make_iso_compilers_happy;
+#endif
