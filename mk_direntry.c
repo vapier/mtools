@@ -677,7 +677,7 @@ void init_clash_handling(ClashHandling_t *ch)
 	ch->is_label = 0;
 }
 
-int handle_clash_options(ClashHandling_t *ch, char c)
+int handle_clash_options(ClashHandling_t *ch, int c)
 {
 	int isprimary;
 	if(isupper(c))
