@@ -103,14 +103,11 @@ AC_CHECK_LIB(socket,main)
 AX_LIB_SOCKET_NSL
 
 dnl Checks for header files.
-AC_CHECK_INCLUDES_DEFAULT
-AC_PROG_EGREP
-
+AC_INCLUDES_DEFAULT
 AC_HEADER_SYS_WAIT
 AC_HEADER_STDBOOL
-AC_CHECK_HEADERS(getopt.h stdarg.h stdlib.h inttypes.h unistd.h \
+AC_CHECK_HEADERS(getopt.h stdarg.h inttypes.h \
 libc.h fcntl.h limits.h sys/file.h sys/ioctl.h time.h sys/time.h \
-strings.h string.h sys/types.h \
 sys/param.h memory.h malloc.h io.h signal.h sys/signal.h utime.h sgtty.h \
 sys/floppy.h mntent.h sys/sysmacros.h assert.h \
 iconv.h wctype.h wchar.h locale.h xlocale.h dirent.h)
