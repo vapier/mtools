@@ -142,8 +142,9 @@ typedef void *caddr_t;
 # include <features.h>
 #endif
 
-
-#include <sys/types.h>
+#ifdef HAVE_SYS_TYPES_H
+# include <sys/types.h>
+#endif
 
 #ifdef HAVE_STDINT_H
 # include <stdint.h>
@@ -284,8 +285,9 @@ extern int ioctl(int fildes, int request, void *arg);
 # endif
 #endif
 
-
-#include <sys/stat.h>
+#ifdef HAVE_SYS_STAT_H
+# include <sys/stat.h>
+#endif
 
 #include <errno.h>
 #ifndef errno
