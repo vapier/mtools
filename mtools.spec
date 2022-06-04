@@ -6,7 +6,7 @@ Release:        1
 License:        GPLv3+
 Group:          Utilities/System
 URL:            http://www.gnu.org/software/mtools/
-Source:         ftp://ftp.gnu.org/gnu/%{name}/%{name}-%{version}.tar.gz
+Source:         http://ftp.gnu.org/gnu/%{name}/%{name}-%{version}.tar.gz
 Buildroot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 
