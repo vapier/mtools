@@ -17,13 +17,10 @@ dnl
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT
 AC_CONFIG_SRCDIR([buffer.c])
-m4_include([m4/ax_lib_socket_nsl.m4])
 AC_CONFIG_HEADERS([config.h])
 
 dnl Checks for compiler
 AC_PROG_CC
-dnl AC_PROG_CXX
-AC_PROG_GCC_TRADITIONAL
 AC_PROG_INSTALL
 AC_PROG_LN_S
 
@@ -98,12 +95,8 @@ AC_CHECK_LIB(sun, getpwnam)
 AC_CHECK_LIB(cam, cam_open_device)
 AC_CHECK_LIB(iconv, iconv)
 
-dnl Check for platform-specific libraries
-AC_CHECK_LIB(socket,main)
-AX_LIB_SOCKET_NSL
 
 dnl Checks for header files.
-AC_INCLUDES_DEFAULT
 AC_HEADER_SYS_WAIT
 AC_HEADER_STDBOOL
 AC_CHECK_HEADERS(getopt.h stdarg.h inttypes.h \
@@ -314,7 +307,6 @@ fi
 ]
 
 AC_PATH_X
-AC_PATH_XTRA
 
 dnl Floppyd
 AC_ARG_ENABLE(floppyd,
@@ -343,6 +335,7 @@ if test X$use_floppyd = Xyes; then
     FLOPPYD_LIBS=""
     AC_CHECK_LIB(X11, XOpenDisplay, [ FLOPPYD_LIBS="-lX11 $FLOPPYD_LIBS" ])
     AC_CHECK_LIB(Xau, XauFileName, [ FLOPPYD_LIBS="-lXau $FLOPPYD_LIBS" ])
+    AC_PATH_XTRA
     AC_CHECK_HEADERS(sys/socket.h arpa/inet.h netdb.h netinet/in.h \
                      netinet/tcp.h X11/Xauth.h X11/Xlib.h)
 else
