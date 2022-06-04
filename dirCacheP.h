@@ -11,4 +11,11 @@ struct dirCacheEntry_t {
 	int endMarkPos;
 } ;
 
+int isHashed(dirCache_t *cache, wchar_t *name);
+dirCacheEntry_t *addUsedEntry(dirCache_t *Stream,
+			      unsigned int begin,
+			      unsigned int end,
+			      wchar_t *longName, wchar_t *shortName,
+			      struct directory *dir);
+
 #endif /* DIRCACHEP_H */

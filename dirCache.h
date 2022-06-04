@@ -38,14 +38,8 @@ typedef struct dirCache_t {
 	unsigned int bm2[DC_BITMAP_SIZE];
 } dirCache_t;
 
-int isHashed(dirCache_t *cache, wchar_t *name);
 int growDirCache(dirCache_t *cache, unsigned int slot);
 dirCache_t *allocDirCache(Stream_t *Stream, unsigned int slot);
-dirCacheEntry_t *addUsedEntry(dirCache_t *Stream,
-			      unsigned int begin,
-			      unsigned int end,
-			      wchar_t *longName, wchar_t *shortName,
-			      struct directory *dir);
 void freeDirCache(Stream_t *Stream);
 dirCacheEntry_t *addFreeEntry(dirCache_t *Stream,
 			      unsigned int begin, unsigned int end);

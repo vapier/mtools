@@ -95,11 +95,7 @@ FILE *opentty(int mode);
 int is_dir(Stream_t *Dir, char *path);
 
 int dir_grow(Stream_t *Dir, int size);
-int match(const wchar_t *, const wchar_t *, wchar_t *, int,  int);
 
-wchar_t *unix_name(doscp_t *fromDos,
-		   const char *base, const char *ext, uint8_t Case,
-		   wchar_t *answer);
 void *safe_malloc(size_t size);
 Stream_t *open_dos2unix(Stream_t *Next,int convertCharset);
 Stream_t *open_unix2dos(Stream_t *Next,int convertCharset);
@@ -131,16 +127,6 @@ UNUSED(static __inline__ char ch_toupper(char ch))
 UNUSED(static __inline__ char ch_tolower(char ch))
 {
         return (char) tolower( (unsigned char) ch);
-}
-
-UNUSED(static __inline__ wchar_t ch_towupper(wchar_t ch))
-{
-        return (wchar_t) towupper( (wint_t) ch);
-}
-
-UNUSED(static __inline__ wchar_t ch_towlower(wchar_t ch))
-{
-        return (wchar_t) towlower( (wint_t) ch);
 }
 
 UNUSED(static __inline__ void init_random(void))

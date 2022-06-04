@@ -90,11 +90,6 @@ char *mpBuildUnixFilename(MainParam_t *mp); /* dynamically allocated, must
 					     * be freed */
 
 int isSpecial(const char *name);
-#ifdef HAVE_WCHAR_H
-int isSpecialW(const wchar_t *name);
-#else
-#define isSpecialW isSpecial
-#endif
 
 #define MISSED_ONE 2  /* set if one cmd line argument didn't match any files */
 #define GOT_ONE 4     /* set if a match was found, used for exit status */

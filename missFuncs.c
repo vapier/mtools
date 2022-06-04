@@ -65,6 +65,7 @@ char *strndup( const char *s, size_t n )
 
 
 #ifdef HAVE_WCHAR_H
+#include "file_name.h"
 #ifndef HAVE_WCSDUP
 wchar_t *wcsdup(const wchar_t *wcs)
 {

@@ -46,4 +46,25 @@ size_t wchar_to_native(const wchar_t *wchar, char *native,
 size_t native_to_wchar(const char *native, wchar_t *wchar, size_t len,
 		       const char *end, int *mangled);
 
+int match(const wchar_t *, const wchar_t *, wchar_t *, int,  int);
+wchar_t *unix_name(doscp_t *fromDos,
+		   const char *base, const char *ext, uint8_t Case,
+		   wchar_t *answer);
+
+#ifdef HAVE_WCHAR_H
+int isSpecialW(const wchar_t *name);
+#else
+#define isSpecialW isSpecial
+#endif
+
+UNUSED(static __inline__ wchar_t ch_towupper(wchar_t ch))
+{
+        return (wchar_t) towupper( (wint_t) ch);
+}
+
+UNUSED(static __inline__ wchar_t ch_towlower(wchar_t ch))
+{
+        return (wchar_t) towlower( (wint_t) ch);
+}
+
 #endif
