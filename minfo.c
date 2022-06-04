@@ -240,7 +240,7 @@ static void print_mformat_commandline(const char *imgFile,
 
 	if(imgFile != NULL)
 		printf("-i \"%s\" ", imgFile);
-	printf("%c:\n", ch_tolower(drive));
+	printf("%c:\n", ch_toupper(drive));
 	printf("\n");
 }
 
