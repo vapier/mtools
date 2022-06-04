@@ -339,9 +339,24 @@ extern int errno;
 
 #ifdef HAVE_WCHAR_H
 # include <wchar.h>
+# ifdef HAVE_WCTYPE_H
+#  include <wctype.h>
+# endif
 # ifndef HAVE_PUTWC
 #  define putwc(c,f) fprintf((f),"%lc",(c))
 # endif
+# ifndef HAVE_WCSDUP
+wchar_t *wcsdup(const wchar_t *wcs);
+# endif
+
+# ifndef HAVE_WCSCASECMP
+int wcscasecmp(const wchar_t *s1, const wchar_t *s2);
+# endif
+
+# ifndef HAVE_WCSNLEN
+size_t wcsnlen(const wchar_t *wcs, size_t l);
+# endif
+
 #else
 # define wcscmp strcmp
 # define wcscasecmp strcasecmp
@@ -352,11 +367,6 @@ extern int errno;
 # define wchar_t unsigned char
 # define wint_t int
 # define putwc putc
-#endif
-
-#ifdef HAVE_WCTYPE_H
-# include <wctype.h>
-#else
 # define towupper(x) toupper(x)
 # define towlower(x) tolower(x)
 # define iswupper(x) isupper(x)
@@ -481,21 +491,6 @@ int strncasecmp(const char *s1, const char *s2, size_t n);
 char *getpass(const char *prompt);
 #endif
 
-#ifdef HAVE_WCHAR_H
-
-# ifndef HAVE_WCSDUP
-wchar_t *wcsdup(const wchar_t *wcs);
-# endif
-
-# ifndef HAVE_WCSCASECMP
-int wcscasecmp(const wchar_t *s1, const wchar_t *s2);
-# endif
-
-# ifndef HAVE_WCSNLEN
-size_t wcsnlen(const wchar_t *wcs, size_t l);
-# endif
-
-#endif
 
 #if 0
 #ifndef HAVE_BASENAME
