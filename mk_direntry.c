@@ -683,7 +683,7 @@ int handle_clash_options(ClashHandling_t *ch, int c)
 		isprimary = 0;
 	else
 		isprimary = 1;
-	c = ch_tolower(c);
+	c = tolower(c);
 	switch(c) {
 		case 'o':
 			/* Overwrite if primary name matches */
