@@ -16,6 +16,7 @@
  */
 
 #include "sysincludes.h"
+#include "mtools.h"
 
 const char *mversion="4.0.39";
 
