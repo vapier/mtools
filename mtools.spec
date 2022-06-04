@@ -1,7 +1,7 @@
 %define _binary_payload w9.gzdio
 Name:           mtools
 Summary:        mtools, read/write/list/format DOS disks under Unix
-Version:        4.0.39
+Version:        4.0.40
 Release:        1
 License:        GPLv3+
 Group:          Utilities/System
@@ -133,8 +133,10 @@ if [ -f %{_bindir}/install-info ] ; then
 fi
 
 %changelog
-* Thu May 12 2022 Alain Knaff <alain@knaff.lu>
+* Sat Jun 04 2022 Alain Knaff <alain@knaff.lu>
 - Remove libbsd dependency
+- Better compatibility with legacy platforms such as AT&T UnixPC
+- Upgraded to autoconf 2.71
 * Sun Apr 10 2022 Alain Knaff <alain@knaff.lu>
 - Rename strtoi to strosi (string to signed int). The strtoi function
   on BSD does something else (returns an intmax, not an int)

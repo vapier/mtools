@@ -1,6 +1,8 @@
-mtools (20220509) stable; urgency=low
+mtools (4.0.40) stable; urgency=low
 
   * Remove libbsd dependency
+  * Better compatibility with legacy platforms such as AT&T UnixPC
+  * Upgraded to autoconf 2.71
 
  -- Alain Knaff <alain@knaff.lu>  Mon,  9 May 2022 21:26:09 +0200
 mtools (4.0.39) stable; urgency=low

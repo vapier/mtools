@@ -1,4 +1,7 @@
+v4_0_40
 	- Remove libbsd dependency
+	- Better compatibility with legacy platforms such as AT&T UnixPC
+	- Upgraded to autoconf 2.71
 v4_0_39
 	- Rename strtoi to strosi (string to signed int). The strtoi
           function on BSD does something else (returns an intmax, not
