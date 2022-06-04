@@ -17,7 +17,6 @@
  * Various character set conversions used by mtools
  */
 #include "sysincludes.h"
-#include "msdos.h"
 #include "mtools.h"
 
 #include <stdio.h>

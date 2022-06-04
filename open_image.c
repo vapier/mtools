@@ -19,7 +19,6 @@ Buffer read/write module
  */
 
 #include "sysincludes.h"
-#include "msdos.h"
 #include "mtools.h"
 #include "lba.h"
 

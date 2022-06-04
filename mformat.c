@@ -21,7 +21,6 @@
 #define DONT_NEED_WAIT
 
 #include "sysincludes.h"
-#include "msdos.h"
 #include "mtools.h"
 #include "mainloop.h"
 #include "device.h"

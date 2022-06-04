@@ -16,7 +16,6 @@
  *  You should have received a copy of the GNU General Public License
  *  along with Mtools.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "msdos.h"
 #include "llong.h"
 typedef struct dos_name_t dos_name_t;
 
@@ -273,5 +272,15 @@ ssize_t safePopenOut(const char **command, char *output, size_t len);
 #ifndef O_BINARY
 #define O_BINARY 0
 #endif
+
+extern const char *mversion;
+extern const char *mdate;
+extern const char *mformat_banner;
+
+extern char *Version;
+extern char *Date;
+
+
+int init(char drive, int mode);
 
 #endif

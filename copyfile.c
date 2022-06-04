@@ -15,7 +15,6 @@
  *  along with Mtools.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "sysincludes.h"
-#include "msdos.h"
 #include "mtools.h"
 #include "file.h"
 #include "llong.h"

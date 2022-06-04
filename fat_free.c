@@ -17,7 +17,6 @@
  */
 
 #include "sysincludes.h"
-#include "msdos.h"
 #include "fsP.h"
 #include "mtoolsDirentry.h"
 

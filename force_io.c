@@ -24,7 +24,6 @@
  */
 
 #include "sysincludes.h"
-#include "msdos.h"
 #include "stream.h"
 
 static ssize_t force_pio(Stream_t *Stream,

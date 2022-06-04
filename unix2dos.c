@@ -16,7 +16,6 @@
  */
 
 #include "sysincludes.h"
-#include "msdos.h"
 #include "mtools.h"
 
 #define U2D_BUFSIZE 4096

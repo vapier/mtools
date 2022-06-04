@@ -251,18 +251,5 @@ union bootsector {
 
 /* approx. total disk size: assume 1 boot sector and one directory sector */
 
-extern const char *mversion;
-extern const char *mdate;
-extern const char *mformat_banner;
-
-extern char *Version;
-extern char *Date;
-
-
-int init(char drive, int mode);
-
-#define MT_READ 1
-#define MT_WRITE 2
-
 #endif
 

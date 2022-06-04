@@ -16,7 +16,6 @@
  */
 
 #include "sysincludes.h"
-#include "msdos.h"
 
 const char *mversion="4.0.39";
 

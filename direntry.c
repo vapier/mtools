@@ -16,7 +16,6 @@
  */
 
 #include "sysincludes.h"
-#include "msdos.h"
 #include "stream.h"
 #include "file.h"
 #include "mtoolsDirentry.h"

@@ -22,7 +22,6 @@
 
 
 #include "sysincludes.h"
-#include "msdos.h"
 #include "mtools.h"
 #include "mainloop.h"
 #include "plain_io.h"

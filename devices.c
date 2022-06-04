@@ -22,7 +22,6 @@
 
 #define NO_TERMIO
 #include "sysincludes.h"
-#include "msdos.h"
 #include "mtools.h"
 #include "devices.h"
 

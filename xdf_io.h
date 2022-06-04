@@ -18,7 +18,6 @@
  *  along with Mtools.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "msdos.h"
 #include "stream.h"
 
 struct xdf_info {

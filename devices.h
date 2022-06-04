@@ -37,6 +37,9 @@
 
 #endif /* HAVE_SYS_SYSMACROS_H */
 
+#define MT_READ 1
+#define MT_WRITE 2
+
 #include <linux/fd.h>
 #include <linux/fdreg.h>
 #include <linux/major.h>

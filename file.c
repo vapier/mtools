@@ -16,7 +16,6 @@
  */
 
 #include "sysincludes.h"
-#include "msdos.h"
 #include "stream.h"
 #include "mtools.h"
 #include "fsP.h"
@@ -268,8 +267,8 @@ void printFatWithOffset(Stream_t *Stream, off_t offset) {
 	printf("%lu", (unsigned long) n);
 }
 
-static int normal_map(File_t *This, uint32_t where, uint32_t *len, int mode,
-		      mt_off_t *res)
+static int normal_map(File_t *This, uint32_t where, uint32_t *len,
+		      int isReadonly, mt_off_t *res)
 {
 	unsigned int offset;
 	size_t end;
@@ -285,13 +284,13 @@ static int normal_map(File_t *This, uint32_t where, uint32_t *len, int mode,
 	clus_size = Fs->cluster_size * Fs->sector_size;
 	offset = where % clus_size;
 
-	if (mode == MT_READ)
+	if (isReadonly)
 		maximize(*len, This->FileSize - where);
 	if (*len == 0 )
 		return 0;
 
 	if (This->FirstAbsCluNr < 2){
-		if( mode == MT_READ || *len == 0){
+		if( isReadonly || *len == 0){
 			*len = 0;
 			return 0;
 		}
@@ -333,7 +332,7 @@ static int normal_map(File_t *This, uint32_t where, uint32_t *len, int mode,
 		}
 		if(CurCluNr == RelCluNr + NrClu)
 			break;
-		if (NewCluNr > Fs->last_fat && mode == MT_WRITE){
+		if (NewCluNr > Fs->last_fat && !isReadonly){
 			/* if at end, and writing, extend it */
 			NewCluNr = get_next_free_cluster(_getFs(This), AbsCluNr);
 			if (NewCluNr == 1 ){ /* no more space */
@@ -362,7 +361,7 @@ static int normal_map(File_t *This, uint32_t where, uint32_t *len, int mode,
 
 	end = where + *len;
 	if(batchmode &&
-	   mode == MT_WRITE &&
+	   !isReadonly &&
 	   end >= This->FileSize) {
 		/* In batch mode, when writing at end of file, "pad"
 		 * to nearest cluster boundary so that we don't have
@@ -413,7 +412,7 @@ static ssize_t read_file(Stream_t *Stream, char *buf, size_t ilen)
 	
 	Stream_t *Disk = _getFs(This)->head.Next;
 
-	err = This->map(This, This->where, &len, MT_READ, &pos);
+	err = This->map(This, This->where, &len, 1, &pos);
 	if(err <= 0)
 		return err;
 	ret = PREADS(Disk, buf, pos, len);
@@ -440,7 +439,7 @@ static ssize_t write_file(Stream_t *Stream, char *buf, size_t ilen)
 	} else
 		len = (uint32_t) ilen;
 	requestedLen = len;
-	err = This->map(This, This->where, &len, MT_WRITE, &pos);
+	err = This->map(This, This->where, &len, 0, &pos);
 	if( err <= 0)
 		return err;
 	if(batchmode)

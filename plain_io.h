@@ -19,7 +19,6 @@
  */
 
 #include "stream.h"
-#include "msdos.h"
 #ifdef __EMX__
 #include <io.h>
 #endif

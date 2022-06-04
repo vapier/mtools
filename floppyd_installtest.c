@@ -29,7 +29,6 @@
 #include "sysincludes.h"
 #include "stream.h"
 #include "mtools.h"
-#include "msdos.h"
 #include "floppyd_io.h"
 
 #ifdef USE_FLOPPYD

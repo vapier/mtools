@@ -26,7 +26,6 @@
 #include "sysincludes.h"
 #include "stream.h"
 #include "mtools.h"
-#include "msdos.h"
 #include "llong.h"
 
 #include "open_image.h"

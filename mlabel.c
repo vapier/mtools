@@ -20,7 +20,6 @@
  */
 
 #include "sysincludes.h"
-#include "msdos.h"
 #include "mainloop.h"
 #include "mtools.h"
 #include "nameclash.h"
