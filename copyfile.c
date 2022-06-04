@@ -58,7 +58,7 @@ mt_off_t copyfile(Stream_t *Source, Stream_t *Target)
 				perror("write in copy");
 			else
 				fprintf(stderr,
-					"Short write %zd instead of %zd\n",
+					"Short write "SSZF" instead of "SSZF"\n",
 					retw, ret);
 			if(errno == ENOSPC)
 				got_signal = 1;

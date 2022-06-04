@@ -237,7 +237,7 @@ static ssize_t buf_pwrite(Stream_t *Stream, char *buf,
 					return ret;
 				bytes_read = (size_t) ret;
 				if(bytes_read % This->sectorSize) {
-				  fprintf(stderr, "Weird: read size (%zd) not a multiple of sector size (%d)\n", bytes_read, (int) This->sectorSize);
+				  fprintf(stderr, "Weird: read size ("SSZF") not a multiple of sector size (%d)\n", bytes_read, (int) This->sectorSize);
 				    bytes_read -= bytes_read % This->sectorSize;
 				    if(bytes_read == 0) {
 					fprintf(stderr, "Nothing left\n");
