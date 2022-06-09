@@ -1192,8 +1192,8 @@ int init_geom(int fd, struct device *dev, struct device *orig_dev,
 #endif /* INIT_GENERIC */
 
 #ifdef INIT_NOOP
-int init_geom(int fd, struct device *dev, struct device *orig_dev,
-	      struct MT_STAT *statbuf)
+int init_geom(int fd UNUSEDP, struct device *dev, struct device *orig_dev,
+	      struct MT_STAT *statbuf UNUSEDP)
 {
 	return compare_geom(dev, orig_dev);
 }
