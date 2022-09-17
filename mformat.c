@@ -327,7 +327,8 @@ static inline bool clusters_fit_into_fat(Fs_t *Fs) {
  * Assert that FAT param calculation has been performed correctly, and
  * set_fat
  */
-static void check_fs_params_and_set_fat(Fs_t *Fs, uint32_t tot_sectors)
+static void check_fs_params_and_set_fat(Fs_t *Fs, uint32_t tot_sectors,
+					int fat32)
 {
 	unsigned int provisional_fat_bits;
 
@@ -353,7 +354,7 @@ static void check_fs_params_and_set_fat(Fs_t *Fs, uint32_t tot_sectors)
 	assert(clusters_fit_into_fat(Fs));
 #endif
 	provisional_fat_bits = Fs->fat_bits;
-	set_fat(Fs, 0);
+	set_fat(Fs, fat32);
 #ifdef HAVE_ASSERT_H
 	assert(provisional_fat_bits == Fs->fat_bits);
 #endif
@@ -587,7 +588,7 @@ int calc_fs_parameters(struct device *dev, bool fat32,
 #ifdef HAVE_ASSERT_H
 		assert(num_clus_valid >= 0);
 #endif
-		check_fs_params_and_set_fat(Fs, tot_sectors);
+		check_fs_params_and_set_fat(Fs, tot_sectors, fat32);
 		return 0;
 	}
 
@@ -693,6 +694,9 @@ int calc_fs_parameters(struct device *dev, bool fat32,
 				continue;
 			}
 
+			if(fat32)
+				break;
+			
 			/* Somehow we ended up with too few sectors
 			 * for FAT size. This can only happen if
 			 * cluster size is not adjustable, and if we
@@ -768,7 +772,7 @@ int calc_fs_parameters(struct device *dev, bool fat32,
 			Fs->num_clus,
 			Fs->fat_len);
 	}
-	check_fs_params_and_set_fat(Fs, tot_sectors);
+	check_fs_params_and_set_fat(Fs, tot_sectors, fat32);
 	if(Fs->fat_bits == 32)
 		fat32_specific_init(Fs);
 	return 0;
