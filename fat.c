@@ -23,7 +23,7 @@
 #include "fsP.h"
 #include "file_name.h"
 
-#ifdef HAVE_LONG_LONG
+#if defined HAVE_LONG_LONG && defined __STDC_VERSION__
 typedef long long fatBitMask;
 #else
 typedef long fatBitMask;
