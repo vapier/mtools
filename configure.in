@@ -91,8 +91,16 @@ dnl Checks for libraries.
 
 dnl AC_FUNC_GETMNTENT
 AC_CHECK_LIB([sun],[getpwnam])
-AC_CHECK_LIB(sun, getpwnam)
-AC_CHECK_LIB(cam, cam_open_device)
+
+case $host_os in
+ solaris*)
+    AC_CHECK_FUNCS(media_oldaliases)
+    ;;
+ freebsd*)
+    AC_CHECK_LIB(cam, cam_open_device)
+    ;;
+esac
+
 AC_CHECK_LIB(iconv, iconv)
 
 
@@ -213,11 +221,10 @@ dnl Checks for library functions.
 AC_CHECK_FUNCS(strerror random srandom strchr strrchr lockf flock \
 strcasecmp strncasecmp strnlen atexit on_exit getpass memmove \
 strdup strndup strcspn strspn strtoul strtol strtoll strtoui \
-memcpy strpbrk memset setenv seteuid setresuid setpgrp \
-tcsetattr tcflush basename fchdir media_oldaliases  \
+memcpy strpbrk memset setenv seteuid setresuid \
+tcsetattr tcflush basename fchdir  \
 readdir snprintf setlocale strstr toupper_l strncasecmp_l \
 wcsdup wcscasecmp wcsnlen putwc \
-getuserid getgroupid \
 alarm sigaction usleep lstat unsetenv mkdir)
 
 
@@ -244,16 +251,6 @@ fi
 my_host_os=`echo $host_os1 $host_os2 $host_os3 | sort -u`
 objs=`echo $srcdir/*.c | sed 's/\.c$/.o/' `
 if [ "X$GCC" = "Xyes" ] ; then
-    Wall=-Wall
-    if [ "$host_os3" = sunos ] ; then
-	    Wall=""
-    fi
-    if [ "$host_os3" = ultrix ] ; then
-	    Wall=""
-    fi
-    if [ "$host_os3" = linux ] ; then
-	    CFLAGS="$CFLAGS -fno-strength-reduce"
-    fi
     if [ "$host_os3" = aux ] ; then
 	    CFLAGS="$CFLAGS -ZP"
 	    MACHDEPLIBS="-lposix -UTIL"
@@ -261,7 +258,6 @@ if [ "X$GCC" = "Xyes" ] ; then
     case "${host}" in
        arm*-*-linux) CFLAGS="$CFLAGS -mstructure-size-boundary=8";;
     esac
-    CFLAGS="$CFLAGS $Wall"
 else
     if [ $host_os3 = hpux ] ; then
 	    CPPFLAGS="$CPPFLAGS -Ae"
@@ -330,6 +326,7 @@ if test X$use_floppyd = Xyes; then
     FLOPPYD_IO_SRC=floppyd_io.c
     FLOPPYD_IO_OBJ=floppyd_io.o
     AC_DEFINE([USE_FLOPPYD],1,[Define when you want to include floppyd support])
+    AC_CHECK_FUNCS(setpgrp getuserid getgroupid)
     AC_FUNC_SETPGRP
 
     FLOPPYD_LIBS=""
