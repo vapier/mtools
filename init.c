@@ -406,6 +406,7 @@ uint32_t parseFsParams(	Fs_t *This,
 			unsigned int cylinder_size)
 {
 	uint32_t tot_sectors;
+	int haveBigFatLen = 0;
 
 	if ((media & ~7) == 0xf8){
 		/* This bit of code is only entered if there is no BPB, or
@@ -465,6 +466,7 @@ uint32_t parseFsParams(	Fs_t *This,
 		} else {
 			labelBlock = &boot->boot.ext.fat32.labelBlock;
 			This->fat_len = DWORD(ext.fat32.bigFat);
+			haveBigFatLen = 1;
 			This->backupBoot = WORD(ext.fat32.backupBoot);
 		}
 
@@ -477,7 +479,7 @@ uint32_t parseFsParams(	Fs_t *This,
 	if(calc_num_clus(This, tot_sectors) < 0)
 		/* Too few sectors */
 		return 0;
-	set_fat(This);
+	set_fat(This, haveBigFatLen);
 
 	return tot_sectors;
 }

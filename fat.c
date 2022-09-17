@@ -603,8 +603,12 @@ static void set_fat32(Fs_t *This)
 	}
 }
 
-void set_fat(Fs_t *This) {
-	if(This->num_clus < FAT12)
+void set_fat(Fs_t *This, int haveBigFatLen) {
+	if(haveBigFatLen)
+		/* This is how Windows 10 behaves, despite
+		   fatgen103's stern assertion otherwise */
+		set_fat32(This);
+	else if(This->num_clus < FAT12)
 		set_fat12(This);
 	else if(This->num_clus < FAT16)
 		set_fat16(This);
@@ -710,7 +714,6 @@ static int fat_32_read(Fs_t *This, union bootsector *boot)
 	This->writeAllFats = !(boot->boot.ext.fat32.extFlags[0] & 0x80);
 	This->primaryFat = boot->boot.ext.fat32.extFlags[0] & 0xf;
 	This->rootCluster = DWORD(ext.fat32.rootCluster);
-	This->clus_start = This->fat_start + This->num_fat * This->fat_len;
 
 	/* read the info sector */
 	size = This->sector_size;
@@ -747,7 +750,7 @@ static int old_fat_read(Fs_t *This, union bootsector *boot, int nodups)
 	if(check_media_type(This, boot))
 		return -1;
 
-	if(This->num_clus >= FAT12)
+	if(This->fat_bits == 16)
 		/* third FAT byte must be 0xff */
 		if(!mtools_skip_check && readByte(This, 3) != 0xff)
 			return -1;
@@ -768,7 +771,8 @@ int fat_read(Fs_t *This, union bootsector *boot, int nodups)
 	This->lastFatSectorNr = 0;
 	This->lastFatSectorData = 0;
 
-	if(This->num_clus < FAT16)
+	assert(This->fat_bits >= 12);
+	if(This->fat_bits <= 16)
 		return old_fat_read(This, boot, nodups);
 	else
 		return fat_32_read(This, boot);

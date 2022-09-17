@@ -353,7 +353,7 @@ static void check_fs_params_and_set_fat(Fs_t *Fs, uint32_t tot_sectors)
 	assert(clusters_fit_into_fat(Fs));
 #endif
 	provisional_fat_bits = Fs->fat_bits;
-	set_fat(Fs);
+	set_fat(Fs, 0);
 #ifdef HAVE_ASSERT_H
 	assert(provisional_fat_bits == Fs->fat_bits);
 #endif

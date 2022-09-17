@@ -88,7 +88,7 @@ struct Fs_t {
 mt_off_t sectorsToBytes(Fs_t *This, uint32_t off);
 int fs_free(Stream_t *Stream);
 
-void set_fat(Fs_t *This);
+void set_fat(Fs_t *This,int haveBigFatLen);
 unsigned int get_next_free_cluster(Fs_t *Fs, unsigned int last);
 unsigned int fatDecode(Fs_t *This, unsigned int pos);
 void fatAppend(Fs_t *This, unsigned int pos, unsigned int newpos);
