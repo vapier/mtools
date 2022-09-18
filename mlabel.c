@@ -44,9 +44,9 @@ static void _label_name(doscp_t *cp, const char *filename, int verbose UNUSEDP,
 
 	have_lower = have_upper = 0;
 	for(i=0; i<len; i++){
-		if(iswlower(wbuffer[i]))
+		if(iswlower((wint_t)wbuffer[i]))
 			have_lower = 1;
-		if(iswupper(wbuffer[i]))
+		if(iswupper((wint_t)wbuffer[i]))
 			have_upper = 1;
 		if(!preserve_case)
 			wbuffer[i] = ch_towupper(wbuffer[i]);

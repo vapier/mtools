@@ -67,17 +67,17 @@ static void TranslateToDos(doscp_t *toDos, const char *in, char *out,
 			continue;
 		}
 
-		if (iswcntrl(*s)) {
+		if (iswcntrl((wint_t)*s)) {
 			/* "control" characters */
 			*mangled |= 3;
 			buffer[t_idx] = '_';
-		} else if (iswlower(*s)) {
+		} else if (iswlower((wint_t)*s)) {
 			buffer[t_idx] = ch_towupper(*s);
 			if(*Case == UPPER && !mtools_no_vfat)
 				*mangled |= 1;
 			else
 				*Case = LOWER;
-		} else if (iswupper(*s)) {
+		} else if (iswupper((wint_t)*s)) {
 			buffer[t_idx] = *s;
 			if(*Case == LOWER && !mtools_no_vfat)
 				*mangled |= 1;
