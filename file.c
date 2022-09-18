@@ -387,7 +387,7 @@ static int root_map(File_t *This, uint32_t where, uint32_t *len,
 {
 	Fs_t *Fs = _getFs(This);
 
-	if(Fs->dir_len * Fs->sector_size < where) {
+	if((Fs->dir_len + 0u) * Fs->sector_size < where) {
 		*len = 0;
 		errno = ENOSPC;
 		return -2;
