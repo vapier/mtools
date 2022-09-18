@@ -538,10 +538,11 @@ int zero_fat(Fs_t *Stream, uint8_t media_descriptor)
 				if(Stream->fat_bits > 12)
 					buf[3] = 0xff;
 				if(Stream->fat_bits > 16) {
+					buf[3] = 0x0f;
 					buf[4] = 0xff;
 					buf[5] = 0xff;
 					buf[6] = 0xff;
-					buf[7] = 0x0f;
+					buf[7] = 0xff;
 				}
 			}
 
