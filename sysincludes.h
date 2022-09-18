@@ -20,8 +20,6 @@
 #ifndef SYSINCLUDES_H
 #define SYSINCLUDES_H
 
-#define _GNU_SOURCE
-
 #include "config.h"
 
 
