@@ -699,14 +699,14 @@ Stream_t *XdfOpen(struct device *dev, const char *name,
 
 	boot = (union bootsector *) This->buffer;
 
-	fatSize = WORD(fatlen);
+	fatSize = BOOT_WORD(fatlen);
 	if(fatSize > UINT8_MAX) {
 		fprintf(stderr, "Fat size %d too large\n", fatSize);
 		exit(1);
 	}
 	This->FatSize = (uint8_t) fatSize;
-	This->RootDirSize = WORD(dirents)/16;
-	This->track_size = WORD(nsect);
+	This->RootDirSize = BOOT_WORD(dirents)/16;
+	This->track_size = BOOT_WORD(nsect);
 	for(type=0; type < NUMBER(xdf_table); type++) {
 		if(xdf_table[type].track_size == This->track_size) {
 			This->map = xdf_table[type].map;

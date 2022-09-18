@@ -33,8 +33,8 @@
 #define NEW		1
 #define OLD		0
 
-#define _WORD(x) ((uint16_t)((unsigned char)(x)[0] + (((unsigned char)(x)[1]) << 8)))
-#define _DWORD(x) ((uint32_t)(_WORD(x) + (_WORD((x)+2) << 16)))
+#define WORD(x) ((uint16_t)((unsigned char)(x)[0] + (((unsigned char)(x)[1]) << 8)))
+#define DWORD(x) ((uint32_t)(WORD(x) + (WORD((x)+2) << 16)))
 
 #define DELMARK ((char) 0xe5)
 #define ENDMARK ((char) 0x00)
@@ -62,9 +62,9 @@ struct directory {
 #define MAX32 0xffffffff
 #define MAX_SIZE 0x7fffffff
 
-#define FILE_SIZE(dir)  (_DWORD((dir)->size))
-#define START(dir) (_WORD((dir)->start))
-#define STARTHI(dir) (_WORD((dir)->startHi))
+#define FILE_SIZE(dir)  (DWORD((dir)->size))
+#define START(dir) (WORD((dir)->start))
+#define STARTHI(dir) (WORD((dir)->startHi))
 
 /* ASSUMPTION: long is at least 32 bits */
 UNUSED(static __inline__ void set_dword(unsigned char *data, uint32_t value))
@@ -193,11 +193,11 @@ union bootsector {
 };
 
 #define CHAR(x) (boot->x[0])
-#define WORD(x) (_WORD(boot->boot.x))
-#define DWORD(x) (_DWORD(boot->boot.x))
+#define BOOT_WORD(x) (WORD(boot->boot.x))
+#define BOOT_DWORD(x) (DWORD(boot->boot.x))
 
-#define WORD_S(x) (_WORD(boot.boot.x))
-#define DWORD_S(x) (_DWORD(boot.boot.x))
+#define WORD_S(x) (WORD(boot.boot.x))
+#define DWORD_S(x) (DWORD(boot.boot.x))
 
 #define OFFSET(x) (((char *) (boot->x)) - ((char *)(boot->jump)))
 

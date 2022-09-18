@@ -26,9 +26,9 @@ typedef struct hsc {
 #define sector(x) ((uint8_t)((x).sector & 0x3f))
 #define cyl(x) ((uint16_t)((x).cyl | (((x).sector & 0xc0)<<2)))
 
-#define BEGIN(p) _DWORD((p)->start_sect)
-#define END(p) (_DWORD((p)->start_sect)+(_DWORD((p)->nr_sects)))
-#define PART_SIZE(p) (_DWORD((p)->nr_sects))
+#define BEGIN(p) DWORD((p)->start_sect)
+#define END(p) (DWORD((p)->start_sect)+(DWORD((p)->nr_sects)))
+#define PART_SIZE(p) (DWORD((p)->nr_sects))
 
 
 struct partition {

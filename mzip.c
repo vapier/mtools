@@ -38,9 +38,8 @@
 #include "scsi.h"
 
 #ifdef HAVE_SCSI
-#ifndef _PASSWORD_LEN
-#define _PASSWORD_LEN 33
-#endif
+
+#define PASSWORD_LEN 33
 
 #ifdef OS_linux
 
@@ -462,12 +461,12 @@ void mzip(int argc, char **argv, int type UNUSEDP)
 		}
 
 		if (newMode & 0x1) {
-			char first_try[_PASSWORD_LEN+1];
+			char first_try[PASSWORD_LEN+1];
 
 			passwd = getpass("Enter new password:");
-			strncpy(first_try, passwd,_PASSWORD_LEN);
+			strncpy(first_try, passwd,PASSWORD_LEN);
 			passwd = getpass("Re-type new password:");
-			if(strncmp(first_try, passwd, _PASSWORD_LEN)) {
+			if(strncmp(first_try, passwd, PASSWORD_LEN)) {
 				fprintf(stderr,
 					"You misspelled it. Password not set.\n");
 				exit(1);

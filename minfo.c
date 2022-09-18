@@ -39,26 +39,26 @@ static void displayInfosector(Stream_t *Stream, union bootsector *boot)
 {
 	InfoSector_t *infosec;
 
-	if(WORD(ext.fat32.infoSector) == MAX16)
+	if(BOOT_WORD(ext.fat32.infoSector) == MAX16)
 		return;
 
-	infosec = (InfoSector_t *) safe_malloc(WORD(secsiz));
+	infosec = (InfoSector_t *) safe_malloc(BOOT_WORD(secsiz));
 	force_pread(Stream, (char *) infosec,
-		    (mt_off_t) WORD(secsiz) * WORD(ext.fat32.infoSector),
-		    WORD(secsiz));
+		    (mt_off_t) BOOT_WORD(secsiz) * BOOT_WORD(ext.fat32.infoSector),
+		    BOOT_WORD(secsiz));
 	printf("\nInfosector:\n");
-	printf("signature=0x%08x\n", _DWORD(infosec->signature1));
-	if(_DWORD(infosec->count) != MAX32)
-		printf("free clusters=%u\n", _DWORD(infosec->count));
-	if(_DWORD(infosec->pos) != MAX32)
-		printf("last allocated cluster=%u\n", _DWORD(infosec->pos));
+	printf("signature=0x%08x\n", DWORD(infosec->signature1));
+	if(DWORD(infosec->count) != MAX32)
+		printf("free clusters=%u\n", DWORD(infosec->count));
+	if(DWORD(infosec->pos) != MAX32)
+		printf("last allocated cluster=%u\n", DWORD(infosec->pos));
 }
 
 /*
  * Number of hidden sector is only a 4 byte quantity if number of sectors is
  */
 static uint32_t getHidden(union bootsector *boot) {
-	return WORD(psect) ? WORD(nhs) : DWORD(nhs);
+	return BOOT_WORD(psect) ? BOOT_WORD(nhs) : BOOT_DWORD(nhs);
 }
 
 static void displayBPB(Stream_t *Stream, union bootsector *boot) {
@@ -67,22 +67,22 @@ static void displayBPB(Stream_t *Stream, union bootsector *boot) {
 	printf("bootsector information\n");
 	printf("======================\n");
 	printf("banner:\"%.8s\"\n", boot->boot.banner);
-	printf("sector size: %d bytes\n", WORD(secsiz));
+	printf("sector size: %d bytes\n", BOOT_WORD(secsiz));
 	printf("cluster size: %d sectors\n", boot->boot.clsiz);
-	printf("reserved (boot) sectors: %d\n", WORD(nrsvsect));
+	printf("reserved (boot) sectors: %d\n", BOOT_WORD(nrsvsect));
 	printf("fats: %d\n", boot->boot.nfat);
 	printf("max available root directory slots: %d\n",
-	       WORD(dirents));
-	printf("small size: %d sectors\n", WORD(psect));
+	       BOOT_WORD(dirents));
+	printf("small size: %d sectors\n", BOOT_WORD(psect));
 	printf("media descriptor byte: 0x%x\n", boot->boot.descr);
-	printf("sectors per fat: %d\n", WORD(fatlen));
-	printf("sectors per track: %d\n", WORD(nsect));
-	printf("heads: %d\n", WORD(nheads));
+	printf("sectors per fat: %d\n", BOOT_WORD(fatlen));
+	printf("sectors per track: %d\n", BOOT_WORD(nsect));
+	printf("heads: %d\n", BOOT_WORD(nheads));
 	printf("hidden sectors: %d\n", getHidden(boot));
-	if(!WORD(psect))
-		printf("big size: %u sectors\n", DWORD(bigsect));
+	if(!BOOT_WORD(psect))
+		printf("big size: %u sectors\n", BOOT_DWORD(bigsect));
 
-	if(WORD(fatlen)) {
+	if(BOOT_WORD(fatlen)) {
 		labelBlock = &boot->boot.ext.old.labelBlock;
 	} else {
 		labelBlock = &boot->boot.ext.fat32.labelBlock;
@@ -96,28 +96,28 @@ static void displayBPB(Stream_t *Stream, union bootsector *boot) {
 		printf("dos4=0x%x\n",
 		       labelBlock->dos4);
 		printf("serial number: %08X\n",
-		       _DWORD(labelBlock->serial));
+		       DWORD(labelBlock->serial));
 		printf("disk label=\"%11.11s\"\n",
 		       labelBlock->label);
 		printf("disk type=\"%8.8s\"\n",
 		       labelBlock->fat_type);
 	}
 
-	if(!WORD(fatlen)){
+	if(!BOOT_WORD(fatlen)){
 		printf("Big fatlen=%u\n",
-		       DWORD(ext.fat32.bigFat));
+		       BOOT_DWORD(ext.fat32.bigFat));
 		printf("Extended flags=0x%04x\n",
-		       WORD(ext.fat32.extFlags));
+		       BOOT_WORD(ext.fat32.extFlags));
 		printf("FS version=0x%04x\n",
-		       WORD(ext.fat32.fsVersion));
+		       BOOT_WORD(ext.fat32.fsVersion));
 		printf("rootCluster=%u\n",
-		       DWORD(ext.fat32.rootCluster));
-		if(WORD(ext.fat32.infoSector) != MAX16)
+		       BOOT_DWORD(ext.fat32.rootCluster));
+		if(BOOT_WORD(ext.fat32.infoSector) != MAX16)
 			printf("infoSector location=%d\n",
-			       WORD(ext.fat32.infoSector));
-		if(WORD(ext.fat32.backupBoot) != MAX16)
+			       BOOT_WORD(ext.fat32.infoSector));
+		if(BOOT_WORD(ext.fat32.backupBoot) != MAX16)
 			printf("backup boot sector=%d\n",
-			       WORD(ext.fat32.backupBoot));
+			       BOOT_WORD(ext.fat32.backupBoot));
 		displayInfosector(Stream, boot);
 	}
 }

@@ -339,7 +339,7 @@ static unsigned int fat16_decode(Fs_t *Stream, unsigned int num)
 	unsigned char *address = getAddress(Stream, num << 1, FAT_ACCESS_READ);
 	if(!address)
 		return 1;
-	return _WORD(address);
+	return WORD(address);
 }
 
 static void fat16_encode(Fs_t *Stream, unsigned int num, unsigned int code)
@@ -396,13 +396,13 @@ static unsigned int fat32_decode(Fs_t *Stream, unsigned int num)
 	unsigned char *address = getAddress(Stream, num << 2, FAT_ACCESS_READ);
 	if(!address)
 		return 1;
-	return _DWORD(address) & FAT32_ADDR;
+	return DWORD(address) & FAT32_ADDR;
 }
 
 static void fat32_encode(Fs_t *Stream, unsigned int num, unsigned int code)
 {
 	unsigned char *address = getAddress(Stream, num << 2, FAT_ACCESS_WRITE);
-	set_dword(address,(code&FAT32_ADDR) | (_DWORD(address)&FAT32_HIGH));
+	set_dword(address,(code&FAT32_ADDR) | (DWORD(address)&FAT32_HIGH));
 }
 
 #pragma GCC diagnostic push
@@ -710,14 +710,14 @@ static int fat_32_read(Fs_t *This, union bootsector *boot)
 {
 	size_t size;
 
-	This->fat_len = DWORD(ext.fat32.bigFat);
+	This->fat_len = BOOT_DWORD(ext.fat32.bigFat);
 	This->writeAllFats = !(boot->boot.ext.fat32.extFlags[0] & 0x80);
 	This->primaryFat = boot->boot.ext.fat32.extFlags[0] & 0xf;
-	This->rootCluster = DWORD(ext.fat32.rootCluster);
+	This->rootCluster = BOOT_DWORD(ext.fat32.rootCluster);
 
 	/* read the info sector */
 	size = This->sector_size;
-	This->infoSectorLoc = WORD(ext.fat32.infoSector);
+	This->infoSectorLoc = BOOT_WORD(ext.fat32.infoSector);
 	if(This->sector_size >= 512 &&
 	   This->infoSectorLoc && This->infoSectorLoc != MAX32) {
 		InfoSector_t *infoSector;
@@ -725,10 +725,10 @@ static int fat_32_read(Fs_t *This, union bootsector *boot)
 		if(forceReadSector(This, (char *)infoSector,
 				   This->infoSectorLoc, 1) ==
 		   (signed int) This->sector_size &&
-		   _DWORD(infoSector->signature1) == INFOSECT_SIGNATURE1 &&
-		   _DWORD(infoSector->signature2) == INFOSECT_SIGNATURE2) {
-			This->freeSpace = _DWORD(infoSector->count);
-			This->last = _DWORD(infoSector->pos);
+		   DWORD(infoSector->signature1) == INFOSECT_SIGNATURE1 &&
+		   DWORD(infoSector->signature2) == INFOSECT_SIGNATURE2) {
+			This->freeSpace = DWORD(infoSector->count);
+			This->last = DWORD(infoSector->pos);
 		}
 		free(infoSector);
 	}
