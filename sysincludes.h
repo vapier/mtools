@@ -721,8 +721,13 @@ unsigned int sleep(unsigned int seconds);
 # define SZF "%llu"
 # define SSZF "%lld"
 #else
-# define SZF "%lu"
-# define SSZF "%ld"
+# if SIZEOF_SIZE_T > SIZEOF_INT
+#  define SZF "%lu"
+#  define SSZF "%ld"
+# else
+#  define SZF "%u"
+#  define SSZF "%d"
+# endif
 #endif
 
 #endif
