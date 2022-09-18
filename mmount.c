@@ -24,15 +24,13 @@
  */
 
 #include "sysincludes.h"
-#include "msdos.h"
 #include "mtools.h"
 
 void mmount(int argc, char **argv, int type UNUSEDP) NORETURN;
 
 #ifdef OS_linux
 #include <sys/wait.h>
-#include "mainloop.h"
-#include "fs.h"
+#include "fat_device.h"
 
 void mmount(int argc, char **argv, int type UNUSEDP)
 {

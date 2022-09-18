@@ -30,6 +30,7 @@
 #include "buffer.h"
 #include "file_name.h"
 #include "open_image.h"
+#include "fat_device.h"
 
 #define FULL_CYL
 

@@ -19,7 +19,7 @@
  */
 
 #include "sysincludes.h"
-#include "mainloop.h"
+#include "fat_device.h"
 #include "mtools.h"
 #include "nameclash.h"
 #include "fsP.h"

@@ -15,6 +15,8 @@
  *  along with Mtools.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "msdos.h"
+
 typedef struct hsc {
 	unsigned char byte0;
 	unsigned char head;		/* starting head */

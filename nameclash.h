@@ -57,6 +57,7 @@ typedef struct ClashHandling_t {
 	int is_label;
 } ClashHandling_t;
 
+#ifdef MTOOLS_DIRENTRY_H
 /* write callback */
 typedef int (write_data_callback)(dos_name_t *,char *, void *, struct direntry_t *);
 
@@ -66,6 +67,7 @@ int mwrite_one(Stream_t *Dir,
 	       write_data_callback *cb,
 	       void *arg,
 	       ClashHandling_t *ch);
+#endif
 
 int handle_clash_options(ClashHandling_t *ch, int c);
 void init_clash_handling(ClashHandling_t *ch);

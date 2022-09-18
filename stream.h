@@ -113,14 +113,6 @@ ssize_t pwrite_pass_through(Stream_t *Stream, char *buf,
 mt_off_t getfree(Stream_t *Stream);
 int getfreeMinBytes(Stream_t *Stream, mt_off_t ref);
 
-#ifdef MTOOLS_MSDOS_H
-Stream_t *find_device(char drive, int mode, struct device *out_dev,
-		      union bootsector *boot,
-		      char *name, int *media, mt_off_t *maxSize,
-		      int *isRop);
-#endif
-
 int adjust_tot_sectors(struct device *dev, mt_off_t offset, char *errmsg);
 
 #endif
-
