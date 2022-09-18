@@ -90,7 +90,7 @@ enum AuthErrorsEnum {
 
 
 
-UNUSED(static inline void cork(int sockhandle, int on))
+static inline void cork(int sockhandle, int on)
 {
 #ifdef TCP_CORK
 	if(setsockopt(sockhandle, IPPROTO_TCP,

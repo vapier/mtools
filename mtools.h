@@ -119,22 +119,22 @@ if(source)target=source
 
 #define compare(ref,testee) ((ref) && (ref) != (testee))
 
-UNUSED(static __inline__ char ch_toupper(char ch))
+static __inline__ char ch_toupper(char ch)
 {
         return (char) toupper( (unsigned char) ch);
 }
 
-UNUSED(static __inline__ char ch_tolower(char ch))
+static __inline__ char ch_tolower(char ch)
 {
         return (char) tolower( (unsigned char) ch);
 }
 
-UNUSED(static __inline__ void init_random(void))
+static __inline__ void init_random(void)
 {
 	srandom((unsigned int)time (0));
 }
 
-UNUSED(static __inline__ size_t ptrdiff (const char *end, const char *begin))
+static __inline__ size_t ptrdiff (const char *end, const char *begin)
 {
 	return (size_t) (end-begin);
 }

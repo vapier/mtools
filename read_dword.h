@@ -18,7 +18,7 @@
  *  along with Mtools.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-static Dword read_dword(int handle)
+static inline Dword read_dword(int handle)
 {
 	Byte val[4];
 
@@ -28,7 +28,7 @@ static Dword read_dword(int handle)
 	return byte2dword(val);
 }
 
-UNUSED(static int32_t read_sdword(int handle))
+static inline int32_t read_sdword(int handle)
 {
 	Byte val[4];
 
@@ -40,7 +40,7 @@ UNUSED(static int32_t read_sdword(int handle))
 
 
 struct SQwordRet { int64_t v; int err; };
-UNUSED(static struct SQwordRet read_sqword(int handle) )
+static inline struct SQwordRet read_sqword(int handle)
 {
 	Byte val[8];
 	struct SQwordRet ret;

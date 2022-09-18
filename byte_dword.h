@@ -18,7 +18,7 @@
  *  along with Mtools.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-static Dword byte2dword(Byte* val)
+static inline Dword byte2dword(Byte* val)
 {
 	Dword l;
 	l = (Dword)((val[0] << 24) + (val[1] << 16) + (val[2] << 8) + val[3]);
@@ -26,7 +26,7 @@ static Dword byte2dword(Byte* val)
 	return l;
 }
 
-UNUSED(static int32_t byte2sdword(Byte* val))
+static inline int32_t byte2sdword(Byte* val)
 {
 	int32_t l;
 	l = (int32_t)((val[0] << 24) + (val[1] << 16) + (val[2] << 8) + val[3]);
@@ -35,7 +35,7 @@ UNUSED(static int32_t byte2sdword(Byte* val))
 }
 
 
-UNUSED(static Qword byte2qword(Byte* val))
+static inline Qword byte2qword(Byte* val)
 {
 	Qword l;
 	l = val[0];
@@ -57,7 +57,7 @@ static void dword2byte(Dword parm, Byte* rval)
 	rval[3] = parm         & 0xff;
 }
 
-UNUSED(static void sdword2byte(int32_t parm, Byte* rval))
+static inline void sdword2byte(int32_t parm, Byte* rval)
 {
 	rval[0] = (parm >> 24) & 0xff;
 	rval[1] = (parm >> 16) & 0xff;
@@ -65,7 +65,7 @@ UNUSED(static void sdword2byte(int32_t parm, Byte* rval))
 	rval[3] = parm         & 0xff;
 }
 
-UNUSED(static void qword2byte(Qword parm, Byte* rval))
+static inline void qword2byte(Qword parm, Byte* rval)
 {
 	rval[0] = (parm >> 56) & 0xff;
 	rval[1] = (parm >> 48) & 0xff;

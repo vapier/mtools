@@ -57,12 +57,12 @@ int isSpecialW(const wchar_t *name);
 #define isSpecialW isSpecial
 #endif
 
-UNUSED(static __inline__ wchar_t ch_towupper(wchar_t ch))
+static inline wchar_t ch_towupper(wchar_t ch)
 {
         return (wchar_t) towupper( (wint_t) ch);
 }
 
-UNUSED(static __inline__ wchar_t ch_towlower(wchar_t ch))
+static inline wchar_t ch_towlower(wchar_t ch)
 {
         return (wchar_t) towlower( (wint_t) ch);
 }
