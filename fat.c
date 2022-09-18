@@ -603,7 +603,7 @@ static void set_fat32(Fs_t *This)
 	}
 }
 
-void set_fat(Fs_t *This, int haveBigFatLen) {
+void set_fat(Fs_t *This, bool haveBigFatLen) {
 	if(haveBigFatLen)
 		/* This is how Windows 10 behaves, despite
 		   fatgen103's stern assertion otherwise */
