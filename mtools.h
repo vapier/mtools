@@ -249,7 +249,7 @@ FILE *open_mcwd(const char *mode);
 void unlink_mcwd(void);
 
 #ifndef OS_mingw32msvc
-ssize_t safePopenOut(const char **command, char *output, size_t len);
+ssize_t safePopenOut(const char* const* command, char *output, size_t len);
 #endif
 
 #define ROUND_DOWN(value, grain) ((value) - (value) % (grain))

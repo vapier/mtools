@@ -22,7 +22,7 @@
 #include "mtools.h"
 
 #ifndef OS_mingw32msvc
-ssize_t safePopenOut(const char **command, char *output, size_t len)
+ssize_t safePopenOut(const char *const* command, char *output, size_t len)
 {
 	int pipefd[2];
 	pid_t pid;
@@ -45,7 +45,7 @@ ssize_t safePopenOut(const char **command, char *output, size_t len)
 				exit(1);
 			}
 			close(pipefd[1]);
-			execvp(command[0], (char**)(command+1));
+			execvp(command[0], (char *const*)(command+1));
 			exit(1);
 		default:
 			close(pipefd[1]);
