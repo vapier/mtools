@@ -60,7 +60,7 @@ int setresuid(int a, int b, int c)
 }
 #endif
 
-static __inline__ void print_privs(const char *message UNUSEDP)
+static inline void print_privs(const char *message UNUSEDP)
 {
 #ifdef PRIV_DEBUG
 	/* for debugging purposes only */
@@ -90,7 +90,7 @@ static uid_t ruid, euid;
  */
 
 
-static __inline__ void Setuid(uid_t uid)
+static inline void Setuid(uid_t uid)
 {
 #if defined HAVE_SETEUID || defined HAVE_SETRESUID
 	if(euid == 0) {

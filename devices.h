@@ -47,7 +47,7 @@
 
 typedef struct floppy_raw_cmd RawRequest_t;
 
-static __inline__ void RR_INIT(struct floppy_raw_cmd *request)
+static inline void RR_INIT(struct floppy_raw_cmd *request)
 {
 	request->data = 0;
 	request->length = 0;
@@ -64,28 +64,28 @@ static __inline__ void RR_INIT(struct floppy_raw_cmd *request)
 	request->reply_count = 0;
 }
 
-static __inline__ void RR_SETRATE(struct floppy_raw_cmd *request, uint8_t rate)
+static inline void RR_SETRATE(struct floppy_raw_cmd *request, uint8_t rate)
 {
 	request->rate = rate;
 }
 
-static __inline__ void RR_SETDRIVE(struct floppy_raw_cmd *request,int drive)
+static inline void RR_SETDRIVE(struct floppy_raw_cmd *request,int drive)
 {
 	request->cmd[1] = (request->cmd[1] & ~3) | (drive & 3);
 }
 
-static __inline__ void RR_SETTRACK(struct floppy_raw_cmd *request,uint8_t track)
+static inline void RR_SETTRACK(struct floppy_raw_cmd *request,uint8_t track)
 {
 	request->cmd[2] = track;
 }
 
-static __inline__ void RR_SETPTRACK(struct floppy_raw_cmd *request,
+static inline void RR_SETPTRACK(struct floppy_raw_cmd *request,
 				    int track)
 {
 	request->track = track;
 }
 
-static __inline__ void RR_SETHEAD(struct floppy_raw_cmd *request, uint8_t head)
+static inline void RR_SETHEAD(struct floppy_raw_cmd *request, uint8_t head)
 {
 	if(head)
 		request->cmd[1] |= 4;
@@ -94,14 +94,14 @@ static __inline__ void RR_SETHEAD(struct floppy_raw_cmd *request, uint8_t head)
 	request->cmd[3] = head;
 }
 
-static __inline__ void RR_SETSECTOR(struct floppy_raw_cmd *request,
+static inline void RR_SETSECTOR(struct floppy_raw_cmd *request,
 				    uint8_t sector)
 {
 	request->cmd[4] = sector;
 	request->cmd[6] = sector-1;
 }
 
-static __inline__ void RR_SETSIZECODE(struct floppy_raw_cmd *request,
+static inline void RR_SETSIZECODE(struct floppy_raw_cmd *request,
 					     uint8_t sizecode)
 {
 	request->cmd[5] = sizecode;
@@ -116,7 +116,7 @@ static inline void RR_SETEND(struct floppy_raw_cmd *request, int end)
 }
 #endif
 
-static __inline__ void RR_SETDIRECTION(struct floppy_raw_cmd *request,
+static inline void RR_SETDIRECTION(struct floppy_raw_cmd *request,
 				       int direction)
 {
 	if(direction == MT_READ) {
@@ -129,7 +129,7 @@ static __inline__ void RR_SETDIRECTION(struct floppy_raw_cmd *request,
 }
 
 
-static __inline__ void RR_SETDATA(struct floppy_raw_cmd *request,
+static inline void RR_SETDATA(struct floppy_raw_cmd *request,
 				  caddr_t data)
 {
 	request->data = data;
@@ -143,7 +143,7 @@ static inline void RR_SETLENGTH(struct floppy_raw_cmd *request, int length)
 }
 #endif
 
-static __inline__ void RR_SETCONT(struct floppy_raw_cmd *request)
+static inline void RR_SETCONT(struct floppy_raw_cmd *request)
 {
 #ifdef FD_RAW_MORE
 	request->flags |= FD_RAW_MORE;
@@ -151,20 +151,20 @@ static __inline__ void RR_SETCONT(struct floppy_raw_cmd *request)
 }
 
 
-static __inline__ int RR_SIZECODE(struct floppy_raw_cmd *request)
+static inline int RR_SIZECODE(struct floppy_raw_cmd *request)
 {
 	return request->cmd[5];
 }
 
 
 
-static __inline__ int RR_TRACK(struct floppy_raw_cmd *request)
+static inline int RR_TRACK(struct floppy_raw_cmd *request)
 {
 	return request->cmd[2];
 }
 
 
-static __inline__ int GET_DRIVE(int fd)
+static inline int GET_DRIVE(int fd)
 {
 	struct MT_STAT statbuf;
 

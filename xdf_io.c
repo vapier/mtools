@@ -245,7 +245,7 @@ static void adjust_bounds(Xdf_t *This, uint32_t ibegin, uint32_t iend,
 }
 
 
-static __inline__ int try_flush_dirty(Xdf_t *This)
+static inline int try_flush_dirty(Xdf_t *This)
 {
 	unsigned char ptr;
 	int nr, bytes;

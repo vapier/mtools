@@ -23,7 +23,7 @@
 #define BITS_PER_INT (sizeof(unsigned int) * 8)
 
 
-static __inline__ uint32_t rol(uint32_t arg, int shift)
+static inline uint32_t rol(uint32_t arg, int shift)
 {
 	arg &= 0xffffffff; /* for 64 bit machines */
 	return (arg << shift) | (arg >> (32 - shift));

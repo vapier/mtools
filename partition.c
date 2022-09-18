@@ -35,7 +35,7 @@ typedef struct Partition_t {
 	uint16_t cyclinders;
 } Partition_t;
 
-static __inline__ void print_hsc(hsc *h)
+static inline void print_hsc(hsc *h)
 {
 	printf(" h=%d s=%d c=%d\n",
 	       head(*h), sector(*h), cyl(*h));

@@ -484,7 +484,7 @@ static ssize_t pwrite_file(Stream_t *Stream, char *buf, mt_off_t where,
 
 static int month[] = {0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334,
 					  0, 0, 0 };
-static __inline__ time_t conv_stamp(struct directory *dir)
+static inline time_t conv_stamp(struct directory *dir)
 {
 	struct tm *tmbuf;
 	long tzone, dst;

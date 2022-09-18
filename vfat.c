@@ -182,7 +182,7 @@ static int unicode_write(wchar_t *in, unsigned char *out, int num, int *end_p)
 }
 
 
-static __inline__ int unicode_read(unsigned char *in,
+static inline int unicode_read(unsigned char *in,
 				   wchar_t *out, int num)
 {
 	wchar_t *end_out = out+num;
@@ -228,7 +228,7 @@ static void clear_vfat(struct vfat_state *v)
  *
  * David C. Niemi (niemi@tuxers.net) 95.01.19
  */
-static __inline__ unsigned char sum_shortname(const dos_name_t *dn)
+static inline unsigned char sum_shortname(const dos_name_t *dn)
 {
 	unsigned char sum;
 	const char *name=dn->base;
@@ -246,7 +246,7 @@ static __inline__ unsigned char sum_shortname(const dos_name_t *dn)
  * Return 1 if the VSEs comprise a valid long file name,
  * 0 if not.
  */
-static __inline__ void check_vfat(struct vfat_state *v, struct directory *dir)
+static inline void check_vfat(struct vfat_state *v, struct directory *dir)
 {
 	dos_name_t dn;
 
@@ -413,7 +413,7 @@ void dir_write(direntry_t *entry)
  * The following function translates a series of vfat_subentries into
  * data suitable for a dircache entry
  */
-static __inline__ void parse_vses(direntry_t *entry,
+static inline void parse_vses(direntry_t *entry,
 				  struct vfat_state *v)
 {
 	struct vfat_subentry *vse;
@@ -575,7 +575,7 @@ static dirCacheEntry_t *vfat_lookup_loop_common(doscp_t *cp,
 			    newfile, &direntry->dir);
 }
 
-static __inline__ dirCacheEntry_t *vfat_lookup_loop_for_read(doscp_t *cp,
+static inline dirCacheEntry_t *vfat_lookup_loop_for_read(doscp_t *cp,
 							     direntry_t *direntry,
 							     dirCache_t *cache,
 							     int *io_error)
@@ -747,10 +747,10 @@ int vfat_lookup(direntry_t *direntry, const char *filename,
 	}
 }
 
-static __inline__ dirCacheEntry_t *vfat_lookup_loop_for_insert(doscp_t *cp,
-							       direntry_t *direntry,
-							       unsigned int initpos,
-							       dirCache_t *cache)
+static inline dirCacheEntry_t *vfat_lookup_loop_for_insert(doscp_t *cp,
+							   direntry_t *direntry,
+							   unsigned int initpos,
+							   dirCache_t *cache)
 {
 	dirCacheEntry_t *dce;
 	int io_error;

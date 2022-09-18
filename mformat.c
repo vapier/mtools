@@ -155,7 +155,7 @@ static unsigned char bootprog[]=
  0xb9, 0x01, 0x00, 0xcd, 0x13, 0x72, 0x05, 0xea, 0x00, 0x7c, 0x00,
  0x00, 0xcd, 0x19};
 
-static __inline__ void inst_boot_prg(union bootsector *boot, uint16_t offset)
+static inline void inst_boot_prg(union bootsector *boot, uint16_t offset)
 {
 	memcpy(boot->bytes + offset, bootprog, sizeof(bootprog));
 	if(offset - 2 < 0x80) {
@@ -173,7 +173,7 @@ static __inline__ void inst_boot_prg(union bootsector *boot, uint16_t offset)
 }
 
 /* Set up the root directory */
-static __inline__ void format_root(Fs_t *Fs, char *label, union bootsector *boot)
+static inline void format_root(Fs_t *Fs, char *label, union bootsector *boot)
 {
 	Stream_t *RootDir;
 	char *buf;

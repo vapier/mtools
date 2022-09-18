@@ -38,7 +38,7 @@
  *
  * @return 1 if name had to be mangled
  */
-static __inline__ int convert_to_shortname(doscp_t *cp, ClashHandling_t *ch,
+static inline int convert_to_shortname(doscp_t *cp, ClashHandling_t *ch,
 					   const char *un, dos_name_t *dn)
 {
 	int mangled;
@@ -51,7 +51,7 @@ static __inline__ int convert_to_shortname(doscp_t *cp, ClashHandling_t *ch,
 	return mangled;
 }
 
-static __inline__ void chomp(char *line)
+static inline void chomp(char *line)
 {
 	size_t l = strlen(line);
 	while(l > 0 && (line[l-1] == '\n' || line[l-1] == '\r')) {
@@ -62,7 +62,7 @@ static __inline__ void chomp(char *line)
 /**
  * Asks for an alternative new name for a file, in case of a clash
  */
-static __inline__ int ask_rename(doscp_t *cp, ClashHandling_t *ch,
+static inline int ask_rename(doscp_t *cp, ClashHandling_t *ch,
 				 dos_name_t *shortname,
 				 char *longname,
 				 int isprimary)
@@ -103,7 +103,7 @@ static __inline__ int ask_rename(doscp_t *cp, ClashHandling_t *ch,
  * The decision either comes from the default (ch), or the user will be
  * prompted if there is no default
  */
-static __inline__ clash_action ask_namematch(doscp_t *cp,
+static inline clash_action ask_namematch(doscp_t *cp,
 					     dos_name_t *dosname,
 					     char *longname,
 					     int isprimary,
@@ -246,7 +246,7 @@ static __inline__ clash_action ask_namematch(doscp_t *cp,
  *
  * Also, immediately copy the original name so that messages can use it.
  */
-static __inline__ clash_action process_namematch(doscp_t *cp,
+static inline clash_action process_namematch(doscp_t *cp,
 						 dos_name_t *dosname,
 						 char *longname,
 						 int isprimary,
@@ -339,7 +339,7 @@ static int is_reserved(char *ans, int islong)
 	return 0;
 }
 
-static __inline__ clash_action get_slots(Stream_t *Dir,
+static inline clash_action get_slots(Stream_t *Dir,
 					 dos_name_t *dosname,
 					 char *longname,
 					 struct scan_state *ssp,
@@ -474,7 +474,7 @@ static __inline__ clash_action get_slots(Stream_t *Dir,
 }
 
 
-static __inline__ int write_slots(Stream_t *Dir,
+static inline int write_slots(Stream_t *Dir,
 				  dos_name_t *dosname,
 				  char *longname,
 				  struct scan_state *ssp,

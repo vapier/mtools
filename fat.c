@@ -38,7 +38,7 @@ typedef struct FatMap_t {
 #define SECT_PER_ENTRY (sizeof(fatBitMask)*8)
 #define ONE ((fatBitMask) 1)
 
-static __inline__ ssize_t readSector(Fs_t *This, char *buf, unsigned int off,
+static inline ssize_t readSector(Fs_t *This, char *buf, unsigned int off,
 				     size_t size)
 {
 	return PREADS(This->head.Next, buf, sectorsToBytes(This, off),
@@ -46,7 +46,7 @@ static __inline__ ssize_t readSector(Fs_t *This, char *buf, unsigned int off,
 }
 
 
-static __inline__ ssize_t forceReadSector(Fs_t *This, char *buf,
+static inline ssize_t forceReadSector(Fs_t *This, char *buf,
 					  unsigned int off, size_t size)
 {
 	return force_pread(This->head.Next, buf, sectorsToBytes(This, off),
@@ -54,7 +54,7 @@ static __inline__ ssize_t forceReadSector(Fs_t *This, char *buf,
 }
 
 
-static __inline__ ssize_t forceWriteSector(Fs_t *This, char *buf, unsigned int off,
+static inline ssize_t forceWriteSector(Fs_t *This, char *buf, unsigned int off,
 					   size_t size)
 {
 	return force_pwrite(This->head.Next, buf, sectorsToBytes(This, off),
@@ -83,7 +83,7 @@ static FatMap_t *GetFatMap(Fs_t *Stream)
 	return map;
 }
 
-static __inline__ int locate(Fs_t *Stream, uint32_t offset,
+static inline int locate(Fs_t *Stream, uint32_t offset,
 			     uint32_t *slot, uint32_t *bit)
 {
 	if(offset >= Stream->fat_len)
@@ -93,7 +93,7 @@ static __inline__ int locate(Fs_t *Stream, uint32_t offset,
 	return 0;
 }
 
-static __inline__ ssize_t fatReadSector(Fs_t *This,
+static inline ssize_t fatReadSector(Fs_t *This,
 					unsigned int sector,
 					unsigned int slot,
 					unsigned int bit, unsigned int dupe,

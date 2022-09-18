@@ -62,7 +62,7 @@ static char mdir_longname[4*MAX_VNAMELEN+1];
 /*
  * Print an MSDOS directory date stamp.
  */
-static __inline__ void print_date(struct directory *dir)
+static inline void print_date(struct directory *dir)
 {
 	char year[5];
 	char day[3];
@@ -98,7 +98,7 @@ static __inline__ void print_date(struct directory *dir)
 /*
  * Print an MSDOS directory time stamp.
  */
-static __inline__ void print_time(struct directory *dir)
+static inline void print_time(struct directory *dir)
 {
 	char am_pm;
 	int hour = DOS_HOUR(dir);
@@ -177,7 +177,7 @@ static const char *dotted_num(mt_off_t num, size_t width, char **buf)
 	return (*buf) + len-width;
 }
 
-static __inline__ int print_volume_label(Stream_t *Dir, char drive)
+static inline int print_volume_label(Stream_t *Dir, char drive)
 {
 	Stream_t *Stream = GetFs(Dir);
 	direntry_t entry;

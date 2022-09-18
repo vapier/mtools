@@ -658,7 +658,7 @@ static const char *error_msg[22]={
 "Seek end" };
 
 
-static __inline__ void print_message(RawRequest_t *raw_cmd,const char *message)
+static inline void print_message(RawRequest_t *raw_cmd,const char *message)
 {
 	int i, code;
 	if(!message)
@@ -813,7 +813,7 @@ struct device devices[] = {
 #define USE_2M(floppy) ((floppy.rate & FD_2M) ? 0xff : 0x80 )
 #define SSIZE(floppy) ((((floppy.rate & 0x38) >> 3 ) + 2) % 8)
 
-static __inline__ void set_2m(struct floppy_struct *floppy, unsigned int value)
+static inline void set_2m(struct floppy_struct *floppy, unsigned int value)
 {
 	uint8_t v;
 	if (value & 0x7f)
@@ -824,7 +824,7 @@ static __inline__ void set_2m(struct floppy_struct *floppy, unsigned int value)
 }
 #define SET_2M set_2m
 
-static __inline__ void set_ssize(struct floppy_struct *floppy, int value)
+static inline void set_ssize(struct floppy_struct *floppy, int value)
 {
 	uint8_t v = (uint8_t) ((( (value & 7) + 6 ) % 8) << 3);
 
@@ -833,7 +833,7 @@ static __inline__ void set_ssize(struct floppy_struct *floppy, int value)
 
 #define SET_SSIZE set_ssize
 
-static __inline__ int set_parameters(int fd, struct floppy_struct *floppy,
+static inline int set_parameters(int fd, struct floppy_struct *floppy,
 				     struct MT_STAT *buf)
 {
 	if ( ( MINOR(buf->st_rdev ) & 0x7f ) > 3 )
@@ -842,7 +842,7 @@ static __inline__ int set_parameters(int fd, struct floppy_struct *floppy,
 	return ioctl(fd, FDSETPRM, floppy);
 }
 
-static __inline__ int get_parameters(int fd, struct floppy_struct *floppy)
+static inline int get_parameters(int fd, struct floppy_struct *floppy)
 {
 	return ioctl(fd, FDGETPRM, floppy);
 }
