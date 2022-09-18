@@ -1,5 +1,5 @@
-#ifndef __mtools_scsi_h
-#define __mtools_scsi_h
+#ifndef MTOOLS_SCSI_H
+#define MTOOLS_SCSI_H
 /*  Copyright 1997-1999,2001,2002,2009 Alain Knaff.
  *  This file is part of mtools.
  *
@@ -38,4 +38,4 @@ int scsi_open(const char *name, int flags, int mode, void **extra_data);
 
 #endif /* HAVE_SCSI */
 
-#endif /* __mtools_scsi_h */
+#endif /* MTOOLS_SCSI_H */
