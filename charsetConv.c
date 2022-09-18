@@ -363,7 +363,11 @@ static void initialize_to_native(void)
  * Returns number of generated native characters
  */
 size_t wchar_to_native(const wchar_t *wchar, char *native, size_t len,
-		       size_t out_len UNUSEDP)
+		       size_t out_len
+#ifndef HAVE_ICONV_H
+		       UNUSEDP
+#endif
+		       )
 {
 #ifdef HAVE_ICONV_H
 	int mangled;

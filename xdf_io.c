@@ -601,7 +601,7 @@ static void set_geom(Xdf_t *This, struct device *dev)
 	dev->tracks = 80;
 }
 
-static int config_geom(Stream_t *Stream UNUSEDP, struct device *dev,
+static int config_geom(Stream_t *Stream, struct device *dev,
 		       struct device *orig_dev UNUSEDP)
 {
 	DeclareThis(Xdf_t);

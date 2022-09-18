@@ -482,7 +482,7 @@ static int list_non_recurs_directory(direntry_t *entry, MainParam_t *mp)
 
 
 static int list_recurs_directory(direntry_t *entry UNUSEDP,
-				 MainParam_t *mp UNUSEDP)
+				 MainParam_t *mp)
 {
 	MainParam_t subMp;
 	int ret;
