@@ -327,8 +327,7 @@ static inline bool clusters_fit_into_fat(Fs_t *Fs) {
  * Assert that FAT param calculation has been performed correctly, and
  * set_fat
  */
-static void check_fs_params_and_set_fat(Fs_t *Fs, uint32_t tot_sectors,
-					bool fat32Requested)
+static void check_fs_params_and_set_fat(Fs_t *Fs, uint32_t tot_sectors)
 {
 	unsigned int provisional_fat_bits;
 
@@ -354,7 +353,7 @@ static void check_fs_params_and_set_fat(Fs_t *Fs, uint32_t tot_sectors,
 	assert(clusters_fit_into_fat(Fs));
 #endif
 	provisional_fat_bits = Fs->fat_bits;
-	set_fat(Fs, fat32Requested);
+	set_fat(Fs, provisional_fat_bits == 32);
 #ifdef HAVE_ASSERT_H
 	assert(provisional_fat_bits == Fs->fat_bits);
 #endif
@@ -571,6 +570,16 @@ int calc_fs_parameters(struct device *dev, bool fat32Requested,
 	uint16_t saved_dir_len;
 
 	struct OldDos_t *params=NULL;
+
+	if(fat32Requested) {
+		if(dev->fat_bits && dev->fat_bits != 32) {
+			fprintf(stderr, "Fat bits 32 requested on command line, but %d in device description\n",
+				dev->fat_bits);
+			exit(1);
+		}
+		dev->fat_bits=32;
+	}
+	
 	Fs->infoSectorLoc = 0;
 	if( (may_change_fat_bits || abs(dev->fat_bits) == 12) &&
 	    (may_change_boot_size || Fs->fat_start == 1) )
@@ -588,7 +597,7 @@ int calc_fs_parameters(struct device *dev, bool fat32Requested,
 #ifdef HAVE_ASSERT_H
 		assert(num_clus_valid >= 0);
 #endif
-		check_fs_params_and_set_fat(Fs, tot_sectors, fat32Requested);
+		check_fs_params_and_set_fat(Fs, tot_sectors);
 		return 0;
 	}
 
@@ -600,9 +609,9 @@ int calc_fs_parameters(struct device *dev, bool fat32Requested,
 
 	Fs->fat_bits = abs(dev->fat_bits);
 	if(Fs->fat_bits == 0)
-		/* If fat_bits not specified by device, start with a 12-bit
-		 * FAT, unless 32 bit specified on command line */
-		Fs->fat_bits = fat32Requested ? 32 : 12;
+		/* If fat_bits not specified by device or command
+		 * line, start with a 12-bit FAT */
+		Fs->fat_bits = 12;
 	if(!Fs->cluster_size) {
 		if(tot_sectors < 2400 && dev->heads == 2)
 			/* double sided double density floppies */
@@ -696,7 +705,12 @@ int calc_fs_parameters(struct device *dev, bool fat32Requested,
 
 			if(fat32Requested)
 				break;
-			
+
+			if(!may_change_fat_bits && Fs->fat_bits == 32) {
+				fat32Requested=1;
+				break;
+			}
+
 			/* Somehow we ended up with too few sectors
 			 * for FAT size. This can only happen if
 			 * cluster size is not adjustable, and if we
@@ -772,7 +786,7 @@ int calc_fs_parameters(struct device *dev, bool fat32Requested,
 			Fs->num_clus,
 			Fs->fat_len);
 	}
-	check_fs_params_and_set_fat(Fs, tot_sectors, fat32Requested);
+	check_fs_params_and_set_fat(Fs, tot_sectors);
 	if(Fs->fat_bits == 32)
 		fat32_specific_init(Fs);
 	return 0;
