@@ -271,8 +271,11 @@ static inline void check_vfat(struct vfat_state *v, struct directory *dir)
 	v->present = 1;
 }
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wsign-conversion"
+#ifdef HAVE_PRAGMA_DIAGNOSTIC
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wsign-conversion"
+#endif
+
 /* We have indeed different types for the entry slot
  * - the higher levels have a "signed" type, in order to accomodate
  *   reserved values for "root directory" entry, "not found" entries, and
@@ -914,7 +917,9 @@ int lookupForInsert(Stream_t *Dir,
 	fprintf(stderr, "No directory slots\n");
 	return -1;
 }
-#pragma GCC diagnostic pop
+#ifdef HAVE_PRAGMA_DIAGNOSTIC
+# pragma GCC diagnostic pop
+#endif
 
 
 /* End vfat.c */

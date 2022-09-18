@@ -711,11 +711,10 @@ unsigned int sleep(unsigned int seconds);
 #define O_LARGEFILE 0
 #endif
 
-#ifndef __GNUC__
-#ifndef __inline__
-#define __inline__ inline
+#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6) || defined(__clang__)
+# define HAVE_PRAGMA_DIAGNOSTIC 1
 #endif
-#endif
+
 
 #if SIZEOF_SIZE_T > SIZEOF_LONG
 # define SZF "%llu"

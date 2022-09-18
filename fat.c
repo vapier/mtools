@@ -354,8 +354,11 @@ static void fat16_encode(Fs_t *Stream, unsigned int num, unsigned int code)
 }
 
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-align"
+#ifdef HAVE_PRAGMA_DIAGNOSTIC
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wcast-align"
+#endif
+
 /* Ignore alignment warnings about casting to type with higher
  * alignment requirement. Requirement is met, as initial pointer is an
  * even offset into a buffer allocated by malloc, which according to
@@ -381,9 +384,10 @@ static void fast_fat16_encode(Fs_t *Stream, unsigned int num, unsigned int code)
 	}
 	*address = (uint16_t) code;
 }
-#pragma GCC diagnostic pop
 
-
+#ifdef HAVE_PRAGMA_DIAGNOSTIC
+# pragma GCC diagnostic pop
+#endif
 
 /*
  * Fat 32 encoding
@@ -405,8 +409,10 @@ static void fat32_encode(Fs_t *Stream, unsigned int num, unsigned int code)
 	set_dword(address,(code&FAT32_ADDR) | (DWORD(address)&FAT32_HIGH));
 }
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-align"
+#ifdef HAVE_PRAGMA_DIAGNOSTIC
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wcast-align"
+#endif
 static unsigned int fast_fat32_decode(Fs_t *Stream, unsigned int num)
 {
 	unsigned int *address =
@@ -424,7 +430,9 @@ static void fast_fat32_encode(Fs_t *Stream, unsigned int num, unsigned int code)
 					    FAT_ACCESS_WRITE);
 	*address = (*address & FAT32_HIGH) | (code & FAT32_ADDR);
 }
-#pragma GCC diagnostic pop
+#ifdef HAVE_PRAGMA_DIAGNOSTIC
+# pragma GCC diagnostic pop
+#endif
 
 /*
  * Write the FAT table to the disk.  Up to now the FAT manipulation has

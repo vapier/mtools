@@ -251,8 +251,10 @@ static void syntax(const char *msg, int thisLine)
     exit(1);
 }
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-align"
+#ifdef HAVE_PRAGMA_DIAGNOSTIC
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wcast-align"
+#endif
 static void get_env_conf(void)
 {
     char *s;
@@ -289,7 +291,9 @@ static void get_env_conf(void)
 	}
     }
 }
+#ifdef HAVE_PRAGMA_DIAGNOSTIC
 #pragma GCC diagnostic pop
+#endif
 
 static int mtools_getline(void)
 {
@@ -503,8 +507,11 @@ static void finish_drive_clause(void)
     cur_dev = -1;
 }
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-align"
+#ifdef HAVE_PRAGMA_DIAGNOSTIC
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wcast-align"
+#endif
+
 static int set_var(struct switches_l *switches, int nr,
 		   caddr_t base_address)
 {
@@ -540,7 +547,9 @@ static int set_var(struct switches_l *switches, int nr,
     }
     return 1;
 }
+#ifdef HAVE_PRAGMA_DIAGNOSTIC
 #pragma GCC diagnostic pop
+#endif
 
 static int set_openflags(struct device *dev)
 {
