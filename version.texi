@@ -1,3 +1,3 @@
-@set EDITION 4.0.40
-@set VERSION 4.0.40
-@set UPDATED June 2022
+@set EDITION 4.0.41
+@set VERSION 4.0.41
+@set UPDATED September 2022

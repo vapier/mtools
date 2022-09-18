@@ -1,3 +1,11 @@
+mtools (4.0.41) stable; urgency=low
+
+  * Made it possible again to have FAT32 filesystems with less
+    than 0xfff5 clusters
+  * Make FAT32 entries 0 and 1 match what windows 10 does
+  * Misc source code and configure script cleanup
+
+ -- Alain Knaff <alain@knaff.lu>  Sun, 18 Sep 2022 17:26:38 +0200
 mtools (4.0.40) stable; urgency=low
 
   * Remove libbsd dependency
