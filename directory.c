@@ -48,7 +48,7 @@ struct directory *dir_read(direntry_t *entry, int *error)
  * on error.
  */
 
-int dir_grow(Stream_t *Dir, int size)
+int dir_grow(Stream_t *Dir, unsigned int size)
 {
 	Stream_t *Stream = GetFs(Dir);
 	DeclareThis(Fs_t);

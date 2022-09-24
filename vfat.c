@@ -55,7 +55,7 @@ struct vfat_subentry {
 struct vfat_state {
 	wchar_t name[VBUFSIZE];
 	int status; /* is now a bit map of 32 bits */
-	int subentries;
+	unsigned int subentries;
 	unsigned char sum; /* no need to remember the sum for each entry,
 			    * it is the same anyways */
 	int present;
@@ -271,14 +271,9 @@ static inline void check_vfat(struct vfat_state *v, struct directory *dir)
 	v->present = 1;
 }
 
-#ifdef HAVE_PRAGMA_DIAGNOSTIC
-# pragma GCC diagnostic push
-# pragma GCC diagnostic ignored "-Wsign-conversion"
-#endif
-
-int write_vfat(Stream_t *Dir, dos_name_t *shortname, char *longname,
-	       unsigned int start,
-	       direntry_t *mainEntry)
+unsigned int write_vfat(Stream_t *Dir, dos_name_t *shortname, char *longname,
+			unsigned int start,
+			direntry_t *mainEntry)
 {
 	struct vfat_subentry *vse;
 	uint8_t vse_id, num_vses;
@@ -326,7 +321,7 @@ int write_vfat(Stream_t *Dir, dos_name_t *shortname, char *longname,
 			       start + num_vses - vse_id, start + num_vses);
 #endif
 
-			entry.entry = start + num_vses - vse_id;
+			setEntryToPos(&entry, start + num_vses - vse_id);
 			low_level_dir_write(&entry);
 		}
 	} else {
@@ -355,7 +350,7 @@ void dir_write(direntry_t *entry)
 		exit(1);
 	}
 
-	cache = allocDirCache(entry->Dir, entry->entry + 1);
+	cache = allocDirCache(entry->Dir, getNextEntryAsPos(entry));
 	if(!cache) {
 		fprintf(stderr, "Out of memory error in dir_write\n");
 		exit(1);
@@ -455,7 +450,7 @@ static dirCacheEntry_t *vfat_lookup_loop_common(doscp_t *cp,
 						int *io_error)
 {
 	wchar_t newfile[13];
-	unsigned int initpos = direntry->entry + 1;
+	unsigned int initpos = getNextEntryAsPos(direntry);
 	struct vfat_state vfat;
 	wchar_t *longname;
 	int error;
@@ -471,9 +466,10 @@ static dirCacheEntry_t *vfat_lookup_loop_common(doscp_t *cp,
 			    *io_error = error;
 			    return NULL;
 			}
-			addFreeEndEntry(cache, initpos, direntry->entry,
+			addFreeEndEntry(cache, initpos,
+					getEntryAsPos(direntry),
 					endmarkSeen);
-			return addEndEntry(cache, direntry->entry);
+			return addEndEntry(cache, getEntryAsPos(direntry));
 		}
 
 		if (endmarkSeen || direntry->dir.name[0] == ENDMARK){
@@ -482,7 +478,7 @@ static dirCacheEntry_t *vfat_lookup_loop_common(doscp_t *cp,
 				endmarkSeen = 1;
 				continue;
 			}
-			return addEndEntry(cache, direntry->entry);
+			return addEndEntry(cache, getEntryAsPos(direntry));
 		}
 		if(direntry->dir.name[0] != DELMARK &&
 		   direntry->dir.attr == 0x0f)
@@ -499,7 +495,7 @@ static dirCacheEntry_t *vfat_lookup_loop_common(doscp_t *cp,
 	/* deleted file */
 	if (direntry->dir.name[0] == DELMARK) {
 		return addFreeEntry(cache, initpos,
-				    direntry->entry + 1);
+				    getNextEntryAsPos(direntry));
 	}
 
 	check_vfat(&vfat, &direntry->dir);
@@ -508,7 +504,7 @@ static dirCacheEntry_t *vfat_lookup_loop_common(doscp_t *cp,
 
 	/* mark space between last entry and this one as free */
 	addFreeEntry(cache, initpos,
-		     direntry->entry - vfat.subentries);
+		     getEntryAsPos(direntry) - vfat.subentries);
 
 	if (direntry->dir.attr & 0x8){
 		/* Read entry as a label */
@@ -533,8 +529,8 @@ static dirCacheEntry_t *vfat_lookup_loop_common(doscp_t *cp,
 	else
 		longname = 0;
 
-	return addUsedEntry(cache, direntry->entry - vfat.subentries,
-			    direntry->entry + 1, longname,
+	return addUsedEntry(cache, getEntryAsPos(direntry) - vfat.subentries,
+			    getNextEntryAsPos(direntry), longname,
 			    newfile, &direntry->dir);
 }
 
@@ -549,7 +545,7 @@ static inline dirCacheEntry_t *vfat_lookup_loop_for_read(doscp_t *cp,
 	*io_error = 0;
 	dce = cache->entries[initpos];
 	if(dce) {
-		direntry->entry = dce->endSlot - 1;
+		setEntryToPos(direntry, dce->endSlot - 1);
 		return dce;
 	} else {
 		return vfat_lookup_loop_common(cp,
@@ -671,7 +667,7 @@ int vfat_lookup(direntry_t *direntry, const char *filename,
 	if (isNotFound(direntry))
 		return -1;
 
-	cache = allocDirCache(direntry->Dir, direntry->entry+1);
+	cache = allocDirCache(direntry->Dir, getNextEntryAsPos(direntry));
 	if(!cache) {
 		fprintf(stderr, "Out of memory error in vfat_lookup [0]\n");
 		exit(1);
@@ -722,7 +718,7 @@ static inline dirCacheEntry_t *vfat_lookup_loop_for_insert(doscp_t *cp,
 	if(dce && dce->type != DCET_END) {
 		return dce;
 	} else {
-		direntry->entry = initpos - 1;
+		setEntryForIteration(direntry, initpos);
 		dce = vfat_lookup_loop_common(cp,
 					      direntry, cache, 1, &io_error);
 		if(!dce) {
@@ -756,7 +752,7 @@ static void accountFreeSlots(struct scan_state *ssp, dirCacheEntry_t *dce)
 static void clear_scan(wchar_t *longname, int use_longname,
 		       struct scan_state *s)
 {
-	s->shortmatch = s->longmatch = s->slot = -1;
+	s->shortmatch = s->longmatch = -1;
 	s->free_end = s->got_slots = s->free_start = 0;
 
 	if (use_longname & 1)
@@ -845,7 +841,8 @@ int lookupForInsert(Stream_t *Dir,
 				    !wcscasecmp(dce->longName, wlongname)) ||
 				   (dce->shortName &&
 				    !wcscasecmp(dce->shortName, wlongname))) {
-					ssp->longmatch = dce->endSlot - 1;
+					ssp->longmatch =
+						(int) (dce->endSlot - 1);
 					/* long match is a reason for
 					 * immediate stop */
 					direntry->beginSlot = dce->beginSlot;
@@ -857,7 +854,8 @@ int lookupForInsert(Stream_t *Dir,
 				 * short name match */
 				if (!ignore_match &&
 				    !wcscasecmp(shortName, dce->shortName))
-					ssp->shortmatch = dce->endSlot - 1;
+					ssp->shortmatch =
+						(int) (dce->endSlot - 1);
 				break;
 			case DCET_END:
 				break;
@@ -877,9 +875,6 @@ int lookupForInsert(Stream_t *Dir,
 	fprintf(stderr, "No directory slots\n");
 	return -1;
 }
-#ifdef HAVE_PRAGMA_DIAGNOSTIC
-# pragma GCC diagnostic pop
-#endif
 
 
 /* End vfat.c */

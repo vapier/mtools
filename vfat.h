@@ -39,10 +39,10 @@ struct scan_state {
 	int longmatch;
 	unsigned int free_start;
 	unsigned int free_end;
-	int slot;
+	unsigned int slot;
 	int got_slots;
 	unsigned int size_needed;
-	int max_entry;
+	unsigned int max_entry;
 };
 
 #include "mtoolsDirentry.h"

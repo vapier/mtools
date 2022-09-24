@@ -39,11 +39,11 @@ typedef struct Arg_t {
 void wipeEntry(direntry_t *entry)
 {
 	direntry_t longNameEntry;
-	int i;
+	unsigned int i;
 	initializeDirentry(&longNameEntry, entry->Dir);
 	for(i=entry->beginSlot; i< entry->endSlot; i++) {
 	    int error;
-	    longNameEntry.entry=i;
+	    setEntryToPos(&longNameEntry,i);
 	    dir_read(&longNameEntry, &error);
 	    if(error)
 		break;

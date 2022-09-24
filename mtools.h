@@ -94,7 +94,7 @@ FILE *opentty(int mode);
 
 int is_dir(Stream_t *Dir, char *path);
 
-int dir_grow(Stream_t *Dir, int size);
+int dir_grow(Stream_t *Dir, unsigned int size);
 
 void *safe_malloc(size_t size);
 Stream_t *open_dos2unix(Stream_t *Next,int convertCharset);

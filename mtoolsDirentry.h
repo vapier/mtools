@@ -35,8 +35,8 @@ typedef struct direntry_t {
 			       * root)*/
 	wchar_t name[MAX_VNAMELEN+1]; /* name in its parent directory, or
 				       * NULL if root */
-	int beginSlot; /* begin and end slot, for delete */
-	int endSlot;
+	unsigned int beginSlot; /* begin and end slot, for delete */
+	unsigned int endSlot;
 } direntry_t;
 
 #include "stream.h"
@@ -57,6 +57,10 @@ struct directory *dir_read(direntry_t *entry, int *error);
 void initializeDirentry(direntry_t *entry, struct Stream_t *Dir);
 int isNotFound(direntry_t *entry);
 int isRootEntry(direntry_t *entry);
+void setEntryForIteration(direntry_t *entry, unsigned int pos);
+void setEntryToPos(direntry_t *entry, unsigned int pos);
+unsigned int getEntryAsPos(direntry_t *entry);
+unsigned int getNextEntryAsPos(direntry_t *entry);
 direntry_t *getParent(direntry_t *entry);
 void dir_write(direntry_t *entry);
 void low_level_dir_write(direntry_t *entry);
@@ -70,7 +74,8 @@ int isSubdirOf(Stream_t *inside, Stream_t *outside);
 char *getPwd(direntry_t *entry);
 void fprintPwd(FILE *f, direntry_t *entry, int escape);
 void fprintShortPwd(FILE *f, direntry_t *entry);
-int write_vfat(Stream_t *, dos_name_t *, char *, unsigned int, direntry_t *);
+unsigned int write_vfat(Stream_t *, dos_name_t *, char *,
+			unsigned int, direntry_t *);
 
 void wipeEntry(struct direntry_t *entry);
 

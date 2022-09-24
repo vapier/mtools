@@ -40,6 +40,29 @@ int isRootEntry(direntry_t *entry)
 	return entry->entry == -3;
 }
 
+void setEntryForIteration(direntry_t *entry, unsigned int in) {
+	int out = (int) in;
+	assert(out >= 0);
+	entry->entry = out - 1;
+}
+
+void setEntryToPos(direntry_t *entry, unsigned int in) {
+	int out = (int) in;
+	assert(out >= 0);
+	entry->entry = out;
+}
+
+unsigned int getEntryAsPos(direntry_t *entry) {
+	int pos = entry->entry;
+	assert(pos >= 0);
+	return (unsigned int) pos;
+}
+
+unsigned int getNextEntryAsPos(direntry_t *entry) {
+	int pos = entry->entry+1;
+	assert(pos >= 0);
+	return (unsigned int) pos;
+}
 
 direntry_t *getParent(direntry_t *entry)
 {

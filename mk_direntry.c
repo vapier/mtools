@@ -497,7 +497,8 @@ static inline int write_slots(Stream_t *Dir,
 		return 0;
 
 	entry.Dir = Dir;
-	entry.entry = ssp->slot;
+	assert(ssp->got_slots);
+	setEntryToPos(&entry, ssp->slot);
 	native_to_wchar(longname, entry.name, MAX_VNAMELEN, 0, 0);
 	entry.name[MAX_VNAMELEN]='\0';
 	entry.dir.Case = Case & (EXTCASE | BASECASE);
