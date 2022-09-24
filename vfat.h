@@ -47,7 +47,6 @@ struct scan_state {
 
 #include "mtoolsDirentry.h"
 
-int clear_vses(Stream_t *, int, unsigned int);
 void autorename_short(struct dos_name_t *, int);
 void autorename_long(char *, int);
 

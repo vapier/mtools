@@ -276,46 +276,6 @@ static inline void check_vfat(struct vfat_state *v, struct directory *dir)
 # pragma GCC diagnostic ignored "-Wsign-conversion"
 #endif
 
-/* We have indeed different types for the entry slot
- * - the higher levels have a "signed" type, in order to accomodate
- *   reserved values for "root directory" entry, "not found" entries, and
- *   "uninitialized"
- * - the lower levels always consider it as an index into the
- *   directory viewed as a table, i.e. always positive
- */
-int clear_vses(Stream_t *Dir, int entrySlot, unsigned int last)
-{
-	direntry_t entry;
-	dirCache_t *cache;
-	int error;
-
-	entry.Dir = Dir;
-	entry.entry = entrySlot;
-
-	/*maximize(last, entry.entry + MAX_VFAT_SUBENTRIES);*/
-	cache = allocDirCache(Dir, last);
-	if(!cache) {
-		fprintf(stderr, "Out of memory error in clear_vses\n");
-		exit(1);
-	}
-	addFreeEntry(cache, entry.entry, last);
-	for (; entry.entry < (signed int) last; ++entry.entry) {
-#ifdef DEBUG
-		fprintf(stderr,"Clearing entry %d.\n", entry.entry);
-#endif
-		dir_read(&entry, &error);
-		if(error)
-			return error;
-		if(!entry.dir.name[0] || entry.dir.name[0] == DELMARK)
-			break;
-		entry.dir.name[0] = DELMARK;
-		if (entry.dir.attr == 0xf)
-			entry.dir.attr = '\0';
-		low_level_dir_write(&entry);
-	}
-	return 0;
-}
-
 int write_vfat(Stream_t *Dir, dos_name_t *shortname, char *longname,
 	       unsigned int start,
 	       direntry_t *mainEntry)

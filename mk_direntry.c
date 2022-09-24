@@ -503,8 +503,6 @@ static inline int write_slots(Stream_t *Dir,
 			write_vfat(Dir, dosname, 0,
 				   ssp->free_start, &entry);
 		}
-		/* clear_vses(Dir, ssp->free_start + ssp->size_needed,
-		   ssp->free_end); */
 	} else
 		return 0;
 
