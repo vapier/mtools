@@ -399,8 +399,7 @@ static inline clash_action get_slots(Stream_t *Dir,
 			case 6:
 				return NAMEMATCH_SUCCESS; /* Success */
 		}
-		match_pos = -2;
-		if (ssp->longmatch > -1) {
+		if (ssp->longmatch >= 0) {
 			/* Primary Long Name Match */
 #ifdef debug
 			fprintf(stderr,
@@ -418,6 +417,15 @@ static inline clash_action get_slots(Stream_t *Dir,
 #endif
 
 			match_pos = ssp->shortmatch;
+			/* match_pos may become negative here (-2) in case
+			 * of pessimisticShortRename, i.e. creating a
+			 * long entry whose shortname matches another
+			 * entry's shortname:
+			 * mformat -C b: -s 18 -h 2 -t 80
+			 * mcopy /etc/issue b:12345678a
+			 * mcopy /etc/issue b:12345678b
+			 */
+			
 			isprimary = 0;
 		} else if (ssp->shortmatch >= 0) {
 			/* Primary Short Name Match */
