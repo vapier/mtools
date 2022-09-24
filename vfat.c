@@ -350,7 +350,7 @@ void dir_write(direntry_t *entry)
 	dirCacheEntry_t *dce;
 	dirCache_t *cache;
 
-	if(entry->entry == -3) {
+	if(isRootEntry(entry)) {
 		fprintf(stderr, "Attempt to write root directory pointer\n");
 		exit(1);
 	}
@@ -668,7 +668,7 @@ int vfat_lookup(direntry_t *direntry, const char *filename,
 	else
 		length = 0;
 
-	if (direntry->entry == -2)
+	if (isNotFound(direntry))
 		return -1;
 
 	cache = allocDirCache(direntry->Dir, direntry->entry+1);
@@ -705,7 +705,7 @@ int vfat_lookup(direntry_t *direntry, const char *filename,
 		direntry->endSlot = dce->endSlot-1;
 		return 0; /* file found */
 	} else {
-		direntry->entry = -2;
+		direntry->entry = NOT_FOUND_ENTRY;
 		return -1; /* no file found */
 	}
 }

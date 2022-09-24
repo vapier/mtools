@@ -163,7 +163,7 @@ static int rename_directory(direntry_t *entry, MainParam_t *mp)
 		return ERROR_ONE;
 	}
 
-	if(entry->entry == -3) {
+	if(isRootEntry(entry)) {
 		fprintf(stderr, "Cannot move a root directory: ");
 		fprintPwd(stderr, entry,0);
 		return ERROR_ONE;

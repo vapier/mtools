@@ -35,6 +35,12 @@ int isNotFound(direntry_t *entry)
 	return entry->entry == -2;
 }
 
+int isRootEntry(direntry_t *entry)
+{
+	return entry->entry == -3;
+}
+
+
 direntry_t *getParent(direntry_t *entry)
 {
 	return getDirentry(entry->Dir);
@@ -46,7 +52,7 @@ static size_t getPathLen(direntry_t *entry)
 	size_t length=0;
 
 	while(1) {
-		if(entry->entry == -3) /* rootDir */
+		if(isRootEntry(entry)) /* rootDir */
 			return length + 3;
 
 		length += 1 + wcslen(entry->name);
@@ -56,7 +62,7 @@ static size_t getPathLen(direntry_t *entry)
 
 static char *sprintPwd(direntry_t *entry, char *ptr, size_t *len_available)
 {
-	if(entry->entry == -3) {
+	if(isRootEntry(entry)) {
 		*ptr++ = getDrive(entry->Dir);
 		*ptr++ = ':';
 		*ptr++ = '/';
@@ -85,7 +91,7 @@ static char *sprintPwd(direntry_t *entry, char *ptr, size_t *len_available)
 
 static void _fprintPwd(FILE *f, direntry_t *entry, int recurs, int escape)
 {
-	if(entry->entry == -3) {
+	if(isRootEntry(entry)) {
 		putc(getDrive(entry->Dir), f);
 		putc(':', f);
 		if(!recurs)
@@ -119,7 +125,7 @@ void fprintPwd(FILE *f, direntry_t *entry, int escape)
 
 static void _fprintShortPwd(FILE *f, direntry_t *entry, int recurs)
 {
-	if(entry->entry == -3) {
+	if(isRootEntry(entry)) {
 		putc(getDrive(entry->Dir), f);
 		putc(':', f);
 		if(!recurs)
@@ -166,7 +172,7 @@ int isSubdirOf(Stream_t *inside, Stream_t *outside)
 	while(1) {
 		if(inside == outside) /* both are the same */
 			return 1;
-		if(getDirentry(inside)->entry == -3) /* root directory */
+		if(isRootEntry(getDirentry(inside))) /* root directory */
 			return 0;
 		/* look further up */
 		inside = getDirentry(inside)->Dir;

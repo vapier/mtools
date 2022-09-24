@@ -61,7 +61,7 @@ static int del_entry(direntry_t *entry, MainParam_t *mp)
 	if(got_signal)
 		return ERROR_ONE;
 
-	if(entry->entry == -3) {
+	if(isRootEntry(entry)) {
 		fprintf(stderr, "Cannot remove root directory\n");
 		return ERROR_ONE;
 	}

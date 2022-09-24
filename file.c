@@ -702,7 +702,7 @@ static Stream_t *_internalFileOpen(Stream_t *Dir, unsigned int first,
 	File->preallocatedSize = 0;
 	/* memorize dir for date and attrib */
 	File->direntry = *entry;
-	if(entry->entry == -3)
+	if(isRootEntry(entry))
 		File->direntry.Dir = (Stream_t *) File; /* root directory */
 	else
 		COPY(File->direntry.Dir);
@@ -763,7 +763,7 @@ Stream_t *OpenRoot(Stream_t *Dir)
 	num = fat32RootCluster(Dir);
 
 	/* make the directory entry */
-	entry.entry = -3;
+	entry.entry = ROOT_ENTRY;
 	entry.name[0] = '\0';
 	mk_entry_from_base("/", ATTR_DIR, num, 0, 0, &entry.dir);
 

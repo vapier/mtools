@@ -19,6 +19,10 @@
 #include "sysincludes.h"
 #include "vfat.h"
 
+#define UNINIT_ENTRY -1
+#define NOT_FOUND_ENTRY -2
+#define ROOT_ENTRY -3
+
 typedef struct direntry_t {
 	struct Stream_t *Dir;
 	/* struct direntry_t *parent; parent level */
@@ -52,6 +56,7 @@ struct directory *dir_read(direntry_t *entry, int *error);
 
 void initializeDirentry(direntry_t *entry, struct Stream_t *Dir);
 int isNotFound(direntry_t *entry);
+int isRootEntry(direntry_t *entry);
 direntry_t *getParent(direntry_t *entry);
 void dir_write(direntry_t *entry);
 void low_level_dir_write(direntry_t *entry);
