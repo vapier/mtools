@@ -119,9 +119,6 @@ privileges.c remap.c scsi_io.c scsi.c signal.c stream.c streamcache.c	\
 swap.c unix2dos.s unixdir.c tty.c vfat.c mkmanifest.c			\
 @FLOPPYD_IO_SRC@ @XDF_IO_SRC@
 
-SRCS-@USE_FLOPPYD@ += floppyd_io.c
-SRCS-@USE_XDF@ += xdf_io.c
-
 SCRIPTS = mcheck mxtar uz tgz mcomp amuFormat.sh
 
 LINKS=mattrib mcat mcd mcopy mdel mdeltree mdir mdu	\
