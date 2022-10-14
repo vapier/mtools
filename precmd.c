@@ -22,11 +22,18 @@
 
 void precmd(struct device *dev)
 {
+	if(!dev)
+		return;
+	postcmd(dev->precmd);
+}
+
+void postcmd(const char *cmd)
+{
 #ifndef OS_mingw32msvc
 	int status;
 	pid_t pid;
 
-	if(!dev || !dev->precmd)
+	if(!cmd)
 		return;
 
 	switch((pid=fork())){
@@ -34,7 +41,7 @@ void precmd(struct device *dev)
 			perror("Could not fork");
 			exit(1);
 		case 0: /* the son */
-			execl("/bin/sh", "sh", "-c", dev->precmd, (char *)NULL);
+			execl("/bin/sh", "sh", "-c", cmd, (char *)NULL);
 			break;
 		default:
 			wait(&status);

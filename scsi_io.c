@@ -46,6 +46,7 @@ typedef struct ScsiDevice_t {
 	void *extra_data; /* extra system dependent information for scsi.
 			     On some platforms, filled in by scsi_open, and to
 			     be supplied to scsi_cmd */
+	const char *postcmd;
 } ScsiDevice_t;
 
 /* ZIP or other scsi device on Solaris or SunOS system.
@@ -258,15 +259,25 @@ static int scsi_get_data(Stream_t *Stream, time_t *date, mt_off_t *size,
 	return 0;
 }
 
+static int scsi_free(Stream_t *Stream)
+{
+	DeclareThis(ScsiDevice_t);
 
-
+	if(This->fd > 2) {
+		int ret = close(This->fd);
+		postcmd(This->postcmd);
+		return ret;
+	} else
+		return 0;
+}
+	
 static Class_t ScsiDeviceClass = {
 	0,
 	0,
 	scsi_pread,
 	scsi_pwrite,
 	0,
-	0,
+	scsi_free,
 	set_geom_noop,
 	scsi_get_data, /* get_data */
 	0, /* pre-allocate */
@@ -300,6 +311,7 @@ Stream_t *OpenScsi(struct device *dev,
 	}
 
 	precmd(dev);
+	This->postcmd = dev->postcmd;
 	if(IS_PRIVILEGED(dev) && !(mode2 & NO_PRIV))
 		reclaim_privs();
 
@@ -343,6 +355,7 @@ Stream_t *OpenScsi(struct device *dev,
 	return &This->head;
  exit_0:
 	close(This->fd);
+	postcmd(This->postcmd);
  exit_1:
 	Free(This);
 	return NULL;

@@ -173,6 +173,7 @@ static switches_t dswitches[]= {
     { "SECTORS", OFFS(sectors), T_UINT16 },
     { "HIDDEN", OFFS(hidden), T_UINT },
     { "PRECMD", OFFS(precmd), T_STRING },
+    { "POSTCMD", OFFS(postcmd), T_STRING },
     { "BLOCKSIZE", OFFS(blocksize), T_UINT },
     { "CODEPAGE", OFFS(codepage), T_UINT },
     { "DATA_MAP", OFFS(data_map), T_UQSTRING }

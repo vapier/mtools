@@ -556,6 +556,7 @@ void mzip(int argc, char **argv, int type UNUSEDP)
 	}
 
 	close(fd);
+	postcmd(dev->postcmd);
 	exit(0);
 }
 

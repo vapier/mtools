@@ -83,6 +83,9 @@ typedef struct device {
 
 	uint16_t sector_size; /* Non-default sector size */
 
+	char *postcmd;		/* command to be executed after closing the
+				 * drive */
+
 	const char *cfg_filename; /* used for debugging purposes */
 } device_t;
 
@@ -93,6 +96,7 @@ extern const unsigned int nr_const_devices;
 int lock_dev(int fd, int mode, struct device *dev);
 
 void precmd(struct device *dev);
+void postcmd(const char *cmd);
 
 int check_if_sectors_fit(uint32_t tot_sectors, mt_off_t maxBytes,
 			 uint32_t sectorSize, char *errmsg);

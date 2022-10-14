@@ -42,6 +42,7 @@ typedef struct SimpleFile_t {
 #ifdef OS_hpux
     int size_limited;
 #endif
+    const char *postcmd;
 } SimpleFile_t;
 
 
@@ -133,9 +134,11 @@ static int file_free(Stream_t *Stream)
 {
 	DeclareThis(SimpleFile_t);
 
-	if (This->fd > 2)
-		return close(This->fd);
-	else
+	if (This->fd > 2) {
+		int ret = close(This->fd);
+		postcmd(This->postcmd);
+		return ret;
+	} else
 		return 0;
 }
 
@@ -334,6 +337,7 @@ APIRET rc;
 	}
 
 	precmd(dev);
+	This->postcmd=dev->postcmd;
 	if(IS_PRIVILEGED(dev) && !(mode2 & NO_PRIV))
 		reclaim_privs();
 
@@ -440,6 +444,7 @@ APIRET rc;
 	return &This->head;
  exit_0:
 	close(This->fd);
+	postcmd(This->postcmd);
  exit_1:
 	Free(This);
 	return NULL;

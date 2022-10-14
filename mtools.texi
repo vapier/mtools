@@ -928,9 +928,9 @@ architectures, and for plain files it has no effect at all.
 @node miscellaneous variables, miscellaneous flags, open flags, per drive variables
 @subsection General Purpose Drive Variables
 
-The following general purpose drive variables are available.  Depending
-to their type, these variables can be set to a string (precmd) or
-an integer (all others)
+The following general purpose drive variables are available.
+Depending to their type, these variables can be set to a string
+(precmd, postcmd) or an integer (all others)
 
 @table @code
 @item fat_bits
@@ -981,10 +981,17 @@ FAT and root directory), then one sector from image is skipped
 @item precmd
 @cindex Solaris (volcheck)
 @cindex Executing commands before opening the device
+Executes the given command before opening the device.
 On some variants of Solaris, it is necessary to call 'volcheck -v'
 before opening a floppy device, in order for the system to notice that
 there is indeed a disk in the drive. @code{precmd="volcheck -v"} in the
 drive clause establishes the desired behavior.
+
+@item postcmd
+@cindex Executing commands after closing the device
+Executes the given command after closing the device.
+May be useful if mtools shares the image file with some other application,
+in order to release the image file to that application.
 
 @item blocksize
 @cindex raw device

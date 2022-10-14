@@ -108,6 +108,8 @@ typedef struct Xdf_t {
 	unsigned int stretch:1;
 	unsigned int rootskip:1;
 	signed  int drive:4;
+
+	const char *postcmd;
 } Xdf_t;
 
 typedef struct {
@@ -557,10 +559,13 @@ static int xdf_flush(Stream_t *Stream)
 
 static int xdf_free(Stream_t *Stream)
 {
+	int ret;
 	DeclareThis(Xdf_t);
 	Free(This->track_map);
 	Free(This->buffer);
-	return close(This->fd);
+	ret = close(This->fd);
+	postcmd(This->postcmd);
+	return ret;
 }
 
 
@@ -645,8 +650,11 @@ Stream_t *XdfOpen(struct device *dev, const char *name,
 
 	This->sector_size = 512;
 	This->stretch = 0;
+	This->postcmd = 0;
 
 	precmd(dev);
+	This->postcmd = dev->postcmd;
+
 	This->fd = open(name,
 			((mode | dev->mode) & ~O_ACCMODE) |
 			O_EXCL | O_NDELAY | O_RDWR);
@@ -659,7 +667,7 @@ Stream_t *XdfOpen(struct device *dev, const char *name,
 		goto exit_0;
 	}
 	closeExec(This->fd);
-
+	
 	This->drive = GET_DRIVE(This->fd);
 	if(This->drive < 0)
 		goto exit_1;
