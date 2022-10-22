@@ -9,7 +9,6 @@ DEB_BUILD_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
 configure: configure-stamp
 configure-stamp:
 	dh_testdir
-	cp -f /usr/share/misc/config.sub /usr/share/misc/config.guess .
 	./configure --host=$(DEB_HOST_GNU_TYPE) --build=$(DEB_BUILD_GNU_TYPE) --prefix=/usr \
 	    --mandir=\$${prefix}/share/man --infodir=\$${prefix}/share/info --sysconfdir=/etc
 	touch configure-stamp
@@ -24,7 +23,6 @@ clean: unpatch
 	dh_testdir
 	dh_testroot
 	rm -rf build-stamp configure-stamp
-	rm -rf config.sub config.guess
 	[ ! -f Makefile ] || $(MAKE) distclean
 	dh_clean config.cache config.log config.status .#patchlevel.c.1.18 .#mtools.spec.1.4 .#mtools.texi.1.11 .#fat_size_calculation.tex.1.1
 
