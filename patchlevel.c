@@ -18,10 +18,10 @@
 #include "sysincludes.h"
 #include "mtools.h"
 
-const char *mversion="4.0.41";
+const char *mversion="4.0.42";
 
 /* Multiple releases on same day should be marked with (b), (cd), (d) after
  * date string below */
-const char *mdate = "September 18th, 2022";
+const char *mdate = "October 22nd, 2022";
 
-const char *mformat_banner = "MTOO4041";
+const char *mformat_banner = "MTOO4042";

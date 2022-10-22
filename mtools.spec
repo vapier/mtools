@@ -1,7 +1,7 @@
 %define _binary_payload w9.gzdio
 Name:           mtools
 Summary:        mtools, read/write/list/format DOS disks under Unix
-Version:        4.0.41
+Version:        4.0.42
 Release:        1
 License:        GPLv3+
 Group:          Utilities/System
@@ -133,6 +133,12 @@ if [ -f %{_bindir}/install-info ] ; then
 fi
 
 %changelog
+* Sat Oct 22 2022 Alain Knaff <alain@knaff.lu>
+- Added postcmd attribute in drive description to allow to
+  execute "device release" code automatically at end of command
+- Code cleanup (unneeded functions, initializations, added
+  comments to unobvious code, obsolete stuff in Makefile)
+- signedness cleanup about directory entries
 * Sun Sep 18 2022 Alain Knaff <alain@knaff.lu>
 - Made it possible again to have FAT32 filesystems with less
   than 0xfff5 clusters
