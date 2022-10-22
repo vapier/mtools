@@ -311,7 +311,8 @@ Stream_t *OpenScsi(struct device *dev,
 	}
 
 	precmd(dev);
-	This->postcmd = dev->postcmd;
+	if(dev)
+		This->postcmd = dev->postcmd;
 	if(IS_PRIVILEGED(dev) && !(mode2 & NO_PRIV))
 		reclaim_privs();
 

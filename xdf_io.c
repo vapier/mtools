@@ -653,7 +653,8 @@ Stream_t *XdfOpen(struct device *dev, const char *name,
 	This->postcmd = 0;
 
 	precmd(dev);
-	This->postcmd = dev->postcmd;
+	if(dev)
+		This->postcmd = dev->postcmd;
 
 	This->fd = open(name,
 			((mode | dev->mode) & ~O_ACCMODE) |
