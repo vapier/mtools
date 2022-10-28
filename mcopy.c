@@ -240,7 +240,7 @@ static int unix_copydir(direntry_t *entry, MainParam_t *mp)
 		printOom();
 		return ERROR_ONE;
 	}
-	if(arg->type || !*mpPickTargetName(mp) || !makeUnixDir(unixFile)) {
+	if(arg->type || !makeUnixDir(unixFile)) {
 		Arg_t newArg;
 
 		newArg = *arg;
@@ -254,10 +254,9 @@ static int unix_copydir(direntry_t *entry, MainParam_t *mp)
 		free(unixFile);
 		return ret | GOT_ONE;
 	} else {
-		perror("mkdir");
 		fprintf(stderr,
-			"Failure to make directory %s\n",
-			unixFile);
+			"Failure to make directory %s: %s\n",
+			unixFile, strerror(errno));
 		free(unixFile);
 		return ERROR_ONE;
 	}
@@ -610,7 +609,11 @@ void mcopy(int argc, char **argv, int mtype)
 			target = argv[argc];
 		}
 
-		target_lookup(&arg.mp, target);
+		if(target_lookup(&arg.mp, target) == ERROR_ONE) {
+			fprintf(stderr,"%s: %s\n", target, strerror(errno));
+			exit(1);
+
+		}
 		if(!arg.mp.targetDir && !arg.mp.unixTarget) {
 			fprintf(stderr,"Bad target %s\n", target);
 			exit(1);
