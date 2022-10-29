@@ -624,6 +624,7 @@ void init_mp(MainParam_t *mp)
 {
 	fix_mcwd(mp->mcwd);
 	mp->openflags = O_RDONLY;
+	mp->lookupflags = 0;
 	mp->targetName = 0;
 	mp->targetDir = 0;
 	mp->unixTarget = 0;
