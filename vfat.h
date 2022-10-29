@@ -60,4 +60,10 @@ void autorename_long(char *, int);
 #define DO_OPEN_DIRS 0x400 /* open all directories that are found */
 #define OPEN_PARENT 0x1000  /* in target lookup, open parent
 			     * instead of file itself */
+
+#define DEFERABLE 0x2000 /* When copying from a source with wildcards
+			  * to a destination that is not a directory, defer the
+			  * copy until the directory has been scanned fully, to
+			  * make sure that no multiple files match the wildcard */
+
 #endif

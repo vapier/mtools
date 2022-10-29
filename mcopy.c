@@ -662,7 +662,8 @@ void mcopy(int argc, char **argv, int mtype)
 
 	init_mp(&arg.mp);
 	arg.unixTarget = 0;
-	arg.mp.lookupflags = ACCEPT_PLAIN | ACCEPT_DIR | DO_OPEN | NO_DOTS;
+	arg.mp.lookupflags =
+		ACCEPT_PLAIN | ACCEPT_DIR | DO_OPEN | NO_DOTS | DEFERABLE;
 	arg.mp.fast_quit = fastquit;
 	arg.mp.arg = (void *) &arg;
 	arg.mp.openflags = O_RDONLY;

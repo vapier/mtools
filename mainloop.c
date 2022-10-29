@@ -177,7 +177,8 @@ static int isUniqueTarget(const char *name)
 }
 
 static int handle_leaf(direntry_t *direntry, MainParam_t *mp,
-		       lookupState_t *lookupState)
+		       lookupState_t *lookupState,
+		       Stream_t **DeferredFileP)
 {
 	Stream_t *MyFile=0;
 	int ret;
@@ -209,13 +210,24 @@ static int handle_leaf(direntry_t *direntry, MainParam_t *mp,
 			MyFile = mp->File = OpenFileByDirentry(direntry);
 		ret = mp->dirCallback(direntry, mp);
 	} else {
-		if(mp->lookupflags & DO_OPEN)
+		if(mp->lookupflags & DO_OPEN) {
+			if(DeferredFileP && *DeferredFileP) {
+				/* Already a deferred file => close it and error */
+				FREE(DeferredFileP);
+				fprintf(stderr,
+					"Attempt to copy multiple files to non-directory\n");
+				return STOP_NOW | ERROR_ONE;
+			}
+
 			MyFile = mp->File = OpenFileByDirentry(direntry);
+			if(DeferredFileP) {
+				*DeferredFileP = MyFile;
+				return 0;
+			}
+		}
 		ret = mp->callback(direntry, mp);
 	}
 	FREE(&MyFile);
-	if(isUniqueTarget(mp->targetName))
-		ret |= STOP_NOW;
 	return ret;
 }
 
@@ -265,7 +277,8 @@ static int _dos_loop(Stream_t *Dir, MainParam_t *mp, const char *filename)
 
 static int recurs_dos_loop(MainParam_t *mp, const char *filename0,
 			   const char *filename1,
-			   lookupState_t *lookupState)
+			   lookupState_t *lookupState,
+			   Stream_t **DeferredFileP)
 {
 	/* Dir is de-allocated by the same entity which allocated it */
 	const char *ptr;
@@ -305,7 +318,8 @@ static int recurs_dos_loop(MainParam_t *mp, const char *filename0,
 	   (!strcmp(filename0, "..") && filename1)) {
 		/* up one level */
 		mp->File = getDirentry(mp->File)->Dir;
-		return recurs_dos_loop(mp, filename0+2, filename1, lookupState);
+		return recurs_dos_loop(mp, filename0+2, filename1, lookupState,
+				       DeferredFileP);
 	}
 
 	doing_mcwd = !!filename1;
@@ -323,19 +337,19 @@ static int recurs_dos_loop(MainParam_t *mp, const char *filename0,
 		if(mp->lookupflags & OPEN_PARENT) {
 			mp->targetName = filename0;
 			ret = handle_leaf(getDirentry(mp->File), mp,
-					  lookupState);
+					  lookupState, NULL);
 			mp->targetName = 0;
 			return ret;
 		}
 
 		if(!strcmp(filename0, ".") || !filename0[0]) {
 			return handle_leaf(getDirentry(mp->File),
-					   mp, lookupState);
+					   mp, lookupState, NULL);
 		}
 
 		if(!strcmp(filename0, "..")) {
 			return handle_leaf(getParent(getDirentry(mp->File)), mp,
-					   lookupState);
+					   lookupState, NULL);
 		}
 
 		lookupflags = mp->lookupflags;
@@ -375,12 +389,12 @@ static int recurs_dos_loop(MainParam_t *mp, const char *filename0,
 		if(ptr) {
 			Stream_t *SubDir;
 			SubDir = mp->File = OpenFileByDirentry(&entry);
-			ret |= recurs_dos_loop(mp, ptr, filename1, lookupState);
+			ret |= recurs_dos_loop(mp, ptr, filename1, lookupState,
+					       DeferredFileP);
 			FREE(&SubDir);
 		} else {
-			ret |= handle_leaf(&entry, mp, lookupState);
-			if(isUniqueTarget(mp->targetName))
-				return ret | STOP_NOW;
+			ret |= handle_leaf(&entry, mp, lookupState,
+					   DeferredFileP);
 		}
 		if(doing_mcwd)
 			break;
@@ -401,6 +415,8 @@ static int common_dos_loop(MainParam_t *mp, const char *pathname,
 	Stream_t *RootDir;
 	const char *cwd;
 	char drive;
+	Stream_t *DeferredFile=NULL;
+	Stream_t **DeferredFileP=NULL;
 
 	int ret;
 	mp->loop = _dos_loop;
@@ -426,12 +442,22 @@ static int common_dos_loop(MainParam_t *mp, const char *pathname,
 	if(!mp->File)
 		return ERROR_ONE;
 
-	ret = recurs_dos_loop(mp, cwd, pathname, lookupState);
+	if(strpbrk(mp->originalArg, "*[?") != 0 &&
+	   (mp->lookupflags & DEFERABLE) &&
+	   isUniqueTarget(mp->targetName))
+		DeferredFileP = &DeferredFile;
+	
+	ret = recurs_dos_loop(mp, cwd, pathname, lookupState, DeferredFileP);
 	if(ret & NO_CWD) {
 		/* no CWD */
 		*mp->mcwd = '\0';
 		unlink_mcwd();
-		ret = recurs_dos_loop(mp, "", pathname, lookupState);
+		ret = recurs_dos_loop(mp, "", pathname, lookupState, DeferredFileP);
+	}
+	if(DeferredFile) {
+		mp->File = DeferredFile;
+		ret = mp->callback(NULL, mp);
+		FREE(&DeferredFile);
 	}
 	FREE(&RootDir);
 	return ret;
