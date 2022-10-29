@@ -53,7 +53,7 @@ typedef struct MainParam_t {
 	bounded_string longname; /* where to put the long name of the
 				  * matched file, used by mdir and mmove */
 	/* out parameters */
-	Stream_t *File; /* needed by mattrib */
+	Stream_t *File; /* needed by mattrib, mcopy */
 
 	direntry_t *direntry;  /* dir of this entry: needed by mmove */
 
