@@ -60,6 +60,4 @@ void autorename_long(char *, int);
 #define DO_OPEN_DIRS 0x400 /* open all directories that are found */
 #define OPEN_PARENT 0x1000  /* in target lookup, open parent
 			     * instead of file itself */
-#define NO_UNIX 0x2000 /* in target lookup, consider all files to reside on
-			* the DOS fs */
 #endif

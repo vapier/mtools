@@ -65,9 +65,6 @@ typedef struct MainParam_t {
 				or subdirectories. Needed by mcopy,
 				mmd, mmove */
 
-	const char *unixTarget; /* directory on Unix where to put files,
-				 * needed by mcopy */
-	
 	const char *targetName; /* basename of target file, or NULL if same
 				 * basename as source should be conserved,
 				 * needed by mcopy, mmd, mmove */
@@ -94,16 +91,13 @@ typedef struct MainParam_t {
 void init_mp(MainParam_t *MainParam);
 int main_loop(MainParam_t *MainParam, char **argv, int argc);
 
-int target_lookup(MainParam_t *mp, const char *arg);
+int dos_target_lookup(MainParam_t *mp, const char *arg);
 
 const char *mpGetBasename(MainParam_t *mp); /* statically allocated
 					     * string */
 
 void mpPrintFilename(FILE *file, MainParam_t *mp);
 const char *mpPickTargetName(MainParam_t *mp); /* statically allocated string */
-
-char *mpBuildUnixFilename(MainParam_t *mp); /* dynamically allocated, must
-					     * be freed */
 
 #define MISSED_ONE 2  /* set if one cmd line argument didn't match any files */
 #define GOT_ONE 4     /* set if a match was found, used for exit status */

@@ -80,7 +80,90 @@ typedef struct Arg_t {
 	MainParam_t mp;
 	ClashHandling_t ch;
 	int noClobber;
+
+	const char *unixTarget; /* directory on Unix where to put files,
+				 * needed by mcopy */
 } Arg_t;
+
+static char *buildUnixFilename(Arg_t *arg)
+{
+	const char *target;
+	char *ret;
+	char *tmp;
+
+	target = mpPickTargetName(&arg->mp);
+	ret = malloc(strlen(arg->unixTarget) + 2 + strlen(target));
+	if(!ret)
+		return 0;
+	strcpy(ret, arg->unixTarget);
+	strcat(ret, "/");
+	if(*target) {
+		if(!strcmp(target, ".")) {
+		  target="DOT";
+		} else if(!strcmp(target, "..")) {
+		  target="DOTDOT";
+		}
+		while( (tmp=strchr(target, '/')) ) {
+		  strncat(ret, target, ptrdiff(tmp,target));
+		  strcat(ret, "\\");
+		  target=tmp+1;
+		}
+		strcat(ret, target);
+	}
+	return ret;
+}
+
+/*
+ * Is target a Unix directory
+ * -1 error occured
+ * 0 regular file
+ * 1 directory
+ */
+static int unix_is_dir(const char *name)
+{
+	struct stat buf;
+	if(stat(name, &buf) < 0)
+		return -1;
+	else
+		return 1 && S_ISDIR(buf.st_mode);
+}
+
+static int unix_target_lookup(Arg_t *arg, const char *in)
+{
+	char *ptr;
+	arg->unixTarget = strdup(in);
+	/* try complete filename */
+	if(access(arg->unixTarget, F_OK) == 0) {
+		switch(unix_is_dir(arg->unixTarget)) {
+		case -1:
+			return ERROR_ONE;
+		case 0:
+			break;
+		default:
+			return GOT_ONE;
+		}
+	} else if(errno != ENOENT)
+		return ERROR_ONE;
+
+	ptr = strrchr(arg->unixTarget, '/');
+	if(!ptr) {
+		arg->mp.targetName = arg->unixTarget;
+		arg->unixTarget = strdup(".");
+		return GOT_ONE;
+	} else {
+		*ptr = '\0';
+		arg->mp.targetName = ptr+1;
+		return GOT_ONE;
+	}
+}
+
+int target_lookup(Arg_t *arg, const char *in)
+{
+	if(in[0] && in[1] == ':' )
+		return dos_target_lookup(&arg->mp, in);
+	else
+		return unix_target_lookup(arg, in);
+}
 
 static int _unix_write(MainParam_t *mp, int needfilter, const char *unixFile);
 
@@ -92,7 +175,7 @@ static int unix_write(MainParam_t *mp, int needfilter)
 	if(arg->type)
 		return _unix_write(mp, needfilter, "-");
 	else {
-		char *unixFile = mpBuildUnixFilename(mp);
+		char *unixFile = buildUnixFilename(arg);
 		int ret;
 		if(!unixFile) {
 			printOom();
@@ -235,7 +318,7 @@ static int unix_copydir(direntry_t *entry, MainParam_t *mp)
 	}
 	if(got_signal)
 		return ERROR_ONE;
-	unixFile = mpBuildUnixFilename(mp);
+	unixFile = buildUnixFilename(arg);
 	if(!unixFile) {
 		printOom();
 		return ERROR_ONE;
@@ -245,7 +328,7 @@ static int unix_copydir(direntry_t *entry, MainParam_t *mp)
 
 		newArg = *arg;
 		newArg.mp.arg = (void *) &newArg;
-		newArg.mp.unixTarget = unixFile;
+		newArg.unixTarget = unixFile;
 		newArg.mp.targetName = 0;
 		newArg.mp.basenameHasWildcard = 1;
 
@@ -578,6 +661,7 @@ void mcopy(int argc, char **argv, int mtype)
 		usage(1);
 
 	init_mp(&arg.mp);
+	arg.unixTarget = 0;
 	arg.mp.lookupflags = ACCEPT_PLAIN | ACCEPT_DIR | DO_OPEN | NO_DOTS;
 	arg.mp.fast_quit = fastquit;
 	arg.mp.arg = (void *) &arg;
@@ -593,7 +677,7 @@ void mcopy(int argc, char **argv, int mtype)
 	if(mtype){
 		/* Mtype = copying to stdout */
 		arg.mp.targetName = strdup("-");
-		arg.mp.unixTarget = strdup("");
+		arg.unixTarget = strdup("");
 		arg.mp.callback = dos_to_unix;
 		arg.mp.dirCallback = unix_copydir;
 		arg.mp.unixcallback = unix_to_unix;
@@ -609,18 +693,18 @@ void mcopy(int argc, char **argv, int mtype)
 			target = argv[argc];
 		}
 
-		if(target_lookup(&arg.mp, target) == ERROR_ONE) {
+		if(target_lookup(&arg, target) == ERROR_ONE) {
 			fprintf(stderr,"%s: %s\n", target, strerror(errno));
 			exit(1);
 
 		}
-		if(!arg.mp.targetDir && !arg.mp.unixTarget) {
+		if(!arg.mp.targetDir && !arg.unixTarget) {
 			fprintf(stderr,"Bad target %s\n", target);
 			exit(1);
 		}
 
 		/* callback functions */
-		if(arg.mp.unixTarget) {
+		if(arg.unixTarget) {
 			arg.mp.callback = dos_to_unix;
 			arg.mp.dirCallback = directory_dos_to_unix;
 			arg.mp.unixcallback = unix_to_unix;

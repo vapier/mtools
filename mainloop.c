@@ -443,7 +443,7 @@ static int dos_loop(MainParam_t *mp, const char *arg)
 }
 
 
-static int dos_target_lookup(MainParam_t *mp, const char *arg)
+int dos_target_lookup(MainParam_t *mp, const char *arg)
 {
 	lookupState_t lookupState;
 	int ret;
@@ -482,58 +482,6 @@ static int dos_target_lookup(MainParam_t *mp, const char *arg)
 			fprintf(stderr, "Ambiguous %s\n", arg);
 			return ERROR_ONE;
 	}
-}
-
-/*
- * Is target a Unix directory
- * -1 error occured
- * 0 regular file
- * 1 directory
- */
-static int unix_is_dir(const char *name)
-{
-	struct stat buf;
-	if(stat(name, &buf) < 0)
-		return -1;
-	else
-		return 1 && S_ISDIR(buf.st_mode);
-}
-
-static int unix_target_lookup(MainParam_t *mp, const char *arg)
-{
-	char *ptr;
-	mp->unixTarget = strdup(arg);
-	/* try complete filename */
-	if(access(mp->unixTarget, F_OK) == 0) {
-		switch(unix_is_dir(mp->unixTarget)) {
-		case -1:
-			return ERROR_ONE;
-		case 0:
-			break;
-		default:
-			return GOT_ONE;
-		}
-	} else if(errno != ENOENT)
-		return ERROR_ONE;
-
-	ptr = strrchr(mp->unixTarget, '/');
-	if(!ptr) {
-		mp->targetName = mp->unixTarget;
-		mp->unixTarget = strdup(".");
-		return GOT_ONE;
-	} else {
-		*ptr = '\0';
-		mp->targetName = ptr+1;
-		return GOT_ONE;
-	}
-}
-
-int target_lookup(MainParam_t *mp, const char *arg)
-{
-	if((mp->lookupflags & NO_UNIX) || (arg[0] && arg[1] == ':' ))
-		return dos_target_lookup(mp, arg);
-	else
-		return unix_target_lookup(mp, arg);
 }
 
 int main_loop(MainParam_t *mp, char **argv, int argc)
@@ -602,7 +550,6 @@ void init_mp(MainParam_t *mp)
 	mp->lookupflags = 0;
 	mp->targetName = 0;
 	mp->targetDir = 0;
-	mp->unixTarget = 0;
 	mp->dirCallback = dispatchToFile;
 	mp->unixcallback = NULL;
 	mp->shortname.data = mp->longname.data = 0;
@@ -637,32 +584,4 @@ const char *mpPickTargetName(MainParam_t *mp)
 		return mp->targetName;
 	else
 		return mpGetBasename(mp);
-}
-
-char *mpBuildUnixFilename(MainParam_t *mp)
-{
-	const char *target;
-	char *ret;
-	char *tmp;
-
-	target = mpPickTargetName(mp);
-	ret = malloc(strlen(mp->unixTarget) + 2 + strlen(target));
-	if(!ret)
-		return 0;
-	strcpy(ret, mp->unixTarget);
-	strcat(ret, "/");
-	if(*target) {
-		if(!strcmp(target, ".")) {
-		  target="DOT";
-		} else if(!strcmp(target, "..")) {
-		  target="DOTDOT";
-		}
-		while( (tmp=strchr(target, '/')) ) {
-		  strncat(ret, target, ptrdiff(tmp,target));
-		  strcat(ret, "\\");
-		  target=tmp+1;
-		}
-		strcat(ret, target);
-	}
-	return ret;
 }

@@ -291,11 +291,10 @@ void mmove(int argc, char **argv, int oldsyntax)
 	if (oldsyntax && (argc - optind != 2 || strpbrk(":/", argv[argc-1])))
 		oldsyntax = 0;
 
-	arg.mp.lookupflags =
-	  ACCEPT_PLAIN | ACCEPT_DIR | DO_OPEN_DIRS | NO_DOTS | NO_UNIX;
+	arg.mp.lookupflags = ACCEPT_PLAIN | ACCEPT_DIR | DO_OPEN_DIRS | NO_DOTS;
 
 	if (!oldsyntax){
-		target_lookup(&arg.mp, argv[argc-1]);
+		dos_target_lookup(&arg.mp, argv[argc-1]);
 		arg.mp.callback = rename_file;
 		arg.mp.dirCallback = rename_directory;
 	} else {
