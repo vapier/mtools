@@ -83,10 +83,6 @@ static const char *fix_mcwd(char *ans)
 	return ans;
 }
 
-int unix_dir_loop(Stream_t *Stream, MainParam_t *mp);
-int unix_loop(Stream_t *Stream UNUSEDP, MainParam_t *mp, char *arg,
-	      int follow_dir_link);
-
 static int _unix_loop(Stream_t *Dir, MainParam_t *mp,
 		      const char *filename UNUSEDP)
 {

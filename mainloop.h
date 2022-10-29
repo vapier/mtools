@@ -99,6 +99,10 @@ const char *mpGetBasename(MainParam_t *mp); /* statically allocated
 void mpPrintFilename(FILE *file, MainParam_t *mp);
 const char *mpPickTargetName(MainParam_t *mp); /* statically allocated string */
 
+int unix_dir_loop(Stream_t *Stream, MainParam_t *mp);
+int unix_loop(Stream_t *Stream UNUSEDP, MainParam_t *mp, char *arg,
+	      int follow_dir_link);
+
 #define MISSED_ONE 2  /* set if one cmd line argument didn't match any files */
 #define GOT_ONE 4     /* set if a match was found, used for exit status */
 #define NO_CWD 8     /* file not found while looking for current working

@@ -117,10 +117,6 @@ static Class_t DirClass = {
 	0 /* discard */
 };
 
-int unix_dir_loop(Stream_t *Stream, MainParam_t *mp);
-int unix_loop(Stream_t *Stream, MainParam_t *mp, char *arg,
-	      int follow_dir_link);
-
 int unix_dir_loop(Stream_t *Stream, MainParam_t *mp)
 {
 	DeclareThis(Dir_t);
