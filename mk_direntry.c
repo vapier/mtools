@@ -29,7 +29,6 @@
 #include "nameclash.h"
 #include "fs.h"
 #include "stream.h"
-#include "mainloop.h"
 #include "file_name.h"
 
 /**

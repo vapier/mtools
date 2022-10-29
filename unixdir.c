@@ -21,6 +21,7 @@
 #include "file.h"
 #include "htable.h"
 #include "mainloop.h"
+#include "file_name.h"
 
 #ifdef HAVE_READDIR
 

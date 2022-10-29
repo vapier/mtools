@@ -107,8 +107,6 @@ const char *mpPickTargetName(MainParam_t *mp); /* statically allocated string */
 char *mpBuildUnixFilename(MainParam_t *mp); /* dynamically allocated, must
 					     * be freed */
 
-int isSpecial(const char *name);
-
 #define MISSED_ONE 2  /* set if one cmd line argument didn't match any files */
 #define GOT_ONE 4     /* set if a match was found, used for exit status */
 #define NO_CWD 8     /* file not found while looking for current working

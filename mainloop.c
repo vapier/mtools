@@ -157,31 +157,6 @@ int unix_loop(Stream_t *Stream UNUSEDP, MainParam_t *mp,
 	return ret;
 }
 
-
-int isSpecial(const char *name)
-{
-	if(name[0] == '\0')
-		return 1;
-	if(!strcmp(name,"."))
-		return 1;
-	if(!strcmp(name,".."))
-		return 1;
-	return 0;
-}
-
-#ifdef HAVE_WCHAR_H
-int isSpecialW(const wchar_t *name)
-{
-	if(name[0] == '\0')
-		return 1;
-	if(!wcscmp(name,L"."))
-		return 1;
-	if(!wcscmp(name,L".."))
-		return 1;
-	return 0;
-}
-#endif
-
 static int checkForDot(int lookupflags, const wchar_t *name)
 {
 	return (lookupflags & NO_DOTS) && isSpecialW(name);

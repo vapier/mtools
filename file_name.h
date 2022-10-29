@@ -51,6 +51,9 @@ wchar_t *unix_name(doscp_t *fromDos,
 		   const char *base, const char *ext, uint8_t Case,
 		   wchar_t *answer);
 
+/* Is this a "special" directory entry, such as . or .. ? */
+int isSpecial(const char *name);
+
 #ifdef HAVE_WCHAR_H
 int isSpecialW(const wchar_t *name);
 #else
