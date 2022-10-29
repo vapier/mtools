@@ -76,12 +76,7 @@ typedef struct Dir_t {
 	struct MT_STAT statbuf;
 	char *pathname;
 	DIR *dir;
-#ifdef HAVE_FCHDIR
-	int fd;
-#endif
 } Dir_t;
-
-/*#define FCHDIR_MODE*/
 
 static int get_dir_data(Stream_t *Stream, time_t *date, mt_off_t *size,
 			int *type, unsigned int *address)
@@ -122,10 +117,6 @@ static Class_t DirClass = {
 	0 /* discard */
 };
 
-#ifdef HAVE_FCHDIR
-#define FCHDIR_MODE
-#endif
-
 int unix_dir_loop(Stream_t *Stream, MainParam_t *mp);
 int unix_loop(Stream_t *Stream, MainParam_t *mp, char *arg,
 	      int follow_dir_link);
@@ -137,22 +128,11 @@ int unix_dir_loop(Stream_t *Stream, MainParam_t *mp)
 	char *newName;
 	int ret=0;
 
-#ifdef FCHDIR_MODE
-	int fd;
-
-	fd = open(".", O_RDONLY);
-	if(chdir(This->pathname) < 0) {
-		fprintf(stderr, "Could not chdir into %s (%s)\n",
-			This->pathname, strerror(errno));
-		return -1;
-	}
-#endif
 	while((entry=readdir(This->dir)) != NULL) {
 		if(got_signal)
 			break;
 		if(isSpecial(entry->d_name))
 			continue;
-#ifndef FCHDIR_MODE
 		newName = malloc(strlen(This->pathname) + 1 +
 				 strlen(entry->d_name) + 1);
 		if(!newName) {
@@ -162,19 +142,10 @@ int unix_dir_loop(Stream_t *Stream, MainParam_t *mp)
 		strcpy(newName, This->pathname);
 		strcat(newName, "/");
 		strcat(newName, entry->d_name);
-#else
-		newName = entry->d_name;
-#endif
+
 		ret |= unix_loop(Stream, mp, newName, 0);
-#ifndef FCHDIR_MODE
 		free(newName);
-#endif
 	}
-#ifdef FCHDIR_MODE
-	if(fchdir(fd) < 0)
-		perror("Could not chdir back to ..");
-	close(fd);
-#endif
 	return ret;
 }
 

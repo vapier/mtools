@@ -222,7 +222,7 @@ AC_CHECK_FUNCS(strerror random srandom strchr strrchr lockf flock \
 strcasecmp strncasecmp strnlen atexit on_exit getpass memmove \
 strdup strndup strcspn strspn strtoul strtol strtoll strtoui \
 memcpy strpbrk memset setenv seteuid setresuid \
-tcsetattr tcflush basename fchdir  \
+tcsetattr tcflush basename  \
 readdir snprintf setlocale strstr toupper_l strncasecmp_l \
 wcsdup wcscasecmp wcsnlen putwc \
 alarm sigaction usleep lstat unsetenv mkdir)
