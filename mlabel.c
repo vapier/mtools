@@ -20,10 +20,10 @@
  */
 
 #include "sysincludes.h"
-#include "mainloop.h"
-#include "mtools.h"
 #include "nameclash.h"
 #include "file_name.h"
+#include "vfat.h"
+#include "stream.h"
 
 static void _label_name(doscp_t *cp, const char *filename, int verbose UNUSEDP,
 			int *mangled, dos_name_t *ans, int preserve_case)
@@ -112,7 +112,6 @@ void mlabel(int argc, char **argv, int type UNUSEDP)
 	char longname[VBUFSIZE];
 	char shortname[45];
 	ClashHandling_t ch;
-	struct MainParam_t mp;
 	Stream_t *RootDir;
 	int c;
 	int mangled;
@@ -189,7 +188,6 @@ void mlabel(int argc, char **argv, int type UNUSEDP)
 	    drive = get_default_drive();
 	}
 
-	init_mp(&mp);
 	if(strlen(newLabel) > VBUFSIZE) {
 		fprintf(stderr, "Label too long\n");
 		FREE(&RootDir);

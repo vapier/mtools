@@ -115,4 +115,6 @@ int getfreeMinBytes(Stream_t *Stream, mt_off_t ref);
 
 int adjust_tot_sectors(struct device *dev, mt_off_t offset, char *errmsg);
 
+Stream_t *open_root_dir(char drivename, int flags, int *isRop);
+
 #endif

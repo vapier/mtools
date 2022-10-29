@@ -21,7 +21,6 @@
 
 #include "sysincludes.h"
 #include "mtools.h"
-#include "mainloop.h"
 #include "fsP.h"
 
 #define N_PATTERN 311
@@ -114,7 +113,6 @@ void mbadblocks(int argc, char **argv, int type UNUSEDP)
 	unsigned int i;
 	unsigned int startSector=2;
 	unsigned int endSector=0;
-	struct MainParam_t mp;
 	Fs_t *Fs;
 	Stream_t *Dir;
 	int ret;
@@ -158,8 +156,6 @@ void mbadblocks(int argc, char **argv, int type UNUSEDP)
 	    !argv[optind][0] || argv[optind][1] != ':' || argv[optind][2]) {
 		usage(1);
 	}
-
-	init_mp(&mp);
 
 	Dir = open_root_dir(argv[optind][0], O_RDWR, NULL);
 	if (!Dir) {
