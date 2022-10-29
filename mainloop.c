@@ -534,11 +534,13 @@ static int unix_target_lookup(MainParam_t *mp, const char *arg)
 		case -1:
 			return ERROR_ONE;
 		case 0:
-			mp->targetName="";
 			break;
+		default:
+			return GOT_ONE;
 		}
-		return GOT_ONE;
-	}
+	} else if(errno != ENOENT)
+		return ERROR_ONE;
+
 	ptr = strrchr(mp->unixTarget, '/');
 	if(!ptr) {
 		mp->targetName = mp->unixTarget;
@@ -672,11 +674,8 @@ char *mpBuildUnixFilename(MainParam_t *mp)
 	if(!ret)
 		return 0;
 	strcpy(ret, mp->unixTarget);
+	strcat(ret, "/");
 	if(*target) {
-		/* fix for 'mcopy -n x:file existingfile' -- H. Lermen 980816 */
-		if(!mp->targetName && !mp->targetDir && !unix_is_dir(ret))
-			return ret;
-		strcat(ret, "/");
 		if(!strcmp(target, ".")) {
 		  target="DOT";
 		} else if(!strcmp(target, "..")) {
