@@ -21,7 +21,6 @@
 
 #include "sysincludes.h"
 #include "mtools.h"
-#include "mainloop.h"
 #include "open_image.h"
 
 static void usage(void) NORETURN;

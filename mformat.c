@@ -22,7 +22,6 @@
 
 #include "sysincludes.h"
 #include "mtools.h"
-#include "mainloop.h"
 #include "device.h"
 #include "old_dos.h"
 #include "fsP.h"

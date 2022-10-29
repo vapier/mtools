@@ -21,7 +21,6 @@
 #include "sysincludes.h"
 #include "mtools.h"
 #include "fs.h"
-#include "mainloop.h"
 #include "plain_io.h"
 #include "file.h"
 

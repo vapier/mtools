@@ -20,7 +20,6 @@
 
 #include "sysincludes.h"
 #include "mtools.h"
-#include "mainloop.h"
 #include "fsP.h"
 #include "file.h"
 #include "plain_io.h"
