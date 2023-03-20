@@ -438,7 +438,7 @@ static int common_dos_loop(MainParam_t *mp, const char *pathname,
 	if(!mp->File)
 		return ERROR_ONE;
 
-	if(strpbrk(mp->originalArg, "*[?") != 0 &&
+	if(mp->originalArg && strpbrk(mp->originalArg, "*[?") != 0 &&
 	   (mp->lookupflags & DEFERABLE) &&
 	   isUniqueTarget(mp->targetName))
 		DeferredFileP = &DeferredFile;
@@ -578,6 +578,7 @@ void init_mp(MainParam_t *mp)
 	mp->shortname.len = mp->longname.len = 0;
 	mp->File = 0;
 	mp->fast_quit = 0;
+	mp->originalArg = 0;
 }
 
 const char *mpGetBasename(MainParam_t *mp)
