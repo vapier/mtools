@@ -1255,7 +1255,7 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 	}
 
 	if(tot_sectors == 0) {
-		fprintf(stderr, "Number of sectors not known\n");
+		fprintf(stderr, "Disk size not known\n");
 		exit(1);
 	}
 
