@@ -1922,6 +1922,11 @@ byte in each FAT copy. Using this option may confuse DOS or older mtools
 version, and may make the disk unreadable. Only use if you know what you
 are doing.
 
+@item b
+Use a non-standard bios disk number for this disk. By default, bios
+disk number is inferred from media descriptor: 0x80 for media
+descriptor 0xf8, or 0x00 otherwise.
+
 @end table
 
 To format a diskette at a density other than the default, you must supply
