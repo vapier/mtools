@@ -34,7 +34,7 @@ static int attrib_file(direntry_t *entry, MainParam_t *mp)
 {
 	Arg_t *arg=(Arg_t *) mp->arg;
 
-	if(isRootEntry(entry)) {
+	if(!isRootEntry(entry)) {
 		/* if not root directory, change it */
 		entry->dir.attr = (entry->dir.attr & arg->remove) | arg->add;
 		dir_write(entry);
