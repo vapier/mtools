@@ -1,3 +1,15 @@
+mtools (4.0.43) stable; urgency=low
+  * Fix root directory test in mattrib
+  * -b BiosDisk flag for mformat to allow setting physdrive to a
+    user-specified value
+  * Clearer error message in mformat when trying to mformat a disk whose
+    total size is not known
+  * Make recursive copy more consistent
+  * Trailing slash now always implies target should be a directory
+  * Code cleanup
+
+
+ -- Alain Knaff <alain@knaff.lu>  Tue, 21 Mar 2023 23:20:45 +0100
 mtools (4.0.42) stable; urgency=low
 
   * Added postcmd attribute in drive description to allow to

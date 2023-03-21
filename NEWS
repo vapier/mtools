@@ -1,3 +1,12 @@
+v4_0_43
+	- Fix root directory test in mattrib
+	- -b BiosDisk flag for mformat to allow setting physdrive to
+          a user-specified value
+	- Clearer error message in mformat when trying to mformat a
+          disk whose total size is not known
+	- Make recursive copy more consistent
+	- Trailing slash now always implies target should be a directory
+	- Code cleanup
 v4_0_42
 	- Added postcmd attribute in drive description to allow to
           execute "device release" code automatically at end of
