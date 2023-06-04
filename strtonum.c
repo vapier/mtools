@@ -119,6 +119,7 @@ uint32_t parseSize(char *sizeStr) {
 	case 'K':
 		checkOverflow(tot_sectors, 1);
 		tot_sectors *= 2;
+		/* FALL THROUGH */
 	case 'S':
 		eptr++;
 		/* FALL THROUGH */
