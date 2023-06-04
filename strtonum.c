@@ -91,6 +91,11 @@ static void checkOverflow(uint32_t tot_sectors, int bits) {
 	}
 }
 
+/**
+ * Parses a 32bit number of sectors.
+ * Two similar functions exist in misc.c (str_to_offset_with_end and
+ * str_to_off_with_end, which return a seekable number of bytes instead)
+ */
 uint32_t parseSize(char *sizeStr) {
 	char *eptr;
 	uint32_t tot_sectors = strtou32(sizeStr, &eptr, 10);
@@ -116,6 +121,8 @@ uint32_t parseSize(char *sizeStr) {
 		tot_sectors *= 2;
 		eptr++;
 		break;
+	case 'S':
+		/* FALL THROUGH */
 	case '\0':
 		/* By default, assume sectors */
 		break;
