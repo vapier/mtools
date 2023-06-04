@@ -1007,7 +1007,7 @@ void mformat(int argc, char **argv, int dummy UNUSEDP)
 			case 'b':
 				haveBiosDisk=1;
 				biosDisk = atou8(optarg);
-
+				break;
 
 			/* flags added by mtools */
 			case 'F':
