@@ -55,7 +55,7 @@ typedef struct device {
 	unsigned int hidden;	/* number of hidden sectors. Used for
 				 * mformatting partitioned devices */
 
-	off_t offset;	       	/* skip this many bytes */
+	mt_off_t offset;	/* skip this many bytes */
 
 	unsigned int partition;
 

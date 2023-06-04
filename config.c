@@ -76,7 +76,8 @@ typedef struct switches_l {
 	T_UINT,
 	T_UINT8,
 	T_UINT16,
-	T_UQSTRING
+	T_UQSTRING,
+	T_OFFS
     } type;
 } switches_t;
 
@@ -162,7 +163,7 @@ static struct {
 
 static switches_t dswitches[]= {
     { "FILE", OFFS(name), T_STRING },
-    { "OFFSET", OFFS(offset), T_UINT },
+    { "OFFSET", OFFS(offset), T_OFFS },
     { "PARTITION", OFFS(partition), T_UINT },
     { "FAT", OFFS(fat_bits), T_INT },
     { "FAT_BITS", OFFS(fat_bits), T_UINT },
@@ -281,6 +282,9 @@ static void get_env_conf(void)
 	    case T_STRING:
 	    case T_UQSTRING:
 		* ((char **)global_switches[i].address) = s;
+		break;
+	    case T_OFFS:
+		* ((mt_off_t *)global_switches[i].address) = str_to_offset(s);
 		break;
 	    }
 	    if(errno != 0) {
@@ -421,6 +425,23 @@ static int get_number(void)
     return n;
 }
 
+static mt_off_t get_offset(void)
+{
+    char *last;
+    mt_off_t n;
+
+    skip_junk(1);
+    last = pos;
+    n= str_to_off_with_end(pos, &pos);
+    if(errno)
+	syntax("bad number", 0);
+    if(last == pos)
+	syntax("numeral expected", 0);
+    pos++;
+    token_nr++;
+    return n;
+}
+
 /* purge all entries pertaining to a given drive from the table */
 static void purge(char drive, int fn)
 {
@@ -543,6 +564,9 @@ static int set_var(struct switches_l *switches, int nr,
 	    else if (switches[i].type == T_UQSTRING)
 		* ((char**)((long)switches[i].address+base_address))=
 		    get_unquoted_string();
+	    else if (switches[i].type == T_OFFS)
+		* ((mt_off_t*)((long)switches[i].address+base_address))=
+		    get_offset();
 	    return 0;
 	}
     }
@@ -678,7 +702,7 @@ static void parse_old_device_line(char drive)
 {
     char name[MAXPATHLEN];
     int items;
-    long offset;
+    mt_off_t offset;
 
     int heads, sectors, tracks;
 
@@ -690,13 +714,13 @@ static void parse_old_device_line(char drive)
 
     /* reserve slot */
     append();
-    items = sscanf(token,"%c %s %i %i %i %i %li",
+    items = sscanf(token,"%c %s %i %i %i %i " IMTOF,
 		   &devices[cur_dev].drive,name,&devices[cur_dev].fat_bits,
 		   &tracks,&heads,&sectors, &offset);
     devices[cur_dev].heads = tou16(heads, "heads");
     devices[cur_dev].sectors = tou16(sectors, "sectors");
     devices[cur_dev].tracks = (unsigned int) tracks;
-    devices[cur_dev].offset = (off_t) offset;
+    devices[cur_dev].offset = offset;
     switch(items){
 	case 2:
 	    devices[cur_dev].fat_bits = 0;
@@ -896,7 +920,7 @@ void mtoolstest(int argc, char **argv, int type  UNUSEDP)
 	       dev->name,dev->fat_bits);
 	printf("\ttracks=%d heads=%d sectors=%d hidden=%d\n",
 	       dev->tracks, dev->heads, dev->sectors, dev->hidden);
-	printf("\toffset=0x%lx\n", (long) dev->offset);
+	printf("\toffset=" XMTOF "\n", dev->offset);
 	printf("\tpartition=%d\n", dev->partition);
 
 	if(dev->misc_flags)

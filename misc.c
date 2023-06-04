@@ -201,31 +201,6 @@ time_t getTimeNow(time_t *now)
 	return sharedNow;
 }
 
-/* Convert a string to an offset. The string should be a number,
-   optionally followed by S (sectors), K (K-Bytes), M (Megabytes), G
-   (Gigabytes) */
-off_t str_to_offset_with_end(const char *str, char **endp) {
-	char s;
-	off_t ofs;
-
-	*endp = NULL;
-	ofs = strtol(str, endp, 0);
-	s = **endp;
-	/* trailing char, see if it is a size specifier */
-	if (s == 's' || s == 'S')       /* sector */
-		ofs <<= 9;
-	else if (s == 'k' || s == 'K')  /* kb */
-		ofs <<= 10;
-	else if (s == 'm' || s == 'M')  /* Mb */
-		ofs <<= 20;
-	else if (s == 'g' || s == 'G')  /* Gb */
-		ofs <<= 30;
-	else
-		return ofs;      /* invalid character */
-	(*endp)++;
-	return ofs;
-}
-
 /* Convert a string to a size. The string should be a number,
    optionally followed by S (sectors), K (K-Bytes), M (Megabytes), G
    (Gigabytes) */
@@ -239,21 +214,23 @@ mt_off_t str_to_off_with_end(const char *str, char **endp) {
 	/* trailing char, see if it is a size specifier */
 	if (s == 's' || s == 'S')       /* sector */
 		siz <<= 9;
-	else if (s == 'k' || s == 'K')  /* kb */
+	else if (s == 'k' || s == 'K')  /* kB */
 		siz <<= 10;
-	else if (s == 'm' || s == 'M')  /* Mb */
+	else if (s == 'm' || s == 'M')  /* MB */
 		siz <<= 20;
-	else if (s == 'g' || s == 'G')  /* Gb */
+	else if (s == 'g' || s == 'G')  /* GB */
 		siz <<= 30;
+	else if (s == 't' || s == 'T')  /* TB */
+		siz <<= 40;
 	else
 		return siz;      /* invalid character */
 	(*endp)++;
 	return siz;
 }
 
-off_t str_to_offset(char *str) {
+mt_off_t str_to_offset(char *str) {
 	char *end;
-	off_t ofs = str_to_offset_with_end(str, &end);
+	mt_off_t ofs = str_to_off_with_end(str, &end);
 	if (ofs <= 0)
 		return 0; /* invalid or missing offset */
 	if (*end)

@@ -96,6 +96,26 @@ typedef struct {
 
 #endif
 
+#if SIZEOF_MT_OFF_T > SIZEOF_LONG
+# define MTOF "%llu"
+# define SMTOF "%lld"
+# define XMTOF "%llx"
+# define IMTOF "%lli"
+#else
+# if SIZEOF_MT_OFF_T > SIZEOF_INT
+#  define MTOF "%lu"
+#  define SMTOF "%ld"
+#  define XMTOF "%ld"
+#  define IMTOF "%li"
+# else
+#  define MTOF "%u"
+#  define SMTOF "%d"
+#  define XMTOF "%d"
+#  define IMTOF "%i"
+# endif
+#endif
+
+
 #define min(a,b) ((a) < (b) ? (a) : (b))
 #define MAX_OFF_T_B(bits) \
 	((((mt_off_t) 1 << min(bits-1, sizeof(mt_off_t)*8 - 2)) -1) << 1 | 1)
